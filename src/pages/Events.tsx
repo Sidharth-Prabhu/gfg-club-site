@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, MapPin, Plus, Edit, Trash2, X, Save, Users2, ChevronRight, Clock, Image as ImageIcon, AlignLeft, Info, ToggleRight, Users } from 'lucide-react';
+import { Calendar, MapPin, Plus, Edit, Trash2, X, Save, Users2, ChevronRight, Clock, Image as ImageIcon, AlignLeft, Info, ToggleRight, Users, BookOpen, ScrollText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -18,7 +18,8 @@ const Events = () => {
   const [registrations, setRegistrations] = useState([]);
   
   const [formData, setFormData] = useState({
-    title: '', description: '', poster: '', date: '', location: '', organizer: '', is_open: true
+    title: '', description: '', poster: '', date: '', location: '', organizer: '', is_open: true,
+    participation_type: 'individual', max_team_size: 1, rules: '', requirements: ''
   });
 
   const canManage = user?.role === 'Admin' || user?.role === 'Core';
@@ -50,7 +51,10 @@ const Events = () => {
 
   const handleOpenCreate = () => {
     setSelectedEvent(null);
-    setFormData({ title: '', description: '', poster: '', date: '', location: '', organizer: '', is_open: true });
+    setFormData({ 
+        title: '', description: '', poster: '', date: '', location: '', organizer: '', is_open: true,
+        participation_type: 'individual', max_team_size: 1, rules: '', requirements: ''
+    });
     setIsEditModalOpen(true);
   };
 
@@ -64,7 +68,11 @@ const Events = () => {
       date: new Date(event.date).toISOString().slice(0, 16),
       location: event.location,
       organizer: event.organizer || '',
-      is_open: !!event.is_open
+      is_open: !!event.is_open,
+      participation_type: event.participation_type || 'individual',
+      max_team_size: event.max_team_size || 1,
+      rules: event.rules || '',
+      requirements: event.requirements || ''
     });
     setIsEditModalOpen(true);
   };
@@ -113,6 +121,7 @@ const Events = () => {
   };
 
   const stripHtml = (html) => {
+    if (!html) return "";
     const tmp = document.createElement("DIV");
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || "";
@@ -158,8 +167,9 @@ const Events = () => {
                     <span className="bg-red-500 text-white px-6 py-2 rounded-xl text-xs font-black border border-red-400/50 shadow-xl uppercase tracking-widest">REGISTRATIONS CLOSED</span>
                   </div>
                 )}
-                <div className="absolute top-5 left-5">
+                <div className="absolute top-5 left-5 flex gap-2">
                    <span className="bg-accent/90 backdrop-blur-md text-white px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg">Upcoming</span>
+                   <span className="bg-blue-500/90 backdrop-blur-md text-white px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg capitalize">{event.participation_type}</span>
                 </div>
               </div>
               <div className="p-8 flex-grow flex flex-col space-y-6">
@@ -201,133 +211,96 @@ const Events = () => {
         </div>
       )}
 
-      {/* Create/Edit Modal - RE-STYLED & ROBUST */}
+      {/* Create/Edit Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl overflow-y-auto">
-            <motion.div 
-                initial={{ opacity: 0, scale: 0.95, y: 20 }} 
-                animate={{ opacity: 1, scale: 1, y: 0 }} 
-                exit={{ opacity: 0, scale: 0.95, y: 20 }} 
-                className="bg-card border border-border rounded-[2.5rem] w-full max-w-5xl my-auto shadow-[0_0_50px_rgba(47,141,70,0.15)] overflow-hidden flex flex-col max-h-[90vh]"
-            >
-              {/* Modal Header */}
-              <div className="p-8 border-b border-border flex justify-between items-center bg-background/50 backdrop-blur-sm sticky top-0 z-10">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-accent/10 rounded-xl text-accent">
-                        {selectedEvent ? <Edit size={24} /> : <Plus size={24} />}
-                    </div>
-                    <div>
-                        <h2 className="text-2xl font-black text-text uppercase tracking-tight leading-none">{selectedEvent ? 'Modify Matrix Event' : 'Initialize New Event'}</h2>
-                        <p className="text-[10px] font-black text-text/40 uppercase tracking-widest mt-1">Matrix Node Configuration</p>
-                    </div>
-                </div>
-                <button 
-                    onClick={() => setIsEditModalOpen(false)} 
-                    className="p-3 bg-background border border-border hover:bg-card hover:text-red-500 rounded-full transition-all text-text/40 group active:scale-90"
-                >
-                    <X size={24} className="group-hover:rotate-90 transition-transform" />
-                </button>
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-card border border-border rounded-[3.5rem] w-full max-w-5xl my-auto shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+              <div className="p-10 border-b border-border flex justify-between items-center bg-background/50">
+                <h2 className="text-3xl font-black text-text uppercase tracking-tighter">{selectedEvent ? 'Modify Matrix Event' : 'Initialize New Event'}</h2>
+                <button onClick={() => setIsEditModalOpen(false)} className="text-text/40 hover:text-red-500 p-4 hover:bg-red-500/5 rounded-full transition-all group active:scale-90"><X size={32} /></button>
               </div>
-
-              {/* Form Content */}
-              <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-10 overflow-y-auto custom-scrollbar">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
-                  {/* Headline */}
+              <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-8 overflow-y-auto custom-scrollbar">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="md:col-span-2 space-y-3">
-                    <label className="flex items-center gap-2 text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-1">
-                        <AlignLeft size={12} /> Event Headline
-                    </label>
-                    <input 
-                        required 
-                        type="text" 
-                        className="w-full bg-background border-2 border-border rounded-2xl py-5 px-8 focus:border-accent focus:ring-4 focus:ring-accent/5 outline-none text-xl font-bold text-text shadow-inner transition-all placeholder:text-text/10" 
-                        placeholder="e.g. Master the Matrix Workshop"
-                        value={formData.title} 
-                        onChange={(e) => setFormData({...formData, title: e.target.value})} 
-                    />
+                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Event Headline</label>
+                    <input required type="text" className="w-full bg-background border-2 border-border rounded-[1.5rem] py-5 px-8 focus:border-accent outline-none text-2xl font-black text-text shadow-inner transition-colors" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
                   </div>
 
-                  {/* Organizer & Venue */}
                   <div className="space-y-3">
-                    <label className="flex items-center gap-2 text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-1">
-                        <Users size={12} /> Authority Node / Organizer
-                    </label>
-                    <input required type="text" className="w-full bg-background border-2 border-border rounded-2xl py-4 px-6 focus:border-accent outline-none font-bold text-text shadow-inner transition-colors" placeholder="e.g. GFG Core Team" value={formData.organizer} onChange={(e) => setFormData({...formData, organizer: e.target.value})} />
+                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Authority / Organizer</label>
+                    <input required type="text" className="w-full bg-background border-2 border-border rounded-2xl py-4 px-6 focus:border-accent outline-none font-bold text-text shadow-inner" value={formData.organizer} onChange={(e) => setFormData({...formData, organizer: e.target.value})} />
                   </div>
                   <div className="space-y-3">
-                    <label className="flex items-center gap-2 text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-1">
-                        <MapPin size={12} /> Spatial Node / Venue
-                    </label>
-                    <input required type="text" className="w-full bg-background border-2 border-border rounded-2xl py-4 px-6 focus:border-accent outline-none font-bold text-text shadow-inner transition-colors" placeholder="e.g. Virtual or Audi-1" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} />
+                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Spatial Node / Venue</label>
+                    <input required type="text" className="w-full bg-background border-2 border-border rounded-2xl py-4 px-6 focus:border-accent outline-none font-bold text-text shadow-inner" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} />
                   </div>
 
-                  {/* Date & Poster */}
                   <div className="space-y-3">
-                    <label className="flex items-center gap-2 text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-1">
-                        <Clock size={12} /> Temporal Node / DateTime
-                    </label>
-                    <input required type="datetime-local" className="w-full bg-background border-2 border-border rounded-2xl py-4 px-6 focus:border-accent outline-none font-bold text-text shadow-inner transition-colors appearance-none" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} />
+                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Participation Paradigm</label>
+                    <select className="w-full bg-background border-2 border-border rounded-2xl py-4 px-6 focus:border-accent outline-none font-bold text-text shadow-inner appearance-none cursor-pointer" value={formData.participation_type} onChange={(e) => setFormData({...formData, participation_type: e.target.value})}>
+                        <option value="individual">Individual Only</option>
+                        <option value="team">Team Only</option>
+                        <option value="both">Both (Team & Individual)</option>
+                    </select>
+                  </div>
+                  {formData.participation_type !== 'individual' && (
+                    <div className="space-y-3">
+                        <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Max Team Size</label>
+                        <input type="number" min="2" max="10" className="w-full bg-background border-2 border-border rounded-2xl py-4 px-6 focus:border-accent outline-none font-bold text-text shadow-inner" value={formData.max_team_size} onChange={(e) => setFormData({...formData, max_team_size: parseInt(e.target.value)})} />
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Temporal Node / DateTime</label>
+                    <input required type="datetime-local" className="w-full bg-background border-2 border-border rounded-2xl py-4 px-6 focus:border-accent outline-none font-bold text-text shadow-inner" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} />
                   </div>
                   <div className="space-y-3">
-                    <label className="flex items-center gap-2 text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-1">
-                        <ImageIcon size={12} /> Visual Node URL
-                    </label>
-                    <input type="url" className="w-full bg-background border-2 border-border rounded-2xl py-4 px-6 focus:border-accent outline-none font-bold text-text shadow-inner transition-colors" placeholder="https://..." value={formData.poster} onChange={(e) => setFormData({...formData, poster: e.target.value})} />
+                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Visual Poster Node (URL)</label>
+                    <input type="url" className="w-full bg-background border-2 border-border rounded-2xl py-4 px-6 focus:border-accent outline-none font-bold text-text shadow-inner" value={formData.poster} onChange={(e) => setFormData({...formData, poster: e.target.value})} />
                   </div>
 
-                  {/* Description Editor */}
                   <div className="md:col-span-2 space-y-3">
-                    <label className="flex items-center gap-2 text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-1">
-                        <Info size={12} /> Protocol Protocol / Description
-                    </label>
-                    <div className="bg-background rounded-3xl overflow-hidden border-2 border-border focus-within:border-accent transition-all shadow-inner">
-                        <ReactQuill 
-                            theme="snow" 
-                            value={formData.description} 
-                            onChange={(content) => setFormData({...formData, description: content})} 
-                            modules={modules} 
-                            placeholder="Input the event protocol data..." 
-                        />
+                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Protocol / Description</label>
+                    <div className="bg-background rounded-2xl overflow-hidden border-2 border-border focus-within:border-accent shadow-inner">
+                        <ReactQuill theme="snow" value={formData.description} onChange={(c) => setFormData({...formData, description: c})} modules={modules} />
                     </div>
                   </div>
 
-                  {/* Status Toggle */}
-                  <div className="md:col-span-2 flex items-center justify-between p-6 md:p-8 bg-background border border-border rounded-[2rem] shadow-inner group/toggle hover:border-accent/30 transition-colors">
+                  <div className="md:col-span-2 space-y-3">
+                    <label className="flex items-center gap-2 text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-2"><ScrollText size={12}/> Rules of Engagement</label>
+                    <div className="bg-background rounded-2xl overflow-hidden border-2 border-border focus-within:border-accent shadow-inner">
+                        <ReactQuill theme="snow" value={formData.rules} onChange={(c) => setFormData({...formData, rules: c})} modules={modules} placeholder="Define the rules..." />
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2 space-y-3">
+                    <label className="flex items-center gap-2 text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-2"><BookOpen size={12}/> Technical Requirements</label>
+                    <div className="bg-background rounded-2xl overflow-hidden border-2 border-border focus-within:border-accent shadow-inner">
+                        <ReactQuill theme="snow" value={formData.requirements} onChange={(c) => setFormData({...formData, requirements: c})} modules={modules} placeholder="List technical requirements..." />
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2 flex items-center justify-between p-8 bg-background border-2 border-border rounded-[2rem] shadow-inner">
                     <div className="flex items-center gap-6">
-                      <div className={`p-4 rounded-2xl shadow-sm transition-all duration-500 ${formData.is_open ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
-                        {formData.is_open ? <ToggleRight size={32} /> : <Clock size={32} />}
+                      <div className={`p-4 rounded-2xl shadow-sm ${formData.is_open ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
+                        {formData.is_open ? <Plus size={28} /> : <Clock size={28} />}
                       </div>
                       <div>
-                        <p className="font-black text-text uppercase tracking-widest leading-none mb-2">{formData.is_open ? 'Node: Active' : 'Node: Restricted'}</p>
-                        <p className="text-[10px] font-bold text-text/40 uppercase tracking-widest">Toggle registration access for this node</p>
+                        <p className="font-black text-text uppercase tracking-widest leading-none mb-2">{formData.is_open ? 'Node Open' : 'Node Restricted'}</p>
+                        <p className="text-xs font-medium text-text/40 uppercase">Registration Access Control</p>
                       </div>
                     </div>
-                    <button 
-                      type="button"
-                      onClick={() => setFormData({...formData, is_open: !formData.is_open})}
-                      className={`relative inline-flex h-12 w-24 items-center rounded-full transition-all focus:outline-none shadow-xl border-2 ${formData.is_open ? 'bg-accent border-accent/20' : 'bg-text/10 border-border'}`}
-                    >
-                      <span className={`inline-block h-8 w-8 transform rounded-full bg-white transition-all shadow-lg ${formData.is_open ? 'translate-x-14' : 'translate-x-2'}`} />
+                    <button type="button" onClick={() => setFormData({...formData, is_open: !formData.is_open})} className={`relative inline-flex h-10 w-20 items-center rounded-full transition-all focus:outline-none shadow-inner ${formData.is_open ? 'bg-accent' : 'bg-text/10'}`}>
+                      <span className={`inline-block h-7 w-7 transform rounded-full bg-white transition-transform shadow-xl ${formData.is_open ? 'translate-x-11' : 'translate-x-2'}`} />
                     </button>
                   </div>
                 </div>
-
-                {/* Submit Footer */}
-                <div className="flex flex-col sm:flex-row gap-4 pt-6 sticky bottom-0">
-                    <button 
-                        type="submit" 
-                        className="flex-grow bg-accent hover:bg-gfg-green-hover text-white font-black py-6 rounded-2xl transition-all shadow-[0_10px_30px_rgba(47,141,70,0.3)] uppercase tracking-widest text-sm active:scale-[0.98] flex items-center justify-center gap-3"
-                    >
-                      <Save size={20} /> {selectedEvent ? 'Commit Deployment' : 'Deploy Node'}
+                <div className="flex flex-col sm:flex-row gap-6 pt-4">
+                    <button type="submit" className="bg-accent hover:bg-gfg-green-hover text-white font-black py-7 px-14 rounded-[1.5rem] transition text-xl flex-grow shadow-2xl shadow-accent/20 uppercase tracking-widest active:scale-95">
+                      <Save size={28} /> {selectedEvent ? 'Commit Updates' : 'Deploy Event'}
                     </button>
-                    <button 
-                        type="button" 
-                        onClick={() => setIsEditModalOpen(false)} 
-                        className="bg-card border border-border hover:bg-background text-text/60 font-black py-6 px-12 rounded-2xl transition uppercase tracking-widest text-xs shadow-sm hover:text-red-500 hover:border-red-500/30 active:scale-95"
-                    >
-                        Abort
-                    </button>
+                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-7 px-14 rounded-[1.5rem] transition text-xl uppercase tracking-widest shadow-sm">Discard</button>
                 </div>
               </form>
             </motion.div>
@@ -335,52 +308,10 @@ const Events = () => {
         )}
       </AnimatePresence>
 
-      {/* Participant List Modal */}
-      <AnimatePresence>
-        {isRegListOpen && (
-          <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl">
-            <motion.div initial={{ opacity: 0, scale: 0.98, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98, y: 20 }} className="bg-card border border-border rounded-[3.5rem] w-full max-w-5xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden my-auto">
-              <div className="p-10 border-b border-border bg-background/50 flex justify-between items-center">
-                <h2 className="text-3xl font-black text-text uppercase tracking-tighter">Event Participants</h2>
-                <button onClick={() => setIsRegListOpen(false)} className="p-4 bg-background border border-border hover:bg-card hover:text-red-500 rounded-full transition-all text-text/40 group shadow-xl active:scale-90"><X size={28} className="group-hover:rotate-90 transition-transform" /></button>
-              </div>
-              <div className="flex-grow overflow-y-auto p-10 custom-scrollbar">
-                {registrations.length > 0 ? (
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="text-text/20 text-[10px] font-black uppercase tracking-[0.3em] border-b border-border pb-6">
-                        <th className="pb-6 px-6"> Agent Identity</th>
-                        <th className="pb-6 px-6">Communication Node</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border/30">
-                      {registrations.map((reg, i) => (
-                        <tr key={i} className="hover:bg-accent/5 transition-colors">
-                          <td className="py-6 px-6 font-black text-text uppercase tracking-widest text-sm">{reg.name}</td>
-                          <td className="py-6 px-6 text-text/40 font-bold uppercase text-[10px] tracking-widest">{reg.email}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <p className="text-center py-20 text-text/30 font-black uppercase tracking-widest">No registrations detected.</p>
-                )}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
       <style>{`
         .ql-container { border: none !important; font-family: 'Inter', sans-serif; font-size: 16px; background: transparent; }
-        .ql-toolbar { border: none !important; border-bottom: 1px solid var(--color-border) !important; background: var(--color-card); padding: 15px !important; border-radius: 20px 20px 0 0; }
-        .ql-editor { min-height: 250px; color: var(--color-text); padding: 25px !important; line-height: 1.8; }
-        .ql-snow .ql-stroke { stroke: var(--color-text); opacity: 0.4; stroke-width: 2px; }
-        .ql-snow .ql-fill { fill: var(--color-text); opacity: 0.4; }
-        .ql-snow .ql-picker { color: var(--color-text); opacity: 0.6; font-weight: 800; }
-        .ql-editor.ql-blank::before { color: var(--color-text) !important; opacity: 0.2; left: 25px !important; font-style: normal !important; font-weight: 700; }
-        .ql-snow .ql-picker-options { background-color: var(--color-card); border: 2px solid var(--color-border); border-radius: 12px; padding: 10px; }
-        
+        .ql-toolbar { border: none !important; border-bottom: 1px solid var(--color-border) !important; background: var(--color-card); padding: 15px !important; }
+        .ql-editor { min-height: 200px; color: var(--color-text); padding: 25px !important; line-height: 1.8; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-accent); border-radius: 10px; opacity: 0.2; }

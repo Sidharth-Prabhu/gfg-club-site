@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import StatsCard from '../components/StatsCard';
 import { 
   User, Code, Trophy, Star, Settings, ExternalLink, 
   Github, Link as LinkIcon, Zap, Terminal, RefreshCw, X, Save,
-  ShieldAlert, BookOpen, FileText, Monitor, ChevronRight, MessageSquare, Plus, ArrowLeft, Hash, Sparkles, TrendingUp
+  ShieldAlert, BookOpen, FileText, Monitor, ChevronRight, MessageSquare, Plus, ArrowLeft, Hash, Sparkles, TrendingUp, UserPlus, Check, Trash2
 } from 'lucide-react';
 import { CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,8 +19,7 @@ const Dashboard = () => {
   const [myProjects, setMyProjects] = useState([]);
   const [myDiscussions, setMyDiscussions] = useState([]);
   const [pendingProjects, setPendingProjects] = useState([]);
-  const [expandedProject, setExpandedProject] = useState(null);
-  const [expandedPost, setExpandedPost] = useState(null);
+  const [invitations, setInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -33,16 +32,18 @@ const Dashboard = () => {
 
   const fetchData = async () => {
     try {
-      const [profileRes, activityRes, projectsRes, discussionsRes] = await Promise.all([
+      const [profileRes, activityRes, projectsRes, discussionsRes, invRes] = await Promise.all([
         api.get('/users/profile'),
         api.get('/stats/user-activity'),
         api.get('/projects/my-projects'),
-        api.get('/discussions')
+        api.get('/discussions'),
+        api.get('/events/invitations')
       ]);
       setProfile(profileRes.data);
       setActivityData(activityRes.data);
       setMyProjects(projectsRes.data);
       setMyDiscussions(discussionsRes.data.filter(d => d.author_id === profileRes.data.id));
+      setInvitations(invRes.data);
       
       if (canModerate) {
           const { data: pending } = await api.get('/projects?status=Pending');
@@ -63,6 +64,19 @@ const Dashboard = () => {
     }
   };
 
+  useEffect(() => {
+    fetchData();
+  }, [user?.role]);
+
+  const handleRespondInv = async (regId, response) => {
+      try {
+          await api.post('/events/invitations/respond', { regId, response });
+          fetchData();
+      } catch (error) {
+          alert('Action failed');
+      }
+  };
+
   const handleSync = async (silent = false) => {
     if (!silent) setSyncing(true);
     try {
@@ -74,11 +88,6 @@ const Dashboard = () => {
       if (!silent) setSyncing(false);
     }
   };
-
-  useEffect(() => {
-    fetchData();
-    handleSync(true);
-  }, [user?.role]);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -104,18 +113,10 @@ const Dashboard = () => {
   return (
     <div className="container mx-auto px-4 py-8 space-y-12 max-w-7xl pb-20">
       {/* Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 border-b border-border pb-10"
-      >
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 border-b border-border pb-10">
         <div className="space-y-2">
-          <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase italic">
-            Terminal <span className="text-accent">Node</span>: {profile?.name}
-          </h1>
-          <p className="text-text/40 font-black text-xs tracking-[0.3em] uppercase flex items-center gap-2">
-            <Sparkles size={14} className="text-accent" /> Control Center & Core Identity
-          </p>
+          <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase italic">Terminal <span className="text-accent">Node</span>: {profile?.name}</h1>
+          <p className="text-text/40 font-black text-xs tracking-[0.3em] uppercase flex items-center gap-2"><Sparkles size={14} className="text-accent" /> Control Center & Core Identity</p>
         </div>
         <div className="flex flex-wrap gap-4 w-full lg:w-auto">
           <button onClick={() => handleSync(false)} disabled={syncing} className="flex-1 lg:flex-none bg-accent hover:bg-gfg-green-hover text-white px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-3 transition shadow-xl shadow-accent/20 text-xs uppercase tracking-widest active:scale-95 disabled:opacity-50">
@@ -127,7 +128,34 @@ const Dashboard = () => {
         </div>
       </motion.div>
 
-      {/* Stats Grid */}
+      {/* Invitations Queue */}
+      <AnimatePresence>
+          {invitations.length > 0 && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-blue-500/5 border border-blue-500/20 p-8 rounded-[2.5rem] shadow-xl space-y-6">
+                  <div className="flex items-center gap-4">
+                      <div className="p-3 bg-blue-500/10 rounded-xl text-blue-500 border border-blue-500/20"><UserPlus size={24} /></div>
+                      <h2 className="text-2xl font-black text-text uppercase tracking-tight italic">Pending Transmissions</h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {invitations.map(inv => (
+                          <div key={inv.reg_id} className="bg-card border border-border p-6 rounded-2xl space-y-4 shadow-sm hover:border-blue-500/50 transition-colors">
+                              <div>
+                                  <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Team Invitation</p>
+                                  <h4 className="font-black text-text uppercase italic">{inv.team_name}</h4>
+                                  <p className="text-[9px] font-bold text-text/40 uppercase tracking-widest mt-1">For: {inv.event_title}</p>
+                                  <p className="text-[9px] font-bold text-text/40 uppercase tracking-widest">By: {inv.inviter_name}</p>
+                              </div>
+                              <div className="flex gap-3">
+                                  <button onClick={() => handleRespondInv(inv.reg_id, 'Accepted')} className="flex-1 bg-accent/10 hover:bg-accent text-accent hover:text-white border border-accent/20 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"><Check size={14} className="inline mr-1" /> Accept</button>
+                                  <button onClick={() => handleRespondInv(inv.reg_id, 'Declined')} className="flex-1 bg-red-500/5 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/10 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"><Trash2 size={14} className="inline mr-1" /> Decline</button>
+                              </div>
+                          </div>
+                      ))}
+                  </div>
+              </motion.div>
+          )}
+      </AnimatePresence>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         <StatsCard title="Problems Solved" value={profile?.problems_solved || 0} icon={Code} color="bg-accent" />
         <StatsCard title="GFG Core Score" value={profile?.gfg_score || 0} icon={Star} color="bg-yellow-500" />
@@ -138,6 +166,27 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div className="lg:col-span-2 space-y-12">
             
+            {/* MODERATION QUEUE (Admin/Core Only) */}
+            {canModerate && pendingProjects.length > 0 && (
+                <div className="bg-yellow-500/5 border border-yellow-500/20 p-10 rounded-[3rem] shadow-2xl relative overflow-hidden">
+                    <div className="flex items-center gap-5 mb-10 relative z-10">
+                        <div className="p-4 bg-yellow-500/10 rounded-2xl text-yellow-500 border border-yellow-500/20 shadow-inner"><ShieldAlert size={32} /></div>
+                        <div>
+                            <h2 className="text-3xl font-black text-text uppercase tracking-tighter italic">Review Queue</h2>
+                            <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest mt-1">Awaiting Core Verification</p>
+                        </div>
+                    </div>
+                    <div className="space-y-5 relative z-10">
+                        {pendingProjects.map(proj => (
+                            <div key={proj.id} className="flex items-center justify-between p-8 bg-card border border-border rounded-[2rem] hover:border-yellow-500 transition-all group shadow-sm">
+                                <div><h4 className="font-black text-text text-xl uppercase italic group-hover:text-yellow-500 transition-colors">{proj.title}</h4><p className="text-[10px] text-text/40 font-black uppercase tracking-widest mt-2">{proj.creator_name} • {proj.category}</p></div>
+                                <ChevronRight size={24} className="text-yellow-500" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* ACTIVITY GRAPH */}
             <div className="bg-card border border-border p-10 rounded-[3rem] shadow-sm">
                 <div className="flex items-center gap-4 mb-10">
@@ -182,7 +231,7 @@ const Dashboard = () => {
             </div>
         </div>
 
-        {/* Sidebar */}
+        {/* Sidebar Nodes */}
         <div className="space-y-10">
             <div className="bg-card border border-border p-10 rounded-[3rem] shadow-sm sticky top-24">
                 <div className="flex items-center gap-4 mb-10">
@@ -205,7 +254,7 @@ const Dashboard = () => {
                         </div>
                         <div className="flex justify-between items-end">
                             <span className="text-[10px] font-black text-text/30 uppercase tracking-[0.2em]">{p.label || 'Solved'}</span>
-                            <span className="text-3xl font-black text-accent tracking-tighter leading-none">{p.solved || 0}</span>
+                            <span className="text-3xl font-black text-accent tracking-tighter leading-none italic">{p.solved || 0}</span>
                         </div>
                     </div>
                     ))}
@@ -214,7 +263,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Modals remain same */}
+      {/* Profile Edit Modal */}
       <AnimatePresence>
         {isEditModalOpen && (
           <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl overflow-y-auto">
