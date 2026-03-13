@@ -9,8 +9,6 @@ import {
   Edit, Edit3, Save, MoreHorizontal
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
 
 const Community = () => {
   const { user } = useAuth();
@@ -18,24 +16,9 @@ const Community = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedTag, setSelectedTag] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedPost, setExpandedPost] = useState(null);
   const [comments, setComments] = useState([]);
-  const [replyingTo, setReplyingTo] = useState(null);
   const [mainComment, setMainComment] = useState('');
-  const [isEditingPost, setIsEditingPost] = useState(false);
-  
-  const [formData, setFormData] = useState({ title: '', content: '', tags: '' });
-
-  const modules = useMemo(() => ({
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-      [{'list': 'ordered'}, {'list': 'bullet'}],
-      ['code-block', 'link', 'image'],
-      ['clean']
-    ],
-  }), []);
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -61,50 +44,6 @@ const Community = () => {
   useEffect(() => {
     fetchPosts();
   }, [selectedTag]);
-
-  const handleCreatePost = async (e) => {
-    e.preventDefault();
-    if (!formData.title || !formData.content) return;
-    try {
-      const tagsArray = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
-      if (isEditingPost && expandedPost) {
-          await api.put(`/discussions/${expandedPost.id}`, { ...formData, tags: tagsArray });
-          setIsEditingPost(false);
-          const { data: updatedPosts } = await api.get(`/discussions?search=${search}&tag=${selectedTag || ''}`);
-          const updated = updatedPosts.find(p => p.id === expandedPost.id);
-          if (updated) setExpandedPost(updated);
-      } else {
-          await api.post('/discussions', { ...formData, tags: tagsArray });
-      }
-      setFormData({ title: '', content: '', tags: '' });
-      setIsModalOpen(false);
-      fetchPosts();
-    } catch (error) {
-      alert('Action failed');
-    }
-  };
-
-  const handleEditPost = (post) => {
-    setFormData({
-        title: post.title,
-        content: post.content,
-        tags: post.tags || ''
-    });
-    setIsEditingPost(true);
-    setIsModalOpen(true);
-  };
-
-  const handleDeletePost = async (id) => {
-    if (window.confirm('Delete this post permanently?')) {
-      try {
-        await api.delete(`/discussions/${id}`);
-        if (expandedPost?.id === id) setExpandedPost(null);
-        fetchPosts();
-      } catch (error) {
-        alert('Action failed');
-      }
-    }
-  };
 
   const handleReactPost = async (postId) => {
     try {
@@ -157,23 +96,6 @@ const Community = () => {
     } catch (error) { alert('Failed to add reply'); }
   };
 
-  const handleEditComment = async (id, content) => {
-      try {
-          await api.put(`/discussions/comments/${id}`, { content });
-          fetchComments(expandedPost.id);
-      } catch (error) { alert('Failed to update comment'); }
-  };
-
-  const handleDeleteComment = async (id) => {
-      if (window.confirm('Delete this comment?')) {
-          try {
-              await api.delete(`/discussions/comments/${id}`);
-              fetchComments(expandedPost.id);
-              fetchPosts();
-          } catch (error) { alert('Failed to delete comment'); }
-      }
-  };
-
   const threadedComments = useMemo(() => {
     const map = {};
     const roots = [];
@@ -192,10 +114,7 @@ const Community = () => {
 
   const CommentItem = ({ comment, depth = 0, onReply }) => {
     const [isReplying, setIsReplying] = useState(false);
-    const [isEditing, setIsEditing] = useState(false);
-    const [localReplyText, setLocalReplyText] = useState('');
-
-    const canManageComment = user?.role === 'Admin' || user?.role === 'Core' || user?.id === comment.user_id;
+    const [replyText, setReplyText] = useState('');
 
     return (
         <div className={`space-y-4 ${depth > 0 ? 'ml-4 md:ml-10 border-l border-gray-800 pl-4 md:pl-6' : ''}`}>
@@ -213,76 +132,22 @@ const Community = () => {
                 )}
                 <span className="text-[10px] text-gray-600 hidden sm:inline">{new Date(comment.created_at).toLocaleDateString()}</span>
               </div>
-              <div className="flex items-center gap-3">
-                  <button onClick={() => handleReactComment(comment.id)} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-500 transition-colors">
-                    <Heart size={14} className={comment.reaction_count > 0 ? 'fill-red-500 text-red-500' : ''} />
-                    <span className="font-bold">{comment.reaction_count || 0}</span>
-                  </button>
-                  {canManageComment && (
-                      <div className="flex gap-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                          {user?.id === comment.user_id && (
-                              <button onClick={() => { setLocalReplyText(comment.content); setIsEditing(true); }} className="text-gray-500 hover:text-accent"><Edit size={14} /></button>
-                          )}
-                          <button onClick={() => handleDeleteComment(comment.id)} className="text-gray-500 hover:text-red-500"><Trash2 size={14} /></button>
-                      </div>
-                  )}
-              </div>
+              <button onClick={() => handleReactComment(comment.id)} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-500 transition-colors">
+                <Heart size={14} className={comment.reaction_count > 0 ? 'fill-red-500 text-red-500' : ''} />
+                <span className="font-bold">{comment.reaction_count || 0}</span>
+              </button>
             </div>
-
-            {isEditing ? (
-                <div className="space-y-3">
-                    <textarea 
-                        className="w-full bg-background/50 border border-gray-700 rounded-xl p-3 text-sm focus:border-accent outline-none resize-none text-white shadow-inner"
-                        value={localReplyText}
-                        onChange={(e) => setLocalReplyText(e.target.value)}
-                    />
-                    <div className="flex justify-end gap-3">
-                        <button onClick={() => setIsEditing(false)} className="text-xs text-gray-500">Cancel</button>
-                        <button 
-                            onClick={() => { handleEditComment(comment.id, localReplyText); setIsEditing(false); }}
-                            className="bg-accent text-white text-[10px] font-bold px-4 py-1.5 rounded-lg"
-                        >Update</button>
-                    </div>
-                </div>
-            ) : (
-                <p className="text-sm text-gray-300 leading-relaxed">{comment.content}</p>
-            )}
-
+            <p className="text-sm text-gray-300 leading-relaxed">{comment.content}</p>
             <div className="flex gap-4 pt-1">
-                <button 
-                    onClick={() => { setIsReplying(!isReplying); setLocalReplyText(''); }}
-                    className="text-[11px] font-bold text-gray-500 hover:text-white flex items-center gap-1.5 transition-colors"
-                >
+                <button onClick={() => setIsReplying(!isReplying)} className="text-[11px] font-bold text-gray-500 hover:text-white flex items-center gap-1.5 transition-colors">
                     <Reply size={12} /> Reply
                 </button>
             </div>
-            
             <AnimatePresence>
                 {isReplying && (
-                    <motion.form 
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            if(!localReplyText.trim()) return;
-                            onReply(localReplyText, comment.id);
-                            setLocalReplyText('');
-                            setIsReplying(false);
-                        }} 
-                        className="pt-2 space-y-3"
-                    >
-                        <textarea 
-                            autoFocus
-                            className="w-full bg-background/50 border border-gray-700 rounded-xl p-3 text-sm focus:border-accent outline-none resize-none text-white shadow-inner"
-                            placeholder={`Reply to ${comment.author_name}...`}
-                            value={localReplyText}
-                            onChange={(e) => setLocalReplyText(e.target.value)}
-                        />
-                        <div className="flex justify-end gap-3">
-                            <button type="button" onClick={() => setIsReplying(false)} className="text-xs text-gray-500 px-3 py-1 hover:text-white transition-colors">Cancel</button>
-                            <button type="submit" className="bg-accent hover:bg-green-700 text-white text-xs font-bold px-5 py-2 rounded-lg transition shadow-lg shadow-accent/10">Post Reply</button>
-                        </div>
+                    <motion.form initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} onSubmit={(e) => { e.preventDefault(); if(!replyText.trim()) return; onReply(replyText, comment.id); setReplyText(''); setIsReplying(false); }} className="pt-2 space-y-3">
+                        <textarea autoFocus className="w-full bg-background/50 border border-gray-700 rounded-xl p-3 text-sm focus:border-accent outline-none resize-none text-white shadow-inner" placeholder={`Reply to ${comment.author_name}...`} value={replyText} onChange={(e) => setReplyText(e.target.value)} />
+                        <div className="flex justify-end gap-3"><button type="button" onClick={() => setIsReplying(false)} className="text-xs text-gray-500 px-3 py-1 hover:text-white transition-colors">Cancel</button><button type="submit" className="bg-accent hover:bg-green-700 text-white text-xs font-bold px-5 py-2 rounded-lg transition shadow-lg shadow-accent/10">Post Reply</button></div>
                     </motion.form>
                 )}
             </AnimatePresence>
@@ -303,12 +168,6 @@ const Community = () => {
               <h1 className="text-4xl font-extrabold text-white tracking-tight">Community Forum</h1>
               <p className="text-gray-400 mt-2 text-lg">Discuss algorithms, share projects, and collaborate with peers.</p>
             </div>
-            <button 
-              onClick={() => { setIsEditingPost(false); setFormData({title:'', content:'', tags:''}); setIsModalOpen(true); }}
-              className="bg-accent hover:bg-green-700 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-2 transition shadow-xl shadow-accent/20 text-lg"
-            >
-              <Plus size={24} /> New Discussion
-            </button>
           </div>
 
           <div className="flex flex-col md:flex-row gap-4">
@@ -325,11 +184,7 @@ const Community = () => {
             </div>
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
               {['All', 'DSA', 'Development', 'Jobs', 'Resources'].map(tag => (
-                <button 
-                  key={tag}
-                  onClick={() => setSelectedTag(tag === 'All' ? null : tag)}
-                  className={`px-6 py-2 rounded-xl text-sm font-bold border transition ${selectedTag === tag || (tag === 'All' && !selectedTag) ? 'bg-accent border-accent text-white' : 'bg-card border-gray-800 text-gray-400 hover:border-gray-600'}`}
-                >
+                <button key={tag} onClick={() => setSelectedTag(tag === 'All' ? null : tag)} className={`px-6 py-2 rounded-xl text-sm font-bold border transition ${selectedTag === tag || (tag === 'All' && !selectedTag) ? 'bg-accent border-accent text-white shadow-lg shadow-accent/10' : 'bg-card border-gray-800 text-gray-400 hover:border-gray-600'}`}>
                   {tag}
                 </button>
               ))}
@@ -337,7 +192,7 @@ const Community = () => {
           </div>
 
           {loading ? (
-            <div className="py-32 text-center text-accent font-bold">Synchronizing data...</div>
+            <div className="py-32 text-center text-accent font-bold animate-pulse">Synchronizing feed...</div>
           ) : posts.length > 0 ? (
             <div className="space-y-4">
               {posts.map(post => (
@@ -360,7 +215,7 @@ const Community = () => {
                     </div>
                     <h2 className="text-2xl font-bold text-white group-hover:text-accent transition-colors leading-tight">{post.title}</h2>
                     <div className="text-gray-400 text-sm line-clamp-2 leading-relaxed" dangerouslySetInnerHTML={{ __html: post.content }} />
-                    <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+                    <div className="flex flex-wrap gap-2 pt-2">
                       <div className="flex gap-2">
                         {post.tags?.split(',').map((tag, i) => (
                           <span key={i} className="text-[10px] font-black uppercase text-accent bg-accent/5 px-2.5 py-1 rounded border border-accent/10">{tag}</span>
@@ -374,7 +229,7 @@ const Community = () => {
           ) : (
             <div className="py-40 text-center text-gray-500 bg-card rounded-[2rem] border border-gray-800 border-dashed">
               <MessageSquare size={64} className="mx-auto mb-4 opacity-10" />
-              <p className="text-xl">The forum is empty. Start the first discussion!</p>
+              <p className="text-xl">Nothing here yet.</p>
             </div>
           )}
         </>
@@ -386,21 +241,11 @@ const Community = () => {
             <div className="bg-card border border-gray-800 rounded-[2.5rem] overflow-hidden shadow-2xl">
                 <div className="p-8 md:p-12 space-y-10">
                     <div className="space-y-6">
-                        <div className="flex flex-wrap items-center justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                                <span className="bg-accent/10 text-accent text-[10px] font-black px-3 py-1 rounded-full border border-accent/20 tracking-tighter uppercase">DISCUSSION</span>
-                                {expandedPost.tags?.split(',').map((tag, i) => (
-                                    <span key={i} className="text-[10px] font-bold text-gray-500 bg-background border border-gray-800 px-2 py-1 rounded-md">#{tag}</span>
-                                ))}
-                            </div>
-                            {(user?.role === 'Admin' || user?.role === 'Core' || user?.id === expandedPost.author_id) && (
-                                <div className="flex gap-3">
-                                    {user?.id === expandedPost.author_id && (
-                                        <button onClick={() => handleEditPost(expandedPost)} className="p-2.5 bg-background border border-gray-800 rounded-xl hover:text-accent transition-colors"><Edit3 size={18} /></button>
-                                    )}
-                                    <button onClick={() => handleDeletePost(expandedPost.id)} className="p-2.5 bg-background border border-gray-800 rounded-xl hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
-                                </div>
-                            )}
+                        <div className="flex flex-wrap items-center gap-3">
+                            <span className="bg-accent/10 text-accent text-[10px] font-black px-3 py-1 rounded-full border border-accent/20 tracking-tighter uppercase">DISCUSSION</span>
+                            {expandedPost.tags?.split(',').map((tag, i) => (
+                                <span key={i} className="text-[10px] font-bold text-gray-500 bg-background border border-gray-800 px-2 py-1 rounded-md">#{tag}</span>
+                            ))}
                         </div>
                         <h1 className="text-4xl md:text-5xl font-black text-white leading-tight">{expandedPost.title}</h1>
                         <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 pt-2 border-b border-gray-800/50 pb-8">
@@ -410,7 +255,7 @@ const Community = () => {
                                 <span className="bg-gray-800 text-[10px] px-2 py-0.5 rounded text-gray-400 font-bold uppercase">{expandedPost.author_role}</span>
                             </div>
                             <span className="flex items-center gap-1.5"><Clock size={16} /> {new Date(expandedPost.created_at).toLocaleDateString()}</span>
-                            <span className="flex items-center gap-1.5 text-accent"><MessageSquare size={16} /> {comments.length} contributions</span>
+                            <span className="flex items-center gap-1.5 text-accent"><MessageSquare size={16} /> {comments.length} replies</span>
                         </div>
                     </div>
 
@@ -429,63 +274,22 @@ const Community = () => {
             </div>
 
             <div className="space-y-10">
-                <div className="flex items-center gap-4"><h3 className="text-3xl font-black text-white">Community Insights</h3><div className="h-[2px] flex-grow bg-gradient-to-r from-gray-800 to-transparent"></div></div>
+                <div className="flex items-center gap-4"><h3 className="text-3xl font-black text-white">Discussion Thread</h3><div className="h-[2px] flex-grow bg-gradient-to-r from-gray-800 to-transparent"></div></div>
                 <div className="space-y-8">
                     {threadedComments.length > 0 ? threadedComments.map(comment => (<CommentItem key={comment.id} comment={comment} onReply={handleAddReply} />)) : (
                     <div className="py-24 text-center bg-card/20 rounded-[2.5rem] border-2 border-dashed border-gray-800"><p className="text-xl text-gray-500 font-bold">No contributions yet.</p></div>
                     )}
                 </div>
                 <div className="bg-card border border-gray-800 rounded-[2.5rem] p-8 md:p-10 shadow-2xl">
-                    <div className="flex items-center gap-3 mb-6"><div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-accent"><Plus size={20} /></div><h4 className="text-2xl font-black text-white">Your Contribution</h4></div>
                     <form onSubmit={handleAddMainComment} className="space-y-6">
                         <textarea required rows={6} className="w-full bg-background border border-gray-700 rounded-3xl py-6 px-8 focus:border-accent outline-none resize-none text-white text-lg leading-relaxed" placeholder="Share your perspective..." value={mainComment} onChange={(e) => setMainComment(e.target.value)} />
-                        <div className="flex justify-end"><button type="submit" className="bg-accent hover:bg-green-700 text-white font-black px-12 py-5 rounded-2xl flex items-center gap-3 transition shadow-2xl text-xl uppercase tracking-tighter">Post to Thread</button></div>
+                        <div className="flex justify-end"><button type="submit" className="bg-accent hover:bg-green-700 text-white font-black px-12 py-5 rounded-2xl flex items-center gap-3 transition shadow-2xl text-xl uppercase tracking-tighter">Post Comment</button></div>
                     </form>
                 </div>
             </div>
           </div>
         </motion.div>
       )}
-
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md overflow-y-auto">
-            <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }} className="bg-card border border-gray-800 rounded-[2.5rem] w-full max-w-4xl my-auto shadow-2xl overflow-hidden">
-              <div className="p-8 border-b border-gray-800 flex justify-between items-center bg-background/50">
-                <h2 className="text-3xl font-black text-white">{isEditingPost ? 'Modify Discussion' : 'New Discussion'}</h2>
-                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white p-3 hover:bg-gray-800 rounded-full transition-all"><X size={28} /></button>
-              </div>
-              <form onSubmit={handleCreatePost} className="p-10 space-y-8">
-                  <div className="space-y-3">
-                    <label className="block text-xl font-black text-gray-200">Title</label>
-                    <input required type="text" className="w-full bg-background border-2 border-gray-800 rounded-3xl py-5 px-8 focus:border-accent outline-none text-2xl font-bold text-white shadow-inner" placeholder="Thread title..." value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="block text-xl font-black text-gray-200">Content</label>
-                    <div className="bg-background rounded-3xl overflow-hidden border-2 border-gray-800 focus-within:border-accent transition"><ReactQuill theme="snow" value={formData.content} onChange={(content) => setFormData({...formData, content})} modules={modules} placeholder="Share the details..." /></div>
-                  </div>
-                  <div className="space-y-3">
-                    <label className="block text-xl font-black text-gray-200">Tags</label>
-                    <div className="relative"><Hash className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-600" size={24} /><input type="text" className="w-full bg-background border-2 border-gray-800 rounded-3xl py-5 pl-14 pr-8 focus:border-accent outline-none text-lg font-bold text-white shadow-inner" placeholder="comma, separated, tags" value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} /></div>
-                  </div>
-                  <div className="flex gap-6 pt-4"><button type="submit" className="bg-accent hover:bg-green-700 text-white font-black py-6 px-12 rounded-[1.5rem] transition text-xl flex-grow shadow-2xl shadow-accent/30 uppercase tracking-tighter">{isEditingPost ? 'Update Thread' : 'Publish Thread'}</button><button type="button" onClick={() => setIsModalOpen(false)} className="bg-gray-800 hover:bg-gray-700 text-white font-black py-6 px-12 rounded-[1.5rem] transition text-xl">Discard</button></div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      <style>{`
-        .ql-container { border: none !important; font-family: inherit; font-size: 18px; }
-        .ql-toolbar { border: none !important; border-bottom: 2px solid #1e293b !important; background: #1e293b; padding: 15px !important; }
-        .ql-editor { min-height: 300px; color: #f1f5f9; padding: 30px !important; line-height: 1.8; }
-        .ql-snow .ql-stroke { stroke: #94a3b8; stroke-width: 2px; }
-        .ql-snow .ql-fill { fill: #94a3b8; }
-        .ql-snow .ql-picker { color: #94a3b8; font-weight: 800; }
-        .ql-editor.ql-blank::before { color: #334155 !important; left: 30px !important; font-style: normal; font-weight: 700; }
-        .ql-snow .ql-picker-options { background-color: #1e293b; border: 2px solid #334155; border-radius: 12px; }
-        .ql-snow .ql-editor pre.ql-syntax { background-color: #020617; color: #10b981; padding: 25px; border-radius: 20px; border: 1px solid #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 14px; }
-      `}</style>
     </div>
   );
 };
