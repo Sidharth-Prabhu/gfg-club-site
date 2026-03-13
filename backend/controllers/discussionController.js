@@ -56,6 +56,35 @@ export const createDiscussion = async (req, res) => {
   }
 };
 
+export const updateDiscussion = async (req, res) => {
+  const postId = req.params.id;
+  const { title, content, tags } = req.body;
+  const { id: userId, role } = req.user;
+
+  try {
+    const [rows] = await pool.execute('SELECT author_id FROM discussions WHERE id = ?', [postId]);
+    if (rows.length === 0) return res.status(404).json({ message: 'Post not found' });
+
+    if (rows[0].author_id !== userId && role !== 'Admin' && role !== 'Core') {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    await pool.execute('UPDATE discussions SET title = ?, content = ? WHERE id = ?', [title, content, postId]);
+    
+    // Update tags: remove old, add new
+    await pool.execute('DELETE FROM post_tags WHERE post_id = ?', [postId]);
+    if (tags && Array.isArray(tags)) {
+      for (const tag of tags) {
+        await pool.execute('INSERT INTO post_tags (post_id, tag) VALUES (?, ?)', [postId, tag]);
+      }
+    }
+
+    res.json({ message: 'Post updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const deleteDiscussion = async (req, res) => {
   const postId = req.params.id;
   const { id: userId, role } = req.user;
@@ -119,6 +148,45 @@ export const addComment = async (req, res) => {
       [userId, postId, content, parentId || null]
     );
     res.status(201).json({ message: 'Comment added' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateComment = async (req, res) => {
+  const commentId = req.params.id;
+  const { content } = req.body;
+  const { id: userId, role } = req.user;
+
+  try {
+    const [rows] = await pool.execute('SELECT user_id FROM post_comments WHERE id = ?', [commentId]);
+    if (rows.length === 0) return res.status(404).json({ message: 'Comment not found' });
+
+    if (rows[0].user_id !== userId && role !== 'Admin' && role !== 'Core') {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    await pool.execute('UPDATE post_comments SET content = ? WHERE id = ?', [content, commentId]);
+    res.json({ message: 'Comment updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const deleteComment = async (req, res) => {
+  const commentId = req.params.id;
+  const { id: userId, role } = req.user;
+
+  try {
+    const [rows] = await pool.execute('SELECT user_id FROM post_comments WHERE id = ?', [commentId]);
+    if (rows.length === 0) return res.status(404).json({ message: 'Comment not found' });
+
+    if (rows[0].user_id !== userId && role !== 'Admin' && role !== 'Core') {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    await pool.execute('DELETE FROM post_comments WHERE id = ?', [commentId]);
+    res.json({ message: 'Comment deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
