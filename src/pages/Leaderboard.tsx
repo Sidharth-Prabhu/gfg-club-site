@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import LeaderboardTable from '../components/LeaderboardTable';
-import { Trophy, Medal, Star, Hash, ShieldCheck, User as UserIcon, Star as StarIcon } from 'lucide-react';
+import { Trophy, Medal, Star, ShieldCheck, Star as StarIcon, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Leaderboard = () => {
   const [data, setData] = useState([]);
@@ -28,86 +29,149 @@ const Leaderboard = () => {
     { 
       header: 'Rank', 
       render: (_, i) => (
-        <div className="flex items-center gap-2">
-          {i === 0 && <Trophy size={18} className="text-yellow-500" />}
-          {i === 1 && <Medal size={18} className="text-gray-400" />}
-          {i === 2 && <Medal size={18} className="text-amber-600" />}
-          <span className={i < 3 ? 'font-bold' : ''}>#{i + 1}</span>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 flex items-center justify-center relative">
+            {i === 0 && <Trophy size={28} className="text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]" />}
+            {i === 1 && <Medal size={28} className="text-gray-400 drop-shadow-[0_0_8px_rgba(156,163,175,0.4)]" />}
+            {i === 2 && <Medal size={28} className="text-amber-600 drop-shadow-[0_0_8px_rgba(217,119,6,0.4)]" />}
+            {i > 2 && <span className="text-text/30 font-black text-xl leading-none">#{i + 1}</span>}
+          </div>
         </div>
       )
     },
     { 
-      header: 'Name', 
+      header: 'Innovation Agent', 
       key: 'name', 
       render: (row) => (
-        <div className="flex items-center gap-2">
-          <span className="font-medium">{row.name}</span>
-          {row.role === 'Admin' && (
-            <span className="bg-red-500/10 text-red-500 text-[10px] font-bold px-2 py-0.5 rounded-full border border-red-500/20 flex items-center gap-1">
-              <ShieldCheck size={10} /> ADMIN
-            </span>
-          )}
-          {row.role === 'Core' && (
-            <span className="bg-accent/10 text-accent text-[10px] font-bold px-2 py-0.5 rounded-full border border-accent/20 flex items-center gap-1">
-              <StarIcon size={10} fill="currentColor" /> CORE
-            </span>
-          )}
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-2xl bg-accent/5 flex items-center justify-center text-accent font-black text-sm border border-accent/10 shadow-inner">
+            {row.name[0]}
+          </div>
+          <div className="flex flex-col">
+            <span className="font-black text-text uppercase tracking-tight text-lg">{row.name}</span>
+            <div className="flex gap-2 mt-1">
+              {row.role === 'Admin' && (
+                <span className="bg-red-500/10 text-red-500 text-[8px] font-black px-2 py-0.5 rounded border border-red-500/20 flex items-center gap-1 uppercase tracking-widest">
+                  <ShieldCheck size={10} /> ADMIN
+                </span>
+              )}
+              {row.role === 'Core' && (
+                <span className="bg-accent/10 text-accent text-[8px] font-black px-2 py-0.5 rounded border border-accent/20 flex items-center gap-1 uppercase tracking-widest">
+                  <StarIcon size={10} fill="currentColor" /> CORE
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       )
     },
-    { header: 'Department', key: 'department' },
+    { 
+      header: 'Department', 
+      key: 'department',
+      render: (row) => <span className="text-text/40 font-black text-xs uppercase tracking-widest">{row.department}</span>
+    },
     { 
       header: 'GFG Score', 
       key: 'gfg_score',
-      render: (row) => <span className="text-accent font-bold">{row.gfg_score}</span>
+      render: (row) => <span className="text-accent font-black text-2xl tracking-tighter drop-shadow-sm">{row.gfg_score}</span>
     },
-    { header: 'GFG Solved', key: 'gfg_solved' },
     { 
-      header: 'Streak', 
+      header: 'Solved', 
+      key: 'gfg_solved',
+      render: (row) => <span className="text-text font-black text-lg">{row.gfg_solved}</span>
+    },
+    { 
+      header: 'Velocity', 
       key: 'streak', 
       render: (row) => (
-        <div className="flex items-center gap-1 text-orange-500 font-bold">
-          <Star size={14} fill="currentColor" />
-          {row.streak}
+        <div className="flex items-center gap-2 text-orange-500 font-black text-lg">
+          <Star size={18} fill="currentColor" className="drop-shadow-sm" />
+          {row.streak}D
         </div>
       )
     }
   ];
 
   return (
-    <div className="space-y-10">
-      <div>
-        <h1 className="text-4xl font-bold">Campus Leaderboard</h1>
-        <p className="text-gray-400 mt-2">Ranking based on GeeksforGeeks Coding Score.</p>
-      </div>
+    <div className="space-y-12 pb-20">
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8"
+      >
+        <div className="space-y-2">
+          <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase">Campus <span className="text-accent">Elite</span></h1>
+          <p className="text-text/60 text-lg font-medium">Real-time rankings based on GeeksforGeeks Core Performance.</p>
+        </div>
 
-      <div className="flex bg-card p-1 rounded-xl border border-gray-800 w-fit">
-        <button 
-          onClick={() => setTab('weekly')}
-          className={`px-6 py-2 rounded-lg font-medium transition ${tab === 'weekly' ? 'bg-accent text-white' : 'text-gray-400 hover:text-white'}`}
-        >
-          Weekly Activity
-        </button>
-        <button 
-          onClick={() => setTab('all-time')}
-          className={`px-6 py-2 rounded-lg font-medium transition ${tab === 'all-time' ? 'bg-accent text-white' : 'text-gray-400 hover:text-white'}`}
-        >
-          Overall Rank
-        </button>
-      </div>
+        <div className="flex bg-card p-1.5 rounded-2xl border border-border w-fit shadow-sm">
+          <button 
+            onClick={() => setTab('weekly')}
+            className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${tab === 'weekly' ? 'bg-accent text-white shadow-lg' : 'text-text/40 hover:text-accent hover:bg-accent/5'}`}
+          >
+            Weekly Pulse
+          </button>
+          <button 
+            onClick={() => setTab('all-time')}
+            className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${tab === 'all-time' ? 'bg-accent text-white shadow-lg' : 'text-text/40 hover:text-accent hover:bg-accent/5'}`}
+          >
+            All-Time Matrix
+          </button>
+        </div>
+      </motion.div>
 
-      <div className="bg-card rounded-2xl border border-gray-800 overflow-hidden shadow-xl">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-card rounded-[3rem] border border-border overflow-hidden shadow-xl relative"
+      >
+        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/5 rounded-full -ml-32 -mb-32 blur-3xl pointer-events-none"></div>
+
         {loading ? (
-          <div className="py-20 text-center text-accent font-bold">Updating campus rankings...</div>
+          <div className="py-40 text-center space-y-6">
+            <div className="w-16 h-16 bg-accent/10 border-2 border-accent/20 border-t-accent rounded-full animate-spin mx-auto"></div>
+            <p className="text-accent font-black tracking-[0.3em] uppercase text-sm animate-pulse">Updating Agent Rankings...</p>
+          </div>
         ) : data.length > 0 ? (
-          <LeaderboardTable data={data} columns={columns} />
+          <div className="p-2 md:p-8">
+            <LeaderboardTable data={data} columns={columns} />
+          </div>
         ) : (
-          <div className="py-20 text-center text-gray-500">
-            <Trophy size={48} className="mx-auto mb-4 opacity-10" />
-            <p>No rankings available yet. Sync your profile to appear here!</p>
+          <div className="py-40 text-center text-text/30 space-y-6">
+            <Trophy size={80} className="mx-auto opacity-5" />
+            <p className="text-2xl font-black uppercase tracking-widest">No Active Rankings</p>
           </div>
         )}
-      </div>
+      </motion.div>
+
+      {!loading && data.length > 0 && (
+         <motion.div 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="flex flex-col md:flex-row items-center justify-between gap-10 p-12 bg-background border border-border rounded-[3rem] shadow-inner text-center md:text-left"
+         >
+            <div className="space-y-4">
+                <div className="flex items-center gap-3 justify-center md:justify-start">
+                    <Sparkles className="text-accent" size={24} />
+                    <h3 className="text-2xl font-black text-text uppercase tracking-tight">Climb the Matrix</h3>
+                </div>
+                <p className="text-text/60 text-lg max-w-2xl font-medium">Rankings are updated every 24 hours. Keep solving problems on GfG to secure your position.</p>
+            </div>
+            <div className="flex items-center gap-8">
+               <div className="text-center">
+                  <p className="text-[10px] font-black text-text/30 uppercase tracking-[0.3em] mb-1">Active Agents</p>
+                  <p className="text-4xl font-black text-text">{data.length}</p>
+               </div>
+               <div className="h-10 w-[1px] bg-border"></div>
+               <div className="text-center">
+                  <p className="text-[10px] font-black text-text/30 uppercase tracking-[0.3em] mb-1">Total Impact</p>
+                  <p className="text-4xl font-black text-accent">{data.reduce((acc, curr) => acc + (curr.gfg_score || 0), 0).toLocaleString()}</p>
+               </div>
+            </div>
+         </motion.div>
+      )}
     </div>
   );
 };

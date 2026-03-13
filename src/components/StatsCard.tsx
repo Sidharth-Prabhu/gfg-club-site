@@ -1,17 +1,22 @@
 import React from 'react';
-import { TrendingUp, Users, Code, Award } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const StatsCard = ({ title, value, icon: Icon, color }) => {
   return (
-    <div className="bg-card p-6 rounded-xl border border-gray-800 flex items-center gap-4">
-      <div className={`p-3 rounded-lg ${color} bg-opacity-20`}>
-        <Icon className={color.replace('bg-', 'text-')} size={24} />
+    <motion.div 
+      whileHover={{ y: -5 }}
+      className="bg-card p-6 rounded-2xl border border-border flex items-center gap-5 shadow-sm hover:shadow-md transition-all duration-300"
+    >
+      <div className={`p-4 rounded-xl ${color} bg-opacity-10 flex items-center justify-center`}>
+        <Icon className={color.replace('bg-', 'text-')} size={28} />
       </div>
       <div>
-        <h3 className="text-gray-400 text-sm font-medium">{title}</h3>
-        <p className="text-2xl font-bold">{value}</p>
+        <h3 className="text-text/60 text-sm font-semibold uppercase tracking-wider">{title}</h3>
+        <p className="text-3xl font-extrabold text-text mt-1">
+          {typeof value === 'number' ? value.toLocaleString() : value}
+        </p>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

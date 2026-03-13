@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, MapPin, Users, Plus, Edit, Trash2, X, Save, Users2, CheckCircle, Clock, Info, ChevronRight } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, Edit, Trash2, X, Save, Users2, CheckCircle, Clock, Info, ChevronRight, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Linkify from 'linkify-react';
 
@@ -114,122 +114,129 @@ const Events = () => {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12 pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-          <h1 className="text-4xl font-bold">Club Events</h1>
-          <p className="text-gray-400 mt-2">Workshops, contests, and seminars for campus coders.</p>
+        <div className="space-y-2">
+          <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase">Club <span className="text-accent">Events</span></h1>
+          <p className="text-text/60 text-lg font-medium">Workshops, contests, and seminars for the campus coding community.</p>
         </div>
         {canManage && (
           <button 
             onClick={handleOpenCreate}
-            className="bg-accent hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition shadow-lg shadow-accent/20"
+            className="bg-accent hover:bg-gfg-green-hover text-white px-8 py-4 rounded-2xl font-black flex items-center gap-3 transition shadow-xl shadow-accent/20 text-lg uppercase tracking-widest active:scale-95"
           >
-            <Plus size={20} /> Create Event
+            <Plus size={24} /> Create Event
           </button>
         )}
       </div>
 
       {loading ? (
-        <div className="py-20 text-center text-accent font-bold animate-pulse">Loading amazing events...</div>
+        <div className="py-32 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xl">Synchronizing Event Matrix...</div>
       ) : events.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {events.map(event => (
             <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               key={event.id} 
               onClick={() => handleShowDetails(event)}
-              className="bg-card rounded-2xl overflow-hidden border border-gray-800 hover:border-accent/50 transition-all group flex flex-col cursor-pointer hover:shadow-2xl hover:shadow-accent/5"
+              className="bg-card rounded-[2.5rem] overflow-hidden border border-border hover:border-accent transition-all group flex flex-col cursor-pointer hover:shadow-2xl shadow-sm"
             >
-              <div className="h-48 bg-gray-800 relative overflow-hidden">
+              <div className="h-56 bg-background relative overflow-hidden">
                 {event.poster ? (
-                  <img src={event.poster} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                  <img src={event.poster} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-600"><Calendar size={48} /></div>
+                  <div className="w-full h-full flex items-center justify-center text-text/10 bg-accent/5"><Calendar size={64} /></div>
                 )}
                 {!event.is_open && (
-                  <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
-                    <span className="bg-red-500 text-white px-4 py-1 rounded-full text-sm font-bold border border-red-400/50">CLOSED</span>
+                  <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px] flex items-center justify-center">
+                    <span className="bg-red-500 text-white px-6 py-2 rounded-xl text-xs font-black border border-red-400/50 shadow-xl uppercase tracking-widest">REGISTRATIONS CLOSED</span>
                   </div>
                 )}
+                <div className="absolute top-5 left-5">
+                   <span className="bg-accent/90 backdrop-blur-md text-white px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg">Upcoming</span>
+                </div>
               </div>
-              <div className="p-6 flex-grow flex flex-col">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-xl font-bold group-hover:text-accent transition-colors">{event.title}</h3>
+              <div className="p-8 flex-grow flex flex-col space-y-6">
+                <div className="flex justify-between items-start">
+                  <h3 className="text-2xl font-black text-text group-hover:text-accent transition-colors leading-tight tracking-tight uppercase">{event.title}</h3>
                   {canManage && (
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={(e) => handleOpenEdit(e, event)} className="p-1.5 bg-background border border-gray-700 rounded-lg hover:text-accent"><Edit size={16} /></button>
-                      <button onClick={(e) => handleDelete(e, event.id)} className="p-1.5 bg-background border border-gray-700 rounded-lg hover:text-red-500"><Trash2 size={16} /></button>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                      <button onClick={(e) => handleOpenEdit(e, event)} className="p-2 bg-background border border-border rounded-xl text-text/40 hover:text-accent shadow-sm"><Edit size={16} /></button>
+                      <button onClick={(e) => handleDelete(e, event.id)} className="p-2 bg-background border border-border rounded-xl text-text/40 hover:text-red-500 shadow-sm"><Trash2 size={16} /></button>
                     </div>
                   )}
                 </div>
                 
-                <p className="text-gray-400 text-sm mb-6 line-clamp-2">{event.description}</p>
+                <p className="text-text/60 text-sm line-clamp-2 leading-relaxed font-medium">{event.description}</p>
                 
-                <div className="space-y-2 mb-6">
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                    <Calendar size={14} className="text-accent" />
-                    {new Date(event.date).toLocaleDateString()}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-text/40 bg-background/50 border border-border px-3 py-2 rounded-xl">
+                    <Calendar size={16} className="text-accent" />
+                    {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                    <MapPin size={14} className="text-accent" />
+                  <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-text/40 bg-background/50 border border-border px-3 py-2 rounded-xl">
+                    <MapPin size={16} className="text-accent" />
                     {event.location}
                   </div>
                 </div>
 
-                <div className="mt-auto pt-4 border-t border-gray-800 flex items-center justify-between group-hover:text-accent transition-colors">
-                  <span className="text-sm font-bold">Explore Details</span>
-                  <ChevronRight size={18} />
+                <div className="mt-auto pt-6 border-t border-border/50 flex items-center justify-between group-hover:text-accent transition-colors font-black uppercase tracking-[0.2em] text-[10px]">
+                  <span>Explore Details</span>
+                  <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
       ) : (
-        <div className="py-40 text-center text-gray-500 bg-card rounded-3xl border border-gray-800 border-dashed">
-          <Calendar size={64} className="mx-auto mb-4 opacity-10" />
-          <p className="text-xl">No events scheduled at the moment.</p>
+        <div className="py-40 text-center text-text/30 bg-card rounded-[3rem] border border-border border-dashed shadow-inner">
+          <Calendar size={80} className="mx-auto mb-6 opacity-5" />
+          <p className="text-2xl font-black uppercase tracking-widest">No Events Scheduled</p>
+          <p className="text-sm font-medium mt-2">Check back soon for workshops and contests!</p>
         </div>
       )}
 
       {/* Event Details Expanded View */}
       <AnimatePresence>
         {isDetailsOpen && selectedEvent && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md overflow-y-auto">
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl overflow-y-auto">
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-card border border-gray-800 rounded-3xl w-full max-w-4xl shadow-2xl relative overflow-hidden"
+              initial={{ opacity: 0, scale: 0.98, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: 20 }}
+              className="bg-card border border-border rounded-[3.5rem] w-full max-w-5xl shadow-2xl relative overflow-hidden my-auto min-h-[90vh] flex flex-col"
             >
               <button 
                 onClick={() => setIsDetailsOpen(false)}
-                className="absolute top-6 right-6 z-20 p-2 bg-black/50 hover:bg-black/80 rounded-full text-white transition"
+                className="absolute top-10 right-10 z-20 p-4 bg-background border border-border hover:bg-card hover:text-accent rounded-full text-text/60 transition-all shadow-xl group"
               >
-                <X size={24} />
+                <X size={24} className="group-hover:rotate-90 transition-transform" />
               </button>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2">
-                <div className="h-64 lg:min-h-[500px] bg-gray-800">
+              <div className="grid grid-cols-1 lg:grid-cols-2 flex-grow">
+                <div className="h-72 lg:h-auto bg-background relative overflow-hidden group">
                   {selectedEvent.poster ? (
-                    <img src={selectedEvent.poster} alt={selectedEvent.title} className="w-full h-full object-cover" />
+                    <img src={selectedEvent.poster} alt={selectedEvent.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-600"><Calendar size={80} /></div>
+                    <div className="w-full h-full flex items-center justify-center text-accent/10 bg-accent/5"><Calendar size={120} /></div>
                   )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent lg:hidden"></div>
                 </div>
                 
-                <div className="p-8 lg:p-12 space-y-8 flex flex-col">
-                  <div>
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${selectedEvent.is_open ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-red-500/10 text-red-500'}`}>
+                <div className="p-10 lg:p-16 space-y-12 flex flex-col">
+                  <div className="space-y-8">
+                    <div className="flex items-center gap-3">
+                      <span className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border ${selectedEvent.is_open ? 'bg-accent/10 text-accent border-accent/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
                         {selectedEvent.is_open ? 'OPEN FOR REGISTRATION' : 'REGISTRATIONS CLOSED'}
                       </span>
                     </div>
-                    <h2 className="text-4xl font-extrabold mb-4">{selectedEvent.title}</h2>
+                    <h2 className="text-5xl md:text-6xl font-black text-text leading-tight tracking-tighter uppercase">{selectedEvent.title}</h2>
                     
-                    <div className="text-gray-400 leading-relaxed text-lg whitespace-pre-wrap">
+                    <div className="text-text/60 leading-relaxed text-xl font-medium">
                       <Linkify 
                         options={{
-                          className: 'text-accent hover:underline font-bold',
+                          className: 'text-accent hover:underline font-black',
                           target: '_blank'
                         }}
                       >
@@ -238,44 +245,44 @@ const Events = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-gray-800">
-                    <div className="space-y-1">
-                      <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Date & Time</p>
-                      <div className="flex items-center gap-2 text-gray-200">
-                        <Calendar size={18} className="text-accent" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-10 border-t border-border">
+                    <div className="space-y-3">
+                      <p className="text-text/20 text-[10px] font-black uppercase tracking-[0.2em]">Temporal Node</p>
+                      <div className="flex items-center gap-4 text-text/80 font-black uppercase tracking-widest text-xs bg-background border border-border p-4 rounded-2xl shadow-inner">
+                        <Calendar size={20} className="text-accent" />
                         {new Date(selectedEvent.date).toLocaleString([], { dateStyle: 'long', timeStyle: 'short' })}
                       </div>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Location</p>
-                      <div className="flex items-center gap-2 text-gray-200">
-                        <MapPin size={18} className="text-accent" />
+                    <div className="space-y-3">
+                      <p className="text-text/20 text-[10px] font-black uppercase tracking-[0.2em]">Spatial Node</p>
+                      <div className="flex items-center gap-4 text-text/80 font-black uppercase tracking-widest text-xs bg-background border border-border p-4 rounded-2xl shadow-inner">
+                        <MapPin size={20} className="text-accent" />
                         {selectedEvent.location}
                       </div>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Organizer</p>
-                      <div className="flex items-center gap-2 text-gray-200">
-                        <Users size={18} className="text-accent" />
+                    <div className="space-y-3">
+                      <p className="text-text/20 text-[10px] font-black uppercase tracking-[0.2em]">Authority</p>
+                      <div className="flex items-center gap-4 text-text/80 font-black uppercase tracking-widest text-xs bg-background border border-border p-4 rounded-2xl shadow-inner">
+                        <Users size={20} className="text-accent" />
                         {selectedEvent.organizer || 'GFG Club'}
                       </div>
                     </div>
                   </div>
 
-                  <div className="pt-8 mt-auto flex flex-col sm:flex-row gap-4">
+                  <div className="pt-12 mt-auto flex flex-col sm:flex-row gap-6">
                     {canRegister && (
                       <button 
                         onClick={(e) => handleRegister(e, selectedEvent.id)}
                         disabled={!selectedEvent.is_open}
-                        className={`flex-1 py-4 rounded-2xl font-extrabold text-lg transition flex items-center justify-center gap-2 shadow-xl ${selectedEvent.is_open ? 'bg-accent hover:bg-green-700 text-white shadow-accent/20' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
+                        className={`flex-1 py-6 rounded-2xl font-black text-xl uppercase tracking-widest transition-all flex items-center justify-center gap-3 shadow-2xl active:scale-[0.98] ${selectedEvent.is_open ? 'bg-accent hover:bg-gfg-green-hover text-white shadow-accent/20' : 'bg-card border border-border text-text/20 cursor-not-allowed'}`}
                       >
-                        {selectedEvent.is_open ? <><CheckCircle size={24} /> Register Now</> : 'Registrations Closed'}
+                        {selectedEvent.is_open ? <><CheckCircle size={28} /> Register Now</> : 'Registrations Closed'}
                       </button>
                     )}
                     {canManage && (
                       <button 
                         onClick={(e) => handleViewRegistrations(e, selectedEvent)}
-                        className="flex-1 py-4 rounded-2xl bg-background border border-gray-700 text-gray-300 hover:border-accent hover:text-accent font-bold transition flex items-center justify-center gap-2"
+                        className="flex-1 py-6 rounded-2xl bg-card border border-border text-text/60 hover:border-accent hover:text-accent font-black uppercase tracking-widest text-xs transition flex items-center justify-center gap-3 shadow-sm active:scale-[0.98]"
                       >
                         <Users2 size={24} /> Registrations
                       </button>
@@ -291,60 +298,63 @@ const Events = () => {
       {/* Create/Edit Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-card border border-gray-800 rounded-3xl w-full max-w-2xl my-auto shadow-2xl">
-              <div className="p-6 border-b border-gray-800 flex justify-between items-center">
-                <h2 className="text-2xl font-bold">{selectedEvent ? 'Edit Event' : 'Create New Event'}</h2>
-                <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-white"><X size={24} /></button>
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl overflow-y-auto">
+            <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }} className="bg-card border border-border rounded-[3.5rem] w-full max-w-4xl my-auto shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+              <div className="p-10 border-b border-border flex justify-between items-center bg-background/50">
+                <h2 className="text-3xl font-black text-text uppercase tracking-tighter">{selectedEvent ? 'Modify Matrix Event' : 'Initialize New Event'}</h2>
+                <button onClick={() => setIsEditModalOpen(false)} className="text-text/40 hover:text-red-500 p-4 hover:bg-red-500/5 rounded-full transition-all group"><X size={32} className="group-hover:rotate-90 transition-transform" /></button>
               </div>
-              <form onSubmit={handleSubmit} className="p-8 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Event Title</label>
-                    <input required type="text" className="w-full bg-background border border-gray-700 rounded-xl py-3 px-4 focus:border-accent outline-none" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
+              <form onSubmit={handleSubmit} className="p-10 md:p-14 space-y-10 overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="md:col-span-2 space-y-4">
+                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Event Headline</label>
+                    <input required type="text" className="w-full bg-background border-2 border-border rounded-[1.5rem] py-6 px-10 focus:border-accent outline-none text-2xl font-black text-text shadow-inner transition-colors" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Organizer</label>
-                    <input required type="text" className="w-full bg-background border border-gray-700 rounded-xl py-3 px-4 focus:border-accent outline-none" value={formData.organizer} onChange={(e) => setFormData({...formData, organizer: e.target.value})} />
+                  <div className="space-y-4">
+                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Authority / Organizer</label>
+                    <input required type="text" className="w-full bg-background border-2 border-border rounded-[1.5rem] py-6 px-10 focus:border-accent outline-none font-bold text-text shadow-inner transition-colors" value={formData.organizer} onChange={(e) => setFormData({...formData, organizer: e.target.value})} />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Venue / Location</label>
-                    <input required type="text" className="w-full bg-background border border-gray-700 rounded-xl py-3 px-4 focus:border-accent outline-none" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} />
+                  <div className="space-y-4">
+                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Spatial Node / Venue</label>
+                    <input required type="text" className="w-full bg-background border-2 border-border rounded-[1.5rem] py-6 px-10 focus:border-accent outline-none font-bold text-text shadow-inner transition-colors" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Date & Time</label>
-                    <input required type="datetime-local" className="w-full bg-background border border-gray-700 rounded-xl py-3 px-4 focus:border-accent outline-none" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} />
+                  <div className="space-y-4">
+                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Temporal Node / DateTime</label>
+                    <input required type="datetime-local" className="w-full bg-background border-2 border-border rounded-[1.5rem] py-6 px-10 focus:border-accent outline-none font-bold text-text shadow-inner transition-colors" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Cover Image URL</label>
-                    <input type="url" className="w-full bg-background border border-gray-700 rounded-xl py-3 px-4 focus:border-accent outline-none" value={formData.poster} onChange={(e) => setFormData({...formData, poster: e.target.value})} />
+                  <div className="space-y-4">
+                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Visual Poster URL</label>
+                    <input type="url" className="w-full bg-background border-2 border-border rounded-[1.5rem] py-6 px-10 focus:border-accent outline-none font-bold text-text shadow-inner transition-colors" value={formData.poster} onChange={(e) => setFormData({...formData, poster: e.target.value})} />
                   </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Description (URLs will be clickable)</label>
-                    <textarea required rows={4} className="w-full bg-background border border-gray-700 rounded-xl py-3 px-4 focus:border-accent outline-none resize-none text-white" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
+                  <div className="md:col-span-2 space-y-4">
+                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Event Protocol / Description</label>
+                    <textarea required rows={5} className="w-full bg-background border-2 border-border rounded-[2rem] py-8 px-10 focus:border-accent outline-none resize-none text-text text-xl leading-relaxed shadow-inner transition-colors" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
                   </div>
-                  <div className="md:col-span-2 flex items-center justify-between p-4 bg-background border border-gray-700 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${formData.is_open ? 'bg-accent/10 text-accent' : 'bg-red-500/10 text-red-500'}`}>
-                        {formData.is_open ? <CheckCircle size={20} /> : <Clock size={20} />}
+                  <div className="md:col-span-2 flex items-center justify-between p-8 bg-background border-2 border-border rounded-[2rem] shadow-inner">
+                    <div className="flex items-center gap-6">
+                      <div className={`p-4 rounded-2xl shadow-sm ${formData.is_open ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
+                        {formData.is_open ? <CheckCircle size={28} /> : <Clock size={28} />}
                       </div>
                       <div>
-                        <p className="font-bold">{formData.is_open ? 'Accepting Registrations' : 'Registrations Restricted'}</p>
-                        <p className="text-xs text-gray-500">Toggle whether users can sign up for this event.</p>
+                        <p className="font-black text-text uppercase tracking-widest leading-none mb-2">{formData.is_open ? 'Node Open' : 'Node Restricted'}</p>
+                        <p className="text-xs font-medium text-text/40">Authorize whether participants can join this matrix event.</p>
                       </div>
                     </div>
                     <button 
                       type="button"
                       onClick={() => setFormData({...formData, is_open: !formData.is_open})}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.is_open ? 'bg-accent' : 'bg-gray-700'}`}
+                      className={`relative inline-flex h-10 w-20 items-center rounded-full transition-all focus:outline-none shadow-inner ${formData.is_open ? 'bg-accent' : 'bg-text/10'}`}
                     >
-                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.is_open ? 'translate-x-6' : 'translate-x-1'}`} />
+                      <span className={`inline-block h-7 w-7 transform rounded-full bg-white transition-transform shadow-xl ${formData.is_open ? 'translate-x-11' : 'translate-x-2'}`} />
                     </button>
                   </div>
                 </div>
-                <button type="submit" className="w-full bg-accent hover:bg-green-700 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition text-lg shadow-xl shadow-accent/20">
-                  <Save size={24} /> {selectedEvent ? 'Update Event' : 'Publish Event'}
-                </button>
+                <div className="flex flex-col sm:flex-row gap-6 pt-4">
+                    <button type="submit" className="bg-accent hover:bg-gfg-green-hover text-white font-black py-7 px-14 rounded-[1.5rem] transition text-xl flex-grow shadow-2xl shadow-accent/20 uppercase tracking-widest active:scale-[0.98]">
+                      <Save size={28} /> {selectedEvent ? 'Commit Updates' : 'Deploy Event'}
+                    </button>
+                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-7 px-14 rounded-[1.5rem] transition text-xl uppercase tracking-widest shadow-sm">Discard Changes</button>
+                </div>
               </form>
             </motion.div>
           </div>
@@ -354,51 +364,55 @@ const Events = () => {
       {/* Registration List Modal */}
       <AnimatePresence>
         {isRegListOpen && (
-          <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="bg-card border border-gray-800 rounded-3xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-              <div className="p-6 border-b border-gray-800 bg-background/50 flex justify-between items-center">
-                <div>
-                  <h2 className="text-2xl font-bold">Event Registrations</h2>
-                  <p className="text-accent text-sm font-medium">{selectedEvent?.title}</p>
+          <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl">
+            <motion.div initial={{ opacity: 0, scale: 0.98, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98, y: 20 }} className="bg-card border border-border rounded-[3.5rem] w-full max-w-5xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+              <div className="p-10 border-b border-border bg-background/50 flex justify-between items-center">
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-black text-text uppercase tracking-tighter">Event Participants</h2>
+                  <p className="text-accent text-[10px] font-black uppercase tracking-[0.2em]">{selectedEvent?.title}</p>
                 </div>
-                <button onClick={() => setIsRegListOpen(false)} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-full transition text-gray-400 hover:text-white"><X size={24} /></button>
+                <button onClick={() => setIsRegListOpen(false)} className="p-4 bg-background border border-border hover:bg-card hover:text-red-500 rounded-full transition-all text-text/40 group shadow-xl"><X size={28} className="group-hover:rotate-90 transition-transform" /></button>
               </div>
               
-              <div className="flex-grow overflow-y-auto p-6">
+              <div className="flex-grow overflow-y-auto p-10">
                 {registrations.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full text-left">
                       <thead>
-                        <tr className="text-gray-500 text-sm border-b border-gray-800">
-                          <th className="pb-4 font-medium px-4">Student Name</th>
-                          <th className="pb-4 font-medium px-4">Email</th>
-                          <th className="pb-4 font-medium px-4 text-center">GFG Score</th>
-                          <th className="pb-4 font-medium px-4 text-center">GFG Solved</th>
-                          <th className="pb-4 font-medium px-4 text-center">Rank (ID)</th>
+                        <tr className="text-text/20 text-[10px] font-black uppercase tracking-[0.3em] border-b border-border pb-6">
+                          <th className="pb-6 px-6">Innovation Agent</th>
+                          <th className="pb-6 px-6">Matrix Email</th>
+                          <th className="pb-6 px-6 text-center">GfG Score</th>
+                          <th className="pb-6 px-6 text-center">GfG Solved</th>
+                          <th className="pb-6 px-6 text-right">Node ID</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-800/50">
+                      <tbody className="divide-y divide-border/30">
                         {registrations.map((reg, i) => (
-                          <tr key={i} className="hover:bg-white/5 transition-colors">
-                            <td className="py-4 px-4 font-bold text-gray-200">{reg.name}</td>
-                            <td className="py-4 px-4 text-gray-400 text-sm">{reg.email}</td>
-                            <td className="py-4 px-4 text-center text-accent font-bold">{reg.gfg_score}</td>
-                            <td className="py-4 px-4 text-center text-gray-300 font-medium">{reg.gfg_solved}</td>
-                            <td className="py-4 px-4 text-center text-gray-500">#{reg.user_id}</td>
+                          <tr key={i} className="hover:bg-accent/5 transition-colors group">
+                            <td className="py-6 px-6 font-black text-text uppercase tracking-tight text-lg group-hover:text-accent transition-colors">{reg.name}</td>
+                            <td className="py-6 px-6 text-text/40 text-sm font-medium">{reg.email}</td>
+                            <td className="py-6 px-6 text-center text-accent font-black text-xl">{reg.gfg_score}</td>
+                            <td className="py-6 px-6 text-center text-text/80 font-black">{reg.gfg_solved}</td>
+                            <td className="py-6 px-6 text-right text-text/20 font-mono text-xs">#{reg.user_id}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
                 ) : (
-                  <div className="py-20 text-center text-gray-500">
-                    <Info size={48} className="mx-auto mb-4 opacity-10" />
-                    <p>No registrations yet for this event.</p>
+                  <div className="py-32 text-center text-text/20 space-y-6">
+                    <Info size={80} className="mx-auto opacity-10" />
+                    <p className="text-2xl font-black uppercase tracking-widest">No Registered Agents</p>
                   </div>
                 )}
               </div>
-              <div className="p-6 border-t border-gray-800 bg-background/30 text-right">
-                <p className="text-gray-500 text-sm">Total Participants: <span className="text-accent font-bold">{registrations.length}</span></p>
+              <div className="p-10 border-t border-border bg-background/30 flex justify-between items-center">
+                <div className="flex items-center gap-3 text-accent font-black uppercase tracking-widest text-[10px]">
+                  <Sparkles size={20} className="animate-pulse" />
+                  Total Participant Count
+                </div>
+                <p className="text-4xl font-black text-text leading-none">{registrations.length}</p>
               </div>
             </motion.div>
           </div>

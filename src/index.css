@@ -1,12 +1,87 @@
 @import "tailwindcss";
 
+@theme {
+  --color-gfg-green: #2f8d46;
+  --color-gfg-green-hover: #267a3b;
+  --color-gfg-bg-light: #f9fafb;
+  --color-gfg-bg-dark: #0a0a0a;
+  --color-gfg-card-light: #ffffff;
+  --color-gfg-card-dark: #171717;
+  --color-gfg-text-light: #111827;
+  --color-gfg-text-dark: #f3f4f6;
+  --color-gfg-border-light: #e5e7eb;
+  --color-gfg-border-dark: #262626;
+  
+  --color-background: var(--color-gfg-bg-light);
+  --color-card: var(--color-gfg-card-light);
+  --color-accent: var(--color-gfg-green);
+  --color-text: var(--color-gfg-text-light);
+  --color-border: var(--color-gfg-border-light);
+}
+
+.dark {
+  --color-background: var(--color-gfg-bg-dark);
+  --color-card: var(--color-gfg-card-dark);
+  --color-accent: var(--color-gfg-green);
+  --color-text: var(--color-gfg-text-dark);
+  --color-border: var(--color-gfg-border-dark);
+}
+
 :root {
-  background-color: #0f172a;
-  color: white;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body {
   margin: 0;
   padding: 0;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    font-style: normal !important;
+  }
+}
+
+/* GFG Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--color-accent) 20%, transparent);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 8s ease infinite;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 12s linear infinite;
 }

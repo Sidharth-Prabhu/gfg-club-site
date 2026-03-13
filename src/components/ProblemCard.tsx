@@ -1,5 +1,6 @@
 import React from 'react';
-import { ExternalLink } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const ProblemCard = ({ problem, selectedLanguage }) => {
   const getDifficultyColor = (diff) => {
@@ -7,34 +8,40 @@ const ProblemCard = ({ problem, selectedLanguage }) => {
       case 'Easy': return 'text-green-500 bg-green-500/10 border-green-500/20';
       case 'Medium': return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
       case 'Hard': return 'text-red-500 bg-red-500/10 border-red-500/20';
-      default: return 'text-gray-500 bg-gray-500/10 border-gray-500/20';
+      default: return 'text-text/40 bg-text/5 border-border';
     }
   };
 
-  // Build the final GfG link with language/category parameter
   const finalLink = `${problem.link}?page=1&category=${selectedLanguage || 'python'}`;
 
   return (
-    <div className="bg-card p-5 rounded-2xl border border-gray-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 group hover:border-accent transition-all duration-300">
-      <div className="space-y-2 flex-grow">
-        <h3 className="font-bold text-lg group-hover:text-accent transition-colors">{problem.title}</h3>
+    <motion.div 
+      whileHover={{ y: -5, borderColor: 'var(--color-accent)' }}
+      className="bg-card p-8 rounded-[2rem] border border-border flex flex-col md:flex-row justify-between items-start md:items-center gap-8 group transition-all duration-300 shadow-sm hover:shadow-xl"
+    >
+      <div className="space-y-4 flex-grow">
         <div className="flex flex-wrap items-center gap-3">
-          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getDifficultyColor(problem.difficulty)}`}>
+          <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getDifficultyColor(problem.difficulty)}`}>
             {problem.difficulty}
           </span>
-          <span className="text-gray-500 text-sm bg-gray-800/50 px-2 py-0.5 rounded-md">{problem.topic}</span>
+          <span className="text-text/40 text-[10px] font-black uppercase tracking-widest bg-background border border-border px-3 py-1.5 rounded-lg shadow-inner">
+            {problem.topic}
+          </span>
         </div>
+        <h3 className="font-black text-2xl md:text-3xl text-text group-hover:text-accent transition-colors leading-tight tracking-tight uppercase">
+          {problem.title}
+        </h3>
       </div>
       
       <a 
         href={finalLink} 
         target="_blank" 
         rel="noopener noreferrer"
-        className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-accent hover:bg-green-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all group-hover:shadow-[0_0_15px_rgba(47,141,70,0.3)]"
+        className="w-full md:w-auto px-8 py-4 rounded-2xl bg-accent hover:bg-gfg-green-hover text-white font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all shadow-md group-hover:shadow-accent/30 active:scale-95 whitespace-nowrap"
       >
-        Solve Problem <ExternalLink size={16} />
+        Solve Problem <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
       </a>
-    </div>
+    </motion.div>
   );
 };
 

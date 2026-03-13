@@ -63,37 +63,37 @@ const Resources = () => {
 
   const getCategoryIcon = (cat) => {
     switch (cat) {
-      case 'DSA Articles': return <BookOpen size={20} />;
-      case 'Interview Preparation': return <GraduationCap size={20} />;
-      case 'Competitive Programming': return <Lightbulb size={20} />;
-      case 'Workshop Notes': return <FileText size={20} />;
-      default: return <Bookmark size={20} />;
+      case 'DSA Articles': return <BookOpen size={24} />;
+      case 'Interview Preparation': return <GraduationCap size={24} />;
+      case 'Competitive Programming': return <Lightbulb size={24} />;
+      case 'Workshop Notes': return <FileText size={24} />;
+      default: return <Bookmark size={24} />;
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-10 pb-20 px-4 md:px-0">
+    <div className="max-w-7xl mx-auto space-y-12 pb-20 px-4 md:px-0">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-          <h1 className="text-4xl font-black text-white tracking-tight uppercase">Knowledge Base</h1>
-          <p className="text-gray-400 mt-2 text-lg">Curated learning materials for the next generation of engineers.</p>
+        <div className="space-y-2">
+          <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase">Knowledge <span className="text-accent">Base</span></h1>
+          <p className="text-text/60 text-lg font-medium">Curated learning materials for the next generation of engineers.</p>
         </div>
         {canManage && (
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="bg-accent hover:bg-green-700 text-white px-8 py-3 rounded-2xl font-black flex items-center gap-2 transition shadow-xl shadow-accent/20 text-sm uppercase tracking-widest"
+            className="bg-accent hover:bg-gfg-green-hover text-white px-8 py-4 rounded-2xl font-black flex items-center gap-3 transition shadow-xl shadow-accent/20 text-sm uppercase tracking-widest active:scale-95"
           >
-            <Plus size={20} /> Add Resource
+            <Plus size={24} /> Add Resource
           </button>
         )}
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
+      <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
         {categories.map(cat => (
           <button 
             key={cat}
             onClick={() => setCategory(cat)}
-            className={`px-6 py-2.5 rounded-xl text-xs font-black border transition flex items-center gap-2 uppercase tracking-widest ${category === cat ? 'bg-accent border-accent text-white shadow-lg shadow-accent/10' : 'bg-card border-gray-800 text-gray-400 hover:border-gray-600'}`}
+            className={`px-6 py-3 rounded-xl text-xs font-black border transition flex items-center gap-2 uppercase tracking-widest whitespace-nowrap ${category === cat ? 'bg-accent border-accent text-white shadow-lg shadow-accent/10' : 'bg-card border-border text-text/40 hover:border-accent/40 hover:text-accent'}`}
           >
             {cat}
           </button>
@@ -101,82 +101,88 @@ const Resources = () => {
       </div>
 
       {loading ? (
-        <div className="py-32 text-center text-accent font-black tracking-widest uppercase animate-pulse">Accessing archives...</div>
+        <div className="py-32 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xl">Accessing Archives...</div>
       ) : resources.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {resources.map(res => (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ y: -5 }}
               key={res.id} 
-              className="bg-card border border-gray-800 rounded-3xl p-6 hover:border-accent/40 transition-all flex flex-col group shadow-sm"
+              className="bg-card border border-border rounded-[2.5rem] p-8 hover:border-accent transition-all flex flex-col group shadow-sm hover:shadow-xl"
             >
-              <div className="flex justify-between items-start mb-6">
-                <div className="p-3 rounded-2xl bg-accent/10 text-accent border border-accent/20 group-hover:bg-accent group-hover:text-white transition-all duration-500">
+              <div className="flex justify-between items-start mb-8">
+                <div className="p-4 rounded-2xl bg-accent/5 text-accent border border-accent/10 group-hover:bg-accent group-hover:text-white transition-all duration-500 shadow-inner">
                   {getCategoryIcon(res.category)}
                 </div>
                 {canManage && (
-                  <button onClick={() => handleDelete(res.id)} className="p-2 bg-background border border-gray-800 rounded-xl text-gray-600 hover:text-red-500 transition-colors">
-                    <Trash2 size={16} />
+                  <button onClick={() => handleDelete(res.id)} className="p-2.5 bg-background border border-border rounded-xl text-text/40 hover:text-red-500 transition-colors shadow-sm">
+                    <Trash2 size={18} />
                   </button>
                 )}
               </div>
 
-              <div className="flex-grow space-y-3 mb-8">
-                <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{res.category}</div>
-                <h3 className="text-xl font-bold text-gray-100 leading-tight group-hover:text-accent transition-colors">{res.title}</h3>
-                <p className="text-gray-400 text-sm line-clamp-3 leading-relaxed">{res.description}</p>
+              <div className="flex-grow space-y-4 mb-10">
+                <div className="text-[10px] font-black text-accent uppercase tracking-[0.2em]">{res.category}</div>
+                <h3 className="text-2xl font-black text-text leading-tight group-hover:text-accent transition-colors tracking-tight">{res.title}</h3>
+                <p className="text-text/60 text-sm leading-relaxed font-medium line-clamp-3">{res.description}</p>
               </div>
 
               <a 
                 href={res.link} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-full py-4 bg-background border border-gray-800 rounded-2xl flex items-center justify-center gap-2 text-gray-300 font-black text-[10px] uppercase tracking-[0.2em] hover:border-accent hover:text-accent transition-all shadow-inner group/link"
+                className="w-full py-5 bg-background border border-border rounded-2xl flex items-center justify-center gap-3 text-text/60 font-black text-xs uppercase tracking-[0.2em] hover:border-accent hover:text-accent transition-all shadow-inner group/link active:scale-[0.98]"
               >
-                Access Resource <ExternalLink size={14} className="group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
+                Access Material <ExternalLink size={16} className="group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
               </a>
             </motion.div>
           ))}
         </div>
       ) : (
-        <div className="py-40 text-center text-gray-500 bg-card rounded-[3rem] border border-gray-800 border-dashed">
-          <Link2 size={64} className="mx-auto mb-4 opacity-10" />
-          <p className="text-xl font-bold uppercase tracking-widest">No resources found in this category.</p>
+        <div className="py-40 text-center text-text/30 bg-card rounded-[3rem] border border-border border-dashed shadow-inner">
+          <Link2 size={80} className="mx-auto mb-6 opacity-5" />
+          <p className="text-2xl font-black uppercase tracking-widest">No resources found.</p>
         </div>
       )}
 
       {/* Add Resource Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md overflow-y-auto">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="bg-card border border-gray-800 rounded-[2.5rem] w-full max-w-xl my-auto shadow-2xl overflow-hidden">
-              <div className="p-8 border-b border-gray-800 flex justify-between items-center bg-background/50">
-                <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Add Knowledge Node</h2>
-                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white p-3 hover:bg-gray-800 rounded-full transition-all"><X size={28} /></button>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/95 backdrop-blur-xl overflow-y-auto">
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-card border border-border rounded-[3rem] w-full max-w-2xl my-auto shadow-2xl overflow-hidden">
+              <div className="p-10 border-b border-border flex justify-between items-center bg-background/50">
+                <h2 className="text-2xl font-black text-text uppercase tracking-tighter">Add Knowledge Node</h2>
+                <button onClick={() => setIsModalOpen(false)} className="text-text/40 hover:text-red-500 p-4 hover:bg-red-500/5 rounded-full transition-all group"><X size={32} className="group-hover:rotate-90 transition-transform" /></button>
               </div>
-              <form onSubmit={handleSubmit} className="p-10 space-y-8">
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 ml-1">Resource Title</label>
-                    <input required type="text" className="w-full bg-background border-2 border-gray-800 rounded-2xl py-4 px-6 focus:border-accent outline-none text-white font-bold transition shadow-inner" placeholder="e.g. Master DP in 30 Days" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
+              <form onSubmit={handleSubmit} className="p-10 md:p-14 space-y-10">
+                <div className="space-y-8">
+                  <div className="space-y-3">
+                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Resource Title</label>
+                    <input required type="text" className="w-full bg-background border-2 border-border rounded-2xl py-5 px-8 focus:border-accent outline-none text-text font-black text-xl transition shadow-inner" placeholder="e.g. Master DP in 30 Days" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 ml-1">Category</label>
-                    <select className="w-full bg-background border-2 border-gray-800 rounded-2xl py-4 px-6 focus:border-accent outline-none cursor-pointer font-bold text-white uppercase text-xs" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})}>
-                      {categories.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                  <div className="space-y-3">
+                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Classification</label>
+                    <div className="relative">
+                      <select className="w-full bg-background border-2 border-border rounded-2xl py-5 px-8 focus:border-accent outline-none cursor-pointer font-black text-text uppercase text-xs appearance-none shadow-inner" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})}>
+                        {categories.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-text/40">
+                        <Filter size={18} />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 ml-1">Description</label>
-                    <textarea required rows={3} className="w-full bg-background border-2 border-gray-800 rounded-2xl py-4 px-6 focus:border-accent outline-none resize-none text-white font-medium shadow-inner" placeholder="Quick brief about this material..." value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
+                  <div className="space-y-3">
+                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Brief Summary</label>
+                    <textarea required rows={4} className="w-full bg-background border-2 border-border rounded-2xl py-5 px-8 focus:border-accent outline-none resize-none text-text font-medium text-lg leading-relaxed shadow-inner" placeholder="Provide a concise brief..." value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 ml-1">Resource URL</label>
-                    <input required type="url" className="w-full bg-background border-2 border-gray-800 rounded-2xl py-4 px-6 focus:border-accent outline-none text-white font-medium transition shadow-inner" placeholder="https://..." value={formData.link} onChange={(e) => setFormData({...formData, link: e.target.value})} />
+                  <div className="space-y-3">
+                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Resource URL</label>
+                    <input required type="url" className="w-full bg-background border-2 border-border rounded-2xl py-5 px-8 focus:border-accent outline-none text-text font-bold text-lg transition shadow-inner" placeholder="https://..." value={formData.link} onChange={(e) => setFormData({...formData, link: e.target.value})} />
                   </div>
                 </div>
-                <button type="submit" className="w-full bg-accent hover:bg-green-700 text-white font-black py-5 rounded-2xl transition text-lg shadow-2xl shadow-accent/30 uppercase tracking-widest">Deploy Resource</button>
+                <button type="submit" className="w-full bg-accent hover:bg-gfg-green-hover text-white font-black py-7 rounded-[1.5rem] transition text-xl shadow-2xl shadow-accent/20 uppercase tracking-widest active:scale-[0.98]">Deploy Node</button>
               </form>
             </motion.div>
           </div>
