@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, MapPin, Users, ArrowLeft, CheckCircle, Info, Sparkles, X, Users2, Trash2, ScrollText, BookOpen, UserPlus, ShieldCheck } from 'lucide-react';
+import { Calendar, MapPin, Users, ArrowLeft, CheckCircle, Info, Sparkles, X, Users2, Trash2, ScrollText, BookOpen, UserPlus, ShieldCheck, LogOut, Edit3, Mail, UserMinus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import 'react-quill-new/dist/quill.snow.css';
 
@@ -22,6 +22,11 @@ const EventDetail = () => {
   const [teamName, setTeamName] = useState('');
   const [memberEmails, setMemberEmails] = useState(['']);
 
+  // Team Management State
+  const [isEditingTeamName, setIsEditingTeamName] = useState(false);
+  const [newTeamName, setNewTeamName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+
   const canManage = user?.role === 'Admin' || user?.role === 'Core';
   const canRegister = user?.role !== 'Admin';
 
@@ -34,6 +39,7 @@ const EventDetail = () => {
       if (user) {
           const { data: status } = await api.get(`/events/${id}/team-status`);
           setTeamStatus(status);
+          if (status?.isLeader) setNewTeamName(status.teamName);
       }
     } catch (error) {
       console.error('Error fetching event details:', error);
@@ -62,6 +68,52 @@ const EventDetail = () => {
     } catch (error) {
       alert(error.response?.data?.message || 'Registration failed');
     }
+  };
+
+  const handleUnregister = async () => {
+      const msg = teamStatus?.isLeader ? "Dissolve your team and opt out of this event?" : "Opt out of this event?";
+      if (window.confirm(msg)) {
+          try {
+              await api.delete(`/events/${id}/unregister`);
+              alert('Opted out successfully');
+              fetchData();
+          } catch (error) {
+              alert('Failed to opt out');
+          }
+      }
+  };
+
+  const handleUpdateTeamName = async () => {
+      try {
+          await api.put('/events/team/update-name', { teamId: teamStatus.teamId, newName: newTeamName });
+          setIsEditingTeamName(false);
+          fetchData();
+      } catch (error) {
+          alert('Failed to update team name');
+      }
+  };
+
+  const handleInviteMember = async (e) => {
+      e.preventDefault();
+      try {
+          await api.post('/events/team/invite', { teamId: teamStatus.teamId, email: inviteEmail });
+          setInviteEmail('');
+          alert('Invitation sent');
+          fetchData();
+      } catch (error) {
+          alert(error.response?.data?.message || 'Invitation failed');
+      }
+  };
+
+  const handleRemoveMember = async (memberId) => {
+      if (window.confirm("Remove this agent from your team?")) {
+          try {
+              await api.post('/events/team/remove-member', { teamId: teamStatus.teamId, memberId });
+              fetchData();
+          } catch (error) {
+              alert('Failed to remove member');
+          }
+      }
   };
 
   const handleViewRegistrations = async () => {
@@ -102,7 +154,7 @@ const EventDetail = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Full Screen Hero Section */}
+      {/* Hero Section */}
       <section className="relative h-[60vh] md:h-[75vh] w-full overflow-hidden">
         {event.poster ? (
           <img src={event.poster} alt={event.title} className="w-full h-full object-cover" />
@@ -196,18 +248,64 @@ const EventDetail = () => {
                             <p className="text-text/40 font-bold uppercase text-[10px] tracking-[0.2em]">{event.organizer || 'GFG Club'}</p>
                         </div>
 
-                        {teamStatus?.isLeader ? (
-                            <div className="bg-accent/5 border border-accent/20 p-6 rounded-2xl space-y-4 shadow-inner">
-                                <p className="text-[10px] font-black text-accent uppercase tracking-widest text-center">Team Leadership Active</p>
-                                <h5 className="text-center font-black text-text uppercase">{teamStatus.teamName}</h5>
-                                <div className="space-y-2">
-                                    {teamStatus.members.map((m, i) => (
-                                        <div key={i} className="flex justify-between items-center text-[10px] font-bold uppercase">
-                                            <span className="text-text/60">{m.name}</span>
-                                            <span className={m.status === 'Accepted' ? 'text-accent' : 'text-yellow-500'}>{m.status}</span>
+                        {teamStatus?.registered ? (
+                            <div className="space-y-8">
+                                {teamStatus.isTeam ? (
+                                    <div className="bg-accent/5 border border-accent/20 p-8 rounded-3xl space-y-6 shadow-inner">
+                                        <div className="flex justify-between items-start">
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black text-accent uppercase tracking-widest">Matrix Team</p>
+                                                {isEditingTeamName ? (
+                                                    <div className="flex gap-2">
+                                                        <input className="bg-background border border-border rounded-lg px-3 py-1 text-xs font-bold text-text outline-none focus:border-accent w-full" value={newTeamName} onChange={(e) => setNewTeamName(e.target.value)} />
+                                                        <button onClick={handleUpdateTeamName} className="p-1 bg-accent text-white rounded"><Check size={14}/></button>
+                                                    </div>
+                                                ) : (
+                                                    <h5 className="font-black text-text uppercase flex items-center gap-2">
+                                                        {teamStatus.teamName}
+                                                        {teamStatus.isLeader && <Edit3 size={12} className="text-text/20 cursor-pointer hover:text-accent" onClick={() => setIsEditingTeamName(true)} />}
+                                                    </h5>
+                                                )}
+                                            </div>
+                                            {teamStatus.isLeader && <span className="bg-accent/10 text-accent text-[8px] font-black px-2 py-0.5 rounded border border-accent/20 uppercase tracking-widest">Leader</span>}
                                         </div>
-                                    ))}
-                                </div>
+                                        
+                                        <div className="space-y-3">
+                                            <p className="text-[9px] font-black text-text/30 uppercase tracking-widest">Active Agents ({teamStatus.members.length}/{event.max_team_size})</p>
+                                            {teamStatus.members.map((m, i) => (
+                                                <div key={i} className="flex justify-between items-center bg-background border border-border/50 px-4 py-3 rounded-xl">
+                                                    <div>
+                                                        <p className="text-xs font-black text-text uppercase">{m.name}</p>
+                                                        <span className={`text-[8px] font-bold uppercase tracking-widest ${m.status === 'Accepted' ? 'text-accent' : 'text-yellow-500'}`}>{m.status}</span>
+                                                    </div>
+                                                    {teamStatus.isLeader && !m.is_leader && (
+                                                        <button onClick={() => handleRemoveMember(m.user_id)} className="text-text/20 hover:text-red-500 transition-colors"><UserMinus size={14}/></button>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {teamStatus.isLeader && teamStatus.members.length < event.max_team_size && (
+                                            <form onSubmit={handleInviteMember} className="space-y-3 pt-4 border-t border-border/30">
+                                                <p className="text-[9px] font-black text-text/30 uppercase tracking-widest">Deploy New Agent</p>
+                                                <div className="flex gap-2">
+                                                    <input required type="email" placeholder="agent@college.edu" className="flex-grow bg-background border border-border rounded-lg px-3 py-2 text-xs font-bold text-text outline-none focus:border-accent" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} />
+                                                    <button type="submit" className="p-2 bg-accent text-white rounded-lg hover:bg-gfg-green-hover transition-colors shadow-lg shadow-accent/20"><UserPlus size={16}/></button>
+                                                </div>
+                                            </form>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="bg-accent/5 border border-accent/20 p-6 rounded-3xl text-center space-y-2 shadow-inner">
+                                        <CheckCircle size={32} className="text-accent mx-auto" />
+                                        <p className="text-xs font-black text-text uppercase tracking-widest">Individual Node Active</p>
+                                        <p className="text-[9px] text-text/40 font-bold uppercase">Clearance Level: Registered</p>
+                                    </div>
+                                )}
+
+                                <button onClick={handleUnregister} className="w-full py-4 rounded-2xl bg-red-500/5 text-red-500 border border-red-500/10 hover:bg-red-500 hover:text-white transition-all font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 active:scale-95">
+                                    <LogOut size={18} /> Opt Out of Mission
+                                </button>
                             </div>
                         ) : (
                             <div className="space-y-4">
@@ -235,7 +333,7 @@ const EventDetail = () => {
         </div>
       </section>
 
-      {/* Registration Multi-Step Modal */}
+      {/* Registration Modal */}
       <AnimatePresence>
         {isRegistering && (
             <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl overflow-y-auto">
@@ -245,7 +343,7 @@ const EventDetail = () => {
                             <div className="p-3 bg-accent/10 rounded-xl text-accent"><UserPlus size={24} /></div>
                             <h2 className="text-2xl font-black text-text uppercase tracking-tight">Agent Registration</h2>
                         </div>
-                        <button onClick={() => setIsRegistering(false)} className="text-text/40 hover:text-red-500 p-2 rounded-full transition-all group active:scale-90"><X size={24} /></button>
+                        <button onClick={() => setIsRegistering(false)} className="text-text/40 hover:text-red-500 p-2 rounded-full transition-all active:scale-90"><X size={24} /></button>
                     </div>
                     <form onSubmit={handleRegister} className="p-8 md:p-12 space-y-8">
                         <div className="space-y-4">
@@ -264,7 +362,7 @@ const EventDetail = () => {
                             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-6 overflow-hidden">
                                 <div className="space-y-2">
                                     <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-1">Matrix Team Name</label>
-                                    <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-4 px-6 focus:border-accent outline-none font-bold text-text" placeholder="e.g. Code Commanders" value={teamName} onChange={(e) => setTeamName(e.target.value)} />
+                                    <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-4 px-6 focus:border-accent outline-none font-bold text-text shadow-inner" placeholder="e.g. Code Commanders" value={teamName} onChange={(e) => setTeamName(e.target.value)} />
                                 </div>
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center">
@@ -273,8 +371,9 @@ const EventDetail = () => {
                                     </div>
                                     <div className="space-y-3">
                                         {memberEmails.map((email, i) => (
-                                            <div key={i} className="relative group">
-                                                <input required type="email" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none font-bold text-sm text-text" placeholder={`Member ${i+1} email...`} value={email} onChange={(e) => updateMemberEmail(i, e.target.value)} />
+                                            <div key={i} className="relative">
+                                                <Mail size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20" />
+                                                <input required type="email" className="w-full bg-background border-2 border-border rounded-xl py-3 pl-10 pr-5 focus:border-accent outline-none font-bold text-sm text-text shadow-inner" placeholder={`Member ${i+1} email...`} value={email} onChange={(e) => updateMemberEmail(i, e.target.value)} />
                                             </div>
                                         ))}
                                         {memberEmails.length < (event.max_team_size - 1) && (
@@ -292,7 +391,7 @@ const EventDetail = () => {
         )}
       </AnimatePresence>
 
-      {/* Participant List Modal */}
+      {/* Matrix Agent Log Modal */}
       <AnimatePresence>
         {isRegListOpen && (
           <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl">
@@ -313,9 +412,9 @@ const EventDetail = () => {
                     </thead>
                     <tbody className="divide-y divide-border/30">
                       {registrations.map((reg, i) => (
-                        <tr key={i} className="hover:bg-accent/5 transition-colors">
+                        <tr key={i} className="hover:bg-accent/5 transition-colors group">
                           <td className="py-6 px-6">
-                              <p className="font-black text-text uppercase tracking-widest text-sm">{reg.name}</p>
+                              <p className="font-black text-text uppercase tracking-widest text-sm italic">{reg.name}</p>
                               <p className="text-[10px] text-text/40 font-bold">{reg.email}</p>
                           </td>
                           <td className="py-6 px-6 font-black text-text/60 uppercase text-xs">{reg.team_name || 'Individual'}</td>

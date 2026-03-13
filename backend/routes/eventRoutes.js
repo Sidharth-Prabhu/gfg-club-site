@@ -9,7 +9,12 @@ import {
   getEventRegistrations,
   getMyInvitations,
   respondToInvitation,
-  getTeamStatus
+  getTeamStatus,
+  getMyRegistrations,
+  unregisterFromEvent,
+  updateTeamName,
+  inviteTeamMember,
+  removeTeamMember
 } from '../controllers/eventController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -19,9 +24,16 @@ router.route('/')
   .get(getEvents)
   .post(protect, createEvent);
 
+router.get('/my-registrations', protect, getMyRegistrations);
 router.get('/invitations', protect, getMyInvitations);
 router.post('/invitations/respond', protect, respondToInvitation);
 router.get('/:eventId/team-status', protect, getTeamStatus);
+router.delete('/:eventId/unregister', protect, unregisterFromEvent);
+
+// Team Management
+router.put('/team/update-name', protect, updateTeamName);
+router.post('/team/invite', protect, inviteTeamMember);
+router.post('/team/remove-member', protect, removeTeamMember);
 
 router.route('/:id')
   .get(getEventById)

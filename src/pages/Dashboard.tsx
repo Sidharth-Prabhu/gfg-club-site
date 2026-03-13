@@ -5,12 +5,13 @@ import StatsCard from '../components/StatsCard';
 import { 
   User, Code, Trophy, Star, Settings, ExternalLink, 
   Github, Link as LinkIcon, Zap, Terminal, RefreshCw, X, Save,
-  ShieldAlert, BookOpen, FileText, Monitor, ChevronRight, MessageSquare, Plus, ArrowLeft, Hash, Sparkles, TrendingUp, UserPlus, Check, Trash2
+  ShieldAlert, BookOpen, FileText, Monitor, ChevronRight, MessageSquare, Plus, ArrowLeft, Hash, Sparkles, TrendingUp, UserPlus, Check, Trash2, Calendar
 } from 'lucide-react';
 import { CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -20,6 +21,7 @@ const Dashboard = () => {
   const [myDiscussions, setMyDiscussions] = useState([]);
   const [pendingProjects, setPendingProjects] = useState([]);
   const [invitations, setInvitations] = useState([]);
+  const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -32,18 +34,20 @@ const Dashboard = () => {
 
   const fetchData = async () => {
     try {
-      const [profileRes, activityRes, projectsRes, discussionsRes, invRes] = await Promise.all([
+      const [profileRes, activityRes, projectsRes, discussionsRes, invRes, regRes] = await Promise.all([
         api.get('/users/profile'),
         api.get('/stats/user-activity'),
         api.get('/projects/my-projects'),
         api.get('/discussions'),
-        api.get('/events/invitations')
+        api.get('/events/invitations'),
+        api.get('/events/my-registrations')
       ]);
       setProfile(profileRes.data);
       setActivityData(activityRes.data);
       setMyProjects(projectsRes.data);
       setMyDiscussions(discussionsRes.data.filter(d => d.author_id === profileRes.data.id));
       setInvitations(invRes.data);
+      setRegistrations(regRes.data);
       
       if (canModerate) {
           const { data: pending } = await api.get('/projects?status=Pending');
@@ -166,6 +170,43 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div className="lg:col-span-2 space-y-12">
             
+            {/* REGISTERED MISSIONS */}
+            <div className="bg-card border border-border p-10 rounded-[3rem] shadow-sm">
+                <div className="flex items-center gap-4 mb-10">
+                    <Calendar size={28} className="text-accent" />
+                    <h2 className="text-3xl font-black text-text uppercase tracking-tighter italic">Active Missions</h2>
+                </div>
+                {registrations.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-6">
+                        {registrations.map(reg => (
+                            <Link key={reg.reg_id} to={`/events/${reg.event_id}`} className="flex items-center justify-between p-8 bg-background/50 border border-border rounded-[2rem] hover:border-accent transition-all group shadow-inner">
+                                <div className="flex items-center gap-6">
+                                    <div className="w-16 h-16 rounded-2xl overflow-hidden border border-border group-hover:border-accent transition-colors">
+                                        {reg.poster ? <img src={reg.poster} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-accent/5 flex items-center justify-center text-accent/20"><Calendar /></div>}
+                                    </div>
+                                    <div>
+                                        <h4 className="font-black text-text text-xl group-hover:text-accent transition-colors uppercase italic tracking-tight">{reg.title}</h4>
+                                        <div className="flex gap-3 mt-2">
+                                            <span className="text-[10px] font-black text-text/40 uppercase tracking-widest">{reg.team_name ? `Team: ${reg.team_name}` : 'Individual Entry'}</span>
+                                            {reg.is_leader && <span className="bg-accent/10 text-accent text-[8px] font-black px-2 py-0.5 rounded border border-accent/20 uppercase tracking-widest">Team Leader</span>}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black border uppercase tracking-widest ${reg.status === 'Accepted' ? 'bg-accent/10 text-accent border-accent/20' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'}`}>{reg.status}</span>
+                                    <ChevronRight size={20} className="text-text/20 group-hover:text-accent group-hover:translate-x-1 transition-all" />
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="py-20 text-center bg-background/30 rounded-[2.5rem] border-2 border-dashed border-border">
+                        <p className="text-text/30 font-black tracking-widest uppercase text-sm">No Missions Authorized.</p>
+                        <Link to="/events" className="text-accent font-black text-xs uppercase tracking-widest mt-4 inline-block hover:underline">Browse Event Matrix</Link>
+                    </div>
+                )}
+            </div>
+
             {/* MODERATION QUEUE (Admin/Core Only) */}
             {canModerate && pendingProjects.length > 0 && (
                 <div className="bg-yellow-500/5 border border-yellow-500/20 p-10 rounded-[3rem] shadow-2xl relative overflow-hidden">
@@ -205,29 +246,6 @@ const Dashboard = () => {
                     </AreaChart>
                     </ResponsiveContainer>
                 </div>
-            </div>
-
-            {/* My Submissions */}
-            <div className="bg-card border border-border p-10 rounded-[3rem] shadow-sm">
-                <div className="flex justify-between items-center mb-10">
-                    <h2 className="text-3xl font-black text-text uppercase tracking-tighter italic">Project Registry</h2>
-                    <span className="bg-background border border-border px-5 py-2 rounded-xl text-[10px] font-black text-text/40 uppercase tracking-[0.2em] shadow-inner">{myProjects.length} Total</span>
-                </div>
-                {myProjects.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-5">
-                        {myProjects.map(proj => (
-                            <div key={proj.id} className="flex items-center justify-between p-8 bg-background/50 border border-border rounded-[2rem] hover:border-accent transition-all group shadow-sm">
-                                <div className="flex items-center gap-6">
-                                    <div className="p-4 bg-accent/5 rounded-2xl text-accent border border-accent/10 shadow-sm transition-all group-hover:bg-accent group-hover:text-white"><BookOpen size={28} /></div>
-                                    <div><h4 className="font-black text-text text-xl uppercase italic group-hover:text-accent transition-colors">{proj.title}</h4><p className="text-[10px] text-text/40 font-black uppercase tracking-widest mt-2">{proj.category} • {new Date(proj.created_at).toLocaleDateString()}</p></div>
-                                </div>
-                                <div className={`px-5 py-2 rounded-xl text-[10px] font-black border uppercase tracking-[0.2em] shadow-sm ${getStatusStyle(proj.status)}`}>{proj.status}</div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="py-20 text-center bg-background/30 rounded-[2.5rem] border-2 border-dashed border-border"><p className="text-text/30 font-black tracking-widest uppercase text-sm">No Build Data found.</p></div>
-                )}
             </div>
         </div>
 

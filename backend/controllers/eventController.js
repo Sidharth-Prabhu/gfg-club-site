@@ -120,15 +120,13 @@ export const registerForEvent = async (req, res) => {
 
         // Invite members
         if (memberEmails && memberEmails.length > 0) {
-            if (memberEmails.length >= event.max_team_size) {
-                return res.status(400).json({ message: `Max team size is ${event.max_team_size}` });
-            }
+            const inviteLimit = event.max_team_size - 1;
+            const emailsToInvite = memberEmails.slice(0, inviteLimit);
 
-            for (const email of memberEmails) {
+            for (const email of emailsToInvite) {
                 const [userRows] = await pool.execute('SELECT id FROM users WHERE email = ?', [email]);
                 if (userRows.length > 0) {
                     const invitedId = userRows[0].id;
-                    // Check if already invited to this event
                     const [exists] = await pool.execute('SELECT id FROM event_registrations WHERE user_id = ? AND event_id = ?', [invitedId, eventId]);
                     if (exists.length === 0) {
                         await pool.execute(
@@ -145,6 +143,26 @@ export const registerForEvent = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+};
+
+export const getMyRegistrations = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        const [rows] = await pool.execute(
+            `SELECT er.id as reg_id, e.id as event_id, e.title, e.date, e.location, e.poster,
+                    er.status, er.is_leader, t.name as team_name, t.id as team_id,
+                    e.participation_type, e.max_team_size
+             FROM event_registrations er
+             JOIN events e ON er.event_id = e.id
+             LEFT JOIN teams t ON er.team_id = t.id
+             WHERE er.user_id = ? AND er.status != 'Declined'
+             ORDER BY e.date ASC`,
+            [userId]
+        );
+        res.json(rows);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 };
 
 export const getMyInvitations = async (req, res) => {
@@ -188,6 +206,101 @@ export const respondToInvitation = async (req, res) => {
     }
 };
 
+export const unregisterFromEvent = async (req, res) => {
+    const userId = req.user.id;
+    const { eventId } = req.params;
+
+    try {
+        const [regRows] = await pool.execute(
+            'SELECT * FROM event_registrations WHERE user_id = ? AND event_id = ?',
+            [userId, eventId]
+        );
+        if (regRows.length === 0) return res.status(404).json({ message: 'Registration not found' });
+
+        const registration = regRows[0];
+
+        if (registration.is_leader) {
+            // If leader unregisters, delete the whole team?
+            // User requested "opt out of the event", for teams usually this dissolves the team if leader leaves
+            // or we could promote another member. Let's stick to dissolving for simplicity/robustness.
+            await pool.execute('DELETE FROM teams WHERE id = ?', [registration.team_id]);
+        } else {
+            await pool.execute('DELETE FROM event_registrations WHERE id = ?', [registration.id]);
+        }
+
+        res.json({ message: 'Unregistered successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const updateTeamName = async (req, res) => {
+    const userId = req.user.id;
+    const { teamId, newName } = req.body;
+
+    try {
+        const [teamRows] = await pool.execute('SELECT * FROM teams WHERE id = ? AND leader_id = ?', [teamId, userId]);
+        if (teamRows.length === 0) return res.status(403).json({ message: 'Not authorized or team not found' });
+
+        await pool.execute('UPDATE teams SET name = ? WHERE id = ?', [newName, teamId]);
+        res.json({ message: 'Team name updated' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const inviteTeamMember = async (req, res) => {
+    const userId = req.user.id;
+    const { teamId, email } = req.body;
+
+    try {
+        const [teamRows] = await pool.execute('SELECT * FROM teams WHERE id = ? AND leader_id = ?', [teamId, userId]);
+        if (teamRows.length === 0) return res.status(403).json({ message: 'Not authorized' });
+        const team = teamRows[0];
+
+        const [eventRows] = await pool.execute('SELECT max_team_size FROM events WHERE id = ?', [team.event_id]);
+        const maxTeamSize = eventRows[0].max_team_size;
+
+        const [countRows] = await pool.execute('SELECT COUNT(*) as count FROM event_registrations WHERE team_id = ?', [teamId]);
+        if (countRows[0].count >= maxTeamSize) {
+            return res.status(400).json({ message: 'Team limit reached' });
+        }
+
+        const [userRows] = await pool.execute('SELECT id FROM users WHERE email = ?', [email]);
+        if (userRows.length === 0) return res.status(404).json({ message: 'User not found' });
+        const invitedId = userRows[0].id;
+
+        const [exists] = await pool.execute('SELECT id FROM event_registrations WHERE user_id = ? AND event_id = ?', [invitedId, team.event_id]);
+        if (exists.length > 0) return res.status(400).json({ message: 'User already in this event' });
+
+        await pool.execute(
+            'INSERT INTO event_registrations (user_id, event_id, team_id, status) VALUES (?, ?, ?, ?)',
+            [invitedId, team.event_id, teamId, 'Pending']
+        );
+
+        res.json({ message: 'Invitation sent' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const removeTeamMember = async (req, res) => {
+    const userId = req.user.id;
+    const { teamId, memberId } = req.body;
+
+    try {
+        const [teamRows] = await pool.execute('SELECT * FROM teams WHERE id = ? AND leader_id = ?', [teamId, userId]);
+        if (teamRows.length === 0) return res.status(403).json({ message: 'Not authorized' });
+
+        if (memberId === userId) return res.status(400).json({ message: 'Cannot remove yourself. Use unregister.' });
+
+        await pool.execute('DELETE FROM event_registrations WHERE team_id = ? AND user_id = ?', [teamId, memberId]);
+        res.json({ message: 'Member removed' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 export const getEventRegistrations = async (req, res) => {
   const userRole = req.user.role;
   if (userRole !== 'Admin' && userRole !== 'Core') {
@@ -214,20 +327,38 @@ export const getTeamStatus = async (req, res) => {
     const userId = req.user.id;
     const { eventId } = req.params;
     try {
-        // Check if user is leader of a team in this event
-        const [teamRows] = await pool.execute('SELECT id, name FROM teams WHERE leader_id = ? AND event_id = ?', [userId, eventId]);
-        if (teamRows.length === 0) return res.json({ isLeader: false });
+        // Find user's team for this event (whether leader or member)
+        const [regRows] = await pool.execute(
+            'SELECT team_id, is_leader FROM event_registrations WHERE user_id = ? AND event_id = ?', 
+            [userId, eventId]
+        );
+        
+        if (regRows.length === 0 || !regRows[0].team_id) {
+            // Check if registered individually
+            if (regRows.length > 0) return res.json({ registered: true, isTeam: false });
+            return res.json({ registered: false });
+        }
 
-        const team = teamRows[0];
+        const { team_id, is_leader } = regRows[0];
+        const [teamRows] = await pool.execute('SELECT name FROM teams WHERE id = ?', [team_id]);
+        const teamName = teamRows[0].name;
+
         const [members] = await pool.execute(
-            `SELECT u.name, u.email, er.status 
+            `SELECT u.id as user_id, u.name, u.email, er.status, er.is_leader
              FROM event_registrations er 
              JOIN users u ON er.user_id = u.id 
              WHERE er.team_id = ?`,
-            [team.id]
+            [team_id]
         );
 
-        res.json({ isLeader: true, teamName: team.name, members });
+        res.json({ 
+            registered: true, 
+            isTeam: true, 
+            isLeader: !!is_leader, 
+            teamId: team_id, 
+            teamName, 
+            members 
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
