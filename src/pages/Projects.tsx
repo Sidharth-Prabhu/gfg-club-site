@@ -19,14 +19,12 @@ const Projects = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedProject, setExpandedProject] = useState(null);
   const [category, setCategory] = useState('All');
-  const [viewMode, setViewMode] = useState('Public'); 
   
   const [formData, setFormData] = useState({
     title: '', description: '', github_link: '', demo_link: '', tech_stack: '', category: 'Web', files: []
   });
 
   const categories = ['All', 'AI', 'Web', 'Mobile', 'Systems'];
-  const canModerate = user?.role === 'Admin' || user?.role === 'Core';
 
   const modules = useMemo(() => ({
     toolbar: [
@@ -40,8 +38,8 @@ const Projects = () => {
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const statusParam = viewMode === 'Moderation' ? 'Pending' : 'Approved';
-      const { data } = await api.get(`/projects?category=${category}&status=${statusParam}`);
+      // Showcase only shows Approved projects
+      const { data } = await api.get(`/projects?category=${category}&status=Approved`);
       setPosts(data);
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -52,7 +50,7 @@ const Projects = () => {
 
   useEffect(() => {
     fetchProjects();
-  }, [category, viewMode]);
+  }, [category]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -67,23 +65,14 @@ const Projects = () => {
     }
   };
 
-  const handleStatusUpdate = async (e, id, status) => {
-      e.stopPropagation();
-      try {
-          await api.put(`/projects/${id}/status`, { status });
-          if (expandedProject?.id === id) setExpandedProject(null);
-          fetchProjects();
-      } catch (error) { alert('Action failed'); }
-  };
-
   const handleVote = async (e, projectId, voteType) => {
       e.stopPropagation();
       try {
           await api.post('/projects/vote', { projectId, voteType });
           fetchProjects();
           if (expandedProject?.id === projectId) {
-              const { data: updatedPosts } = await api.get(`/projects?status=${expandedProject.status}`);
-              const updated = updatedPosts.find(p => p.id === projectId);
+              const { data: updatedProjects } = await api.get(`/projects?status=Approved`);
+              const updated = updatedProjects.find(p => p.id === projectId);
               if (updated) setExpandedProject(updated);
           }
       } catch (error) { console.error('Vote failed'); }
@@ -105,16 +94,9 @@ const Projects = () => {
           <h1 className="text-4xl font-black text-white tracking-tight">Project Gallery</h1>
           <p className="text-gray-400 mt-2 text-lg">A curated showcase of student-built innovations.</p>
         </div>
-        <div className="flex gap-4">
-            {canModerate && (
-                <button onClick={() => setViewMode(viewMode === 'Public' ? 'Moderation' : 'Public')} className={`px-6 py-3 rounded-2xl font-bold flex items-center gap-2 transition border ${viewMode === 'Moderation' ? 'bg-yellow-500/10 border-yellow-500/50 text-yellow-500' : 'bg-card border-gray-800 text-gray-400 hover:border-accent'}`}>
-                    {viewMode === 'Moderation' ? <><Clock size={20} /> Showcase</> : <><ShieldCheck size={20} /> Review Pending</>}
-                </button>
-            )}
-            <button onClick={() => setIsModalOpen(true)} className="bg-accent hover:bg-green-700 text-white px-8 py-3 rounded-2xl font-bold flex items-center gap-2 transition shadow-xl shadow-accent/20">
-              <Plus size={24} /> Submit Project
-            </button>
-        </div>
+        <button onClick={() => setIsModalOpen(true)} className="bg-accent hover:bg-green-700 text-white px-8 py-3 rounded-2xl font-bold flex items-center gap-2 transition shadow-xl shadow-accent/20">
+          <Plus size={24} /> Submit Project
+        </button>
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
@@ -143,18 +125,16 @@ const Projects = () => {
                         <div className="p-3.5 rounded-2xl bg-accent/10 text-accent border border-accent/20 group-hover:scale-110 transition-transform duration-500">{getCategoryIcon(project.category)}</div>
                         <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">{project.category}</div>
                     </div>
-                    {viewMode === 'Public' && (
-                        <div className="flex flex-col items-center bg-background/40 rounded-xl p-1 border border-gray-800/50">
-                            <button onClick={(e) => handleVote(e, project.id, 1)} className="p-1 hover:text-accent transition-colors"><ChevronUp size={18} /></button>
-                            <span className="text-xs font-black text-gray-300">{project.vote_score || 0}</span>
-                            <button onClick={(e) => handleVote(e, project.id, -1)} className="p-1 hover:text-red-500 transition-colors"><ChevronDown size={18} /></button>
-                        </div>
-                    )}
+                    <div className="flex flex-col items-center bg-background/40 rounded-xl p-1 border border-gray-800/50">
+                        <button onClick={(e) => handleVote(e, project.id, 1)} className="p-1 hover:text-accent transition-colors"><ChevronUp size={18} /></button>
+                        <span className="text-xs font-black text-gray-300">{project.vote_score || 0}</span>
+                        <button onClick={(e) => handleVote(e, project.id, -1)} className="p-1 hover:text-red-500 transition-colors"><ChevronDown size={18} /></button>
+                    </div>
                 </div>
 
                 <div className="space-y-3">
                     <h3 className="text-2xl font-black text-white leading-tight group-hover:text-accent transition-colors">{project.title}</h3>
-                    <div className="text-gray-400 text-sm line-clamp-3 leading-relaxed" dangerouslySetInnerHTML={{ __html: project.description }} />
+                    <div className="text-gray-400 text-sm line-clamp-3 leading-relaxed ql-editor !p-0" dangerouslySetInnerHTML={{ __html: project.description }} />
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -172,17 +152,8 @@ const Projects = () => {
                   <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-[10px] font-black text-accent border border-accent/20 shadow-inner">{project.creator_name[0]}</div>
                   <span className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">{project.creator_name}</span>
                 </div>
-                <div className="flex gap-2">
-                    {viewMode === 'Moderation' ? (
-                        <div className="flex gap-2">
-                            <button onClick={(e) => handleStatusUpdate(e, project.id, 'Approved')} className="p-2 bg-accent/10 text-accent rounded-xl hover:bg-accent hover:text-white transition-all"><CheckCircle size={18} /></button>
-                            <button onClick={(e) => handleStatusUpdate(e, project.id, 'Declined')} className="p-2 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all"><XCircle size={18} /></button>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2 text-accent font-black text-[10px] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                            Details <ChevronRight size={14} />
-                        </div>
-                    )}
+                <div className="flex items-center gap-2 text-accent font-black text-[10px] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                    Details <ChevronRight size={14} />
                 </div>
               </div>
             </motion.div>
@@ -234,7 +205,7 @@ const Projects = () => {
                         </div>
                         <div className="lg:w-80 space-y-8 flex-shrink-0">
                             <div className="bg-background/50 border border-gray-800 p-8 rounded-[2.5rem] space-y-6 shadow-inner">
-                                <h5 className="font-black text-white uppercase tracking-widest text-xs">Resources</h5>
+                                <h5 className="font-black text-white uppercase tracking-widest text-sm">Resources</h5>
                                 <div className="space-y-4">
                                     {expandedProject.github_link && (
                                         <a href={expandedProject.github_link} target="_blank" className="w-full flex items-center justify-between p-4 bg-gray-800/50 hover:bg-gray-800 rounded-2xl border border-gray-700 hover:border-white transition-all text-gray-300 font-bold group">
@@ -250,24 +221,17 @@ const Projects = () => {
                                     )}
                                 </div>
                             </div>
-                            {viewMode === 'Moderation' ? (
-                                <div className="space-y-4">
-                                    <button onClick={(e) => handleStatusUpdate(e, expandedProject.id, 'Approved')} className="w-full py-5 bg-accent hover:bg-green-700 text-white rounded-2xl font-black shadow-xl shadow-accent/20 transition-all flex items-center justify-center gap-3"><CheckCircle size={24} /> Approve</button>
-                                    <button onClick={(e) => handleStatusUpdate(e, expandedProject.id, 'Declined')} className="w-full py-5 bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl font-black transition-all flex items-center justify-center gap-3"><XCircle size={24} /> Decline</button>
+                            <div className="space-y-4">
+                                <div className="flex gap-4">
+                                    <button onClick={(e) => handleVote(e, expandedProject.id, 1)} className="flex-1 py-5 bg-card border-2 border-gray-800 hover:border-accent rounded-2xl text-gray-400 hover:text-accent transition-all flex flex-col items-center gap-1">
+                                        <ChevronUp size={28} /> <span className="text-[10px] font-black uppercase">Upvote</span>
+                                    </button>
+                                    <button onClick={(e) => handleVote(e, expandedProject.id, -1)} className="flex-1 py-5 bg-card border-2 border-gray-800 hover:border-red-500 rounded-2xl text-gray-400 hover:text-red-500 transition-all flex flex-col items-center gap-1">
+                                        <ChevronDown size={28} /> <span className="text-[10px] font-black uppercase">Downvote</span>
+                                    </button>
                                 </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    <div className="flex gap-4">
-                                        <button onClick={(e) => handleVote(e, expandedProject.id, 1)} className="flex-1 py-5 bg-card border-2 border-gray-800 hover:border-accent rounded-2xl text-gray-400 hover:text-accent transition-all flex flex-col items-center gap-1">
-                                            <ChevronUp size={28} /> <span className="text-[10px] font-black uppercase">Upvote</span>
-                                        </button>
-                                        <button onClick={(e) => handleVote(e, expandedProject.id, -1)} className="flex-1 py-5 bg-card border-2 border-gray-800 hover:border-red-500 rounded-2xl text-gray-400 hover:text-red-500 transition-all flex flex-col items-center gap-1">
-                                            <ChevronDown size={28} /> <span className="text-[10px] font-black uppercase">Downvote</span>
-                                        </button>
-                                    </div>
-                                    <button className="w-full py-4 bg-gray-800 hover:bg-gray-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all"><Share2 size={18} /> Share Build</button>
-                                </div>
-                            )}
+                                <button className="w-full py-4 bg-gray-800 hover:bg-gray-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all"><Share2 size={18} /> Share Build</button>
+                            </div>
                         </div>
                     </div>
                 </div>

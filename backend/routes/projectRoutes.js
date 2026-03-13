@@ -2,6 +2,7 @@ import express from 'express';
 import { 
   getProjects, 
   createProject, 
+  updateProject,
   deleteProject, 
   updateProjectStatus, 
   voteProject,
@@ -16,6 +17,7 @@ router.route('/')
   .post(protect, createProject);
 
 router.route('/:id')
+  .put(protect, updateProject)
   .delete(protect, deleteProject);
 
 router.put('/:id/status', protect, updateProjectStatus);

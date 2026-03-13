@@ -68,6 +68,33 @@ export const createProject = async (req, res) => {
   }
 };
 
+export const updateProject = async (req, res) => {
+    const { title, description, github_link, demo_link, tech_stack, category } = req.body;
+    const projectId = req.params.id;
+    const userId = req.user.id;
+
+    try {
+        const [rows] = await pool.execute('SELECT created_by, status FROM projects WHERE id = ?', [projectId]);
+        if (rows.length === 0) return res.status(404).json({ message: 'Project not found' });
+
+        if (rows[0].created_by !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        // If an approved project is edited, reset it to Pending
+        const newStatus = rows[0].status === 'Approved' ? 'Pending' : rows[0].status;
+
+        await pool.execute(
+            'UPDATE projects SET title = ?, description = ?, github_link = ?, demo_link = ?, tech_stack = ?, category = ?, status = ? WHERE id = ?',
+            [title, description, github_link, demo_link, tech_stack, category, newStatus, projectId]
+        );
+
+        res.json({ message: 'Project updated and sent for re-approval', status: newStatus });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 export const deleteProject = async (req, res) => {
   const projectId = req.params.id;
   const { id: userId, role } = req.user;
@@ -76,7 +103,6 @@ export const deleteProject = async (req, res) => {
     const [rows] = await pool.execute('SELECT created_by FROM projects WHERE id = ?', [projectId]);
     if (rows.length === 0) return res.status(404).json({ message: 'Project not found' });
 
-    // Only creator, Admin or Core can delete
     if (rows[0].created_by !== userId && role !== 'Admin' && role !== 'Core') {
       return res.status(403).json({ message: 'Not authorized to delete this project' });
     }
@@ -130,7 +156,11 @@ export const voteProject = async (req, res) => {
 
 export const getUserProjects = async (req, res) => {
     try {
-        const [rows] = await pool.execute('SELECT * FROM projects WHERE created_by = ? ORDER BY created_at DESC', [req.user.id]);
+        const [rows] = await pool.execute(
+            `SELECT p.*, (SELECT COALESCE(SUM(vote_type), 0) FROM project_votes WHERE project_id = p.id) as vote_score 
+             FROM projects p WHERE p.created_by = ? ORDER BY p.created_at DESC`, 
+            [req.user.id]
+        );
         res.json(rows);
     } catch (error) {
         res.status(500).json({ message: error.message });
