@@ -40,6 +40,27 @@ export const createBlog = async (req, res) => {
   }
 };
 
+export const updateBlog = async (req, res) => {
+  const { title, content, tags } = req.body;
+  const blogId = req.params.id;
+  try {
+    const [rows] = await pool.execute('SELECT author_id FROM blogs WHERE id = ?', [blogId]);
+    if (rows.length === 0) return res.status(404).json({ message: 'Blog not found' });
+
+    if (rows[0].author_id !== req.user.id && req.user.role !== 'Admin') {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    await pool.execute(
+      'UPDATE blogs SET title = ?, content = ?, tags = ? WHERE id = ?',
+      [title, content, tags, blogId]
+    );
+    res.json({ message: 'Blog updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const deleteBlog = async (req, res) => {
   try {
     const [rows] = await pool.execute('SELECT author_id FROM blogs WHERE id = ?', [req.params.id]);

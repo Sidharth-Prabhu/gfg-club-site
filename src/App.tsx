@@ -11,6 +11,8 @@ import PracticeHub from './pages/PracticeHub';
 import Dashboard from './pages/Dashboard';
 import Community from './pages/Community';
 import Projects from './pages/Projects';
+import Blog from './pages/Blog';
+import Resources from './pages/Resources';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -42,10 +44,10 @@ function App() {
             <Route path="/practice" element={<PracticeHub />} />
             <Route path="/community" element={<Community />} />
             <Route path="/projects" element={<Projects />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/resources" element={<Resources />} />
             
-            <Route path="/blog" element={<Placeholder title="Blog" />} />
             <Route path="/team" element={<Placeholder title="Our Team" />} />
-            <Route path="/resources" element={<Placeholder title="Resources" />} />
             
             <Route 
               path="/dashboard" 
