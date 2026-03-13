@@ -7,28 +7,34 @@ const updateStreak = async (userId) => {
         const [rows] = await pool.execute('SELECT last_login, streak FROM users WHERE id = ?', [userId]);
         const user = rows[0];
         
-        const today = new Date().toISOString().split('T')[0];
+        // Get local date in YYYY-MM-DD format
+        const today = new Date().toLocaleDateString('en-CA');
         
+        // If first time logging in
         if (!user.last_login) {
             await pool.execute('UPDATE users SET last_login = ?, streak = 1 WHERE id = ?', [today, userId]);
             return;
         }
 
-        const lastLogin = new Date(user.last_login);
-        const todayDate = new Date(today);
+        const lastLoginStr = new Date(user.last_login).toLocaleDateString('en-CA');
         
-        // Difference in days
-        const diffTime = Math.abs(todayDate - lastLogin);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        // Logic: Same day login - do nothing
+        if (lastLoginStr === today) {
+            return;
+        }
+
+        const lastLoginDate = new Date(lastLoginStr);
+        const todayDate = new Date(today);
+        const diffTime = todayDate - lastLoginDate;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
         if (diffDays === 1) {
-            // Logged in yesterday, increment streak
+            // Consecutive day login - increment
             await pool.execute('UPDATE users SET last_login = ?, streak = streak + 1 WHERE id = ?', [today, userId]);
         } else if (diffDays > 1) {
-            // Missed a day or more, reset streak
+            // Missed one or more days - reset to 1
             await pool.execute('UPDATE users SET last_login = ?, streak = 1 WHERE id = ?', [today, userId]);
         }
-        // If diffDays is 0, they already checked in today, do nothing
     } catch (err) {
         console.error('Streak Update Error:', err.message);
     }
@@ -36,11 +42,10 @@ const updateStreak = async (userId) => {
 
 export const getUserProfile = async (req, res) => {
   try {
-    // Update streak on every profile fetch (dashboard load)
     await updateStreak(req.user.id);
 
     const [rows] = await pool.execute(
-      'SELECT id, name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile, problems_solved, gfg_solved, gfg_score, leetcode_solved, github_repos, weekly_points, streak, last_login, created_at FROM users WHERE id = ?',
+      'SELECT id, name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile, problems_solved, gfg_solved, gfg_score, leetcode_solved, github_repos, weekly_points, streak, role, last_login, created_at FROM users WHERE id = ?',
       [req.user.id]
     );
     const user = rows[0];
@@ -81,7 +86,6 @@ export const syncProfiles = async (req, res) => {
     let githubRepos = 0;
     let solvedSlugs = [];
 
-    // GitHub Sync
     if (user.github_profile) {
       try {
         const username = user.github_profile.split('/').filter(Boolean).pop();
@@ -90,7 +94,6 @@ export const syncProfiles = async (req, res) => {
       } catch (err) { console.error('GitHub Sync failed:', err.message); }
     }
 
-    // LeetCode Sync
     if (user.leetcode_profile) {
       try {
         const username = user.leetcode_profile.split('/u/')[1]?.split('/')[0] || user.leetcode_profile.split('/').filter(Boolean).pop();
@@ -103,7 +106,6 @@ export const syncProfiles = async (req, res) => {
       } catch (err) { console.error('LeetCode Sync failed:', err.message); }
     }
 
-    // GfG Sync (Ultra-Robust Pattern Matching)
     if (user.gfg_profile) {
       try {
         let username = '';
@@ -143,7 +145,6 @@ export const syncProfiles = async (req, res) => {
         }
 
         solvedSlugs = [...new Set(solvedSlugs)];
-
         console.log(`GFG SYNC SUCCESS -> User: ${username}, Solved: ${gfgSolved}, Score: ${gfgScore}`);
       } catch (err) { console.error('GfG Sync failed:', err.message); }
     }

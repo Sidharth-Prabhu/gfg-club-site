@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import LeaderboardTable from '../components/LeaderboardTable';
-import { Trophy, Medal, Star, Hash } from 'lucide-react';
+import { Trophy, Medal, Star, Hash, ShieldCheck, User as UserIcon, Star as StarIcon } from 'lucide-react';
 
 const Leaderboard = () => {
   const [data, setData] = useState([]);
@@ -36,7 +36,25 @@ const Leaderboard = () => {
         </div>
       )
     },
-    { header: 'Name', key: 'name', render: (row) => <span className="font-medium">{row.name}</span> },
+    { 
+      header: 'Name', 
+      key: 'name', 
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          <span className="font-medium">{row.name}</span>
+          {row.role === 'Admin' && (
+            <span className="bg-red-500/10 text-red-500 text-[10px] font-bold px-2 py-0.5 rounded-full border border-red-500/20 flex items-center gap-1">
+              <ShieldCheck size={10} /> ADMIN
+            </span>
+          )}
+          {row.role === 'Core' && (
+            <span className="bg-accent/10 text-accent text-[10px] font-bold px-2 py-0.5 rounded-full border border-accent/20 flex items-center gap-1">
+              <StarIcon size={10} fill="currentColor" /> CORE
+            </span>
+          )}
+        </div>
+      )
+    },
     { header: 'Department', key: 'department' },
     { 
       header: 'GFG Score', 
