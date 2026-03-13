@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Events from './pages/Events';
+import EventDetail from './pages/EventDetail';
 import Leaderboard from './pages/Leaderboard';
 import PracticeHub from './pages/PracticeHub';
 import Dashboard from './pages/Dashboard';
@@ -40,6 +41,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/events" element={<Events />} />
+            <Route path="/events/:id" element={<EventDetail />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/practice" element={<PracticeHub />} />
             <Route path="/community" element={<Community />} />

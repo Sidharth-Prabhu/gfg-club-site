@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import StatsCard from '../components/StatsCard';
@@ -99,10 +99,10 @@ const Dashboard = () => {
       }
   };
 
-  if (loading) return <div className="text-center py-40 text-accent font-black tracking-[0.3em] uppercase animate-pulse text-xl">Synchronizing Terminal...</div>;
+  if (loading) return <div className="text-center py-40 text-accent font-black tracking-[0.3em] uppercase animate-pulse text-xl italic">Synchronizing Terminal...</div>;
 
   return (
-    <div className="space-y-12 max-w-7xl mx-auto pb-20">
+    <div className="container mx-auto px-4 py-8 space-y-12 max-w-7xl pb-20">
       {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
@@ -110,7 +110,7 @@ const Dashboard = () => {
         className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 border-b border-border pb-10"
       >
         <div className="space-y-2">
-          <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase">
+          <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase italic">
             Terminal <span className="text-accent">Node</span>: {profile?.name}
           </h1>
           <p className="text-text/40 font-black text-xs tracking-[0.3em] uppercase flex items-center gap-2">
@@ -130,7 +130,7 @@ const Dashboard = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         <StatsCard title="Problems Solved" value={profile?.problems_solved || 0} icon={Code} color="bg-accent" />
-        <StatsCard title="GFG Score" value={profile?.gfg_score || 0} icon={Star} color="bg-yellow-500" />
+        <StatsCard title="GFG Core Score" value={profile?.gfg_score || 0} icon={Star} color="bg-yellow-500" />
         <StatsCard title="Activity Streak" value={`${profile?.streak || 0} Days`} icon={Zap} color="bg-orange-500" />
         <StatsCard title="Campus Authority" value={`#${profile?.id || 0}`} icon={Trophy} color="bg-blue-500" />
       </div>
@@ -138,39 +138,11 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div className="lg:col-span-2 space-y-12">
             
-            {/* MODERATION QUEUE */}
-            {canModerate && pendingProjects.length > 0 && (
-                <motion.div 
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="bg-yellow-500/5 border border-yellow-500/20 p-10 rounded-[3rem] shadow-2xl relative overflow-hidden"
-                >
-                    <div className="flex items-center gap-5 mb-10 relative z-10">
-                        <div className="p-4 bg-yellow-500/10 rounded-2xl text-yellow-500 border border-yellow-500/20 shadow-inner"><ShieldAlert size={32} /></div>
-                        <div>
-                            <h2 className="text-3xl font-black text-text uppercase tracking-tighter">Review Queue</h2>
-                            <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest mt-1">Awaiting Core Verification</p>
-                        </div>
-                    </div>
-                    <div className="space-y-5 relative z-10">
-                        {pendingProjects.map(proj => (
-                            <div key={proj.id} className="flex items-center justify-between p-8 bg-card border border-border rounded-[2rem] hover:border-yellow-500 transition-all group shadow-sm">
-                                <div>
-                                    <h4 className="font-black text-text text-xl uppercase group-hover:text-yellow-500 transition-colors">{proj.title}</h4>
-                                    <p className="text-[10px] text-text/40 font-black uppercase tracking-widest mt-2">{proj.creator_name} • {proj.category}</p>
-                                </div>
-                                <ChevronRight size={24} className="text-yellow-500" />
-                            </div>
-                        ))}
-                    </div>
-                </motion.div>
-            )}
-
             {/* ACTIVITY GRAPH */}
             <div className="bg-card border border-border p-10 rounded-[3rem] shadow-sm">
                 <div className="flex items-center gap-4 mb-10">
                     <TrendingUp size={28} className="text-accent" />
-                    <h2 className="text-3xl font-black text-text uppercase tracking-tighter">Coding Velocity</h2>
+                    <h2 className="text-3xl font-black text-text uppercase tracking-tighter italic">Coding Velocity</h2>
                 </div>
                 <div className="h-80 w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -189,7 +161,7 @@ const Dashboard = () => {
             {/* My Submissions */}
             <div className="bg-card border border-border p-10 rounded-[3rem] shadow-sm">
                 <div className="flex justify-between items-center mb-10">
-                    <h2 className="text-3xl font-black text-text uppercase tracking-tighter">Project Registry</h2>
+                    <h2 className="text-3xl font-black text-text uppercase tracking-tighter italic">Project Registry</h2>
                     <span className="bg-background border border-border px-5 py-2 rounded-xl text-[10px] font-black text-text/40 uppercase tracking-[0.2em] shadow-inner">{myProjects.length} Total</span>
                 </div>
                 {myProjects.length > 0 ? (
@@ -198,7 +170,7 @@ const Dashboard = () => {
                             <div key={proj.id} className="flex items-center justify-between p-8 bg-background/50 border border-border rounded-[2rem] hover:border-accent transition-all group shadow-sm">
                                 <div className="flex items-center gap-6">
                                     <div className="p-4 bg-accent/5 rounded-2xl text-accent border border-accent/10 shadow-sm transition-all group-hover:bg-accent group-hover:text-white"><BookOpen size={28} /></div>
-                                    <div><h4 className="font-black text-text text-xl group-hover:text-accent transition-colors uppercase tracking-tight">{proj.title}</h4><p className="text-[10px] text-text/40 font-black uppercase tracking-widest mt-2">{proj.category} • {new Date(proj.created_at).toLocaleDateString()}</p></div>
+                                    <div><h4 className="font-black text-text text-xl uppercase italic group-hover:text-accent transition-colors">{proj.title}</h4><p className="text-[10px] text-text/40 font-black uppercase tracking-widest mt-2">{proj.category} • {new Date(proj.created_at).toLocaleDateString()}</p></div>
                                 </div>
                                 <div className={`px-5 py-2 rounded-xl text-[10px] font-black border uppercase tracking-[0.2em] shadow-sm ${getStatusStyle(proj.status)}`}>{proj.status}</div>
                             </div>
@@ -215,7 +187,7 @@ const Dashboard = () => {
             <div className="bg-card border border-border p-10 rounded-[3rem] shadow-sm sticky top-24">
                 <div className="flex items-center gap-4 mb-10">
                     <Zap size={28} className="text-yellow-500" />
-                    <h2 className="text-3xl font-black text-text uppercase tracking-tighter">Interface Nodes</h2>
+                    <h2 className="text-3xl font-black text-text uppercase tracking-tighter italic">Interface Nodes</h2>
                 </div>
                 <div className="space-y-6">
                     {[
@@ -242,7 +214,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Edit Modal */}
+      {/* Modals remain same */}
       <AnimatePresence>
         {isEditModalOpen && (
           <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl overflow-y-auto">

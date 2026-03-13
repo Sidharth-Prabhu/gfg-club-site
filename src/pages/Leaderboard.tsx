@@ -48,7 +48,7 @@ const Leaderboard = () => {
             {row.name[0]}
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-text uppercase tracking-tight text-lg">{row.name}</span>
+            <span className="font-black text-text uppercase tracking-tight text-lg italic">{row.name}</span>
             <div className="flex gap-2 mt-1">
               {row.role === 'Admin' && (
                 <span className="bg-red-500/10 text-red-500 text-[8px] font-black px-2 py-0.5 rounded border border-red-500/20 flex items-center gap-1 uppercase tracking-widest">
@@ -93,14 +93,14 @@ const Leaderboard = () => {
   ];
 
   return (
-    <div className="space-y-12 pb-20">
+    <div className="container mx-auto px-4 py-8 space-y-12 pb-20">
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8"
       >
         <div className="space-y-2">
-          <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase">Campus <span className="text-accent">Elite</span></h1>
+          <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase italic">Campus <span className="text-accent">Elite</span></h1>
           <p className="text-text/60 text-lg font-medium">Real-time rankings based on GeeksforGeeks Core Performance.</p>
         </div>
 
@@ -155,7 +155,7 @@ const Leaderboard = () => {
             <div className="space-y-4">
                 <div className="flex items-center gap-3 justify-center md:justify-start">
                     <Sparkles className="text-accent" size={24} />
-                    <h3 className="text-2xl font-black text-text uppercase tracking-tight">Climb the Matrix</h3>
+                    <h3 className="text-2xl font-black text-text uppercase tracking-tight italic">Climb the Matrix</h3>
                 </div>
                 <p className="text-text/60 text-lg max-w-2xl font-medium">Rankings are updated every 24 hours. Keep solving problems on GfG to secure your position.</p>
             </div>

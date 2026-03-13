@@ -51,7 +51,7 @@ const Home = () => {
   };
 
   return (
-    <div className="space-y-32 overflow-hidden">
+    <div className="container mx-auto px-4 py-8 space-y-32 overflow-hidden">
       {/* Hero Section */}
       <section className="relative min-h-[85vh] flex flex-col items-center justify-center text-center px-4 pt-10">
         <div className="absolute inset-0 -z-10">
@@ -108,7 +108,7 @@ const Home = () => {
             className="pt-16 flex items-center justify-center gap-8 opacity-40 grayscale hover:grayscale-0 transition-all duration-500"
           >
             <div className="text-sm font-bold uppercase tracking-widest">Powered by</div>
-            <div className="text-2xl font-black">GeeksforGeeks</div>
+            <div className="text-2xl font-black italic">GeeksforGeeks</div>
           </motion.div>
         </motion.div>
 

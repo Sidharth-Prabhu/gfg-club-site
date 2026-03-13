@@ -85,7 +85,7 @@ const Projects = () => {
   };
 
   return (
-    <div className="space-y-12 pb-20 max-w-7xl mx-auto px-4 md:px-0">
+    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-12 pb-20">
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import ProblemCard from '../components/ProblemCard';
-import { RefreshCw, Code2, Filter, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { RefreshCw, Code2, Filter } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const PracticeHub = () => {
   const [problems, setProblems] = useState([]);
@@ -36,14 +36,14 @@ const PracticeHub = () => {
   ];
 
   return (
-    <div className="space-y-12 pb-20">
+    <div className="container mx-auto px-4 py-8 space-y-12 pb-20">
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8"
       >
         <div className="space-y-2">
-          <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase">Practice <span className="text-accent">Hub</span></h1>
+          <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase italic">Practice <span className="text-accent">Hub</span></h1>
           <p className="text-text/60 text-lg font-medium">Curated algorithmic challenges to sharpen your technical edge.</p>
         </div>
         

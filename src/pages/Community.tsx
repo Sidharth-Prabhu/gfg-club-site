@@ -167,7 +167,7 @@ const Community = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-12 pb-20">
+    <div className="container mx-auto px-4 py-8 max-w-6xl space-y-12 pb-20">
       {!expandedPost ? (
         <>
           <motion.div 
