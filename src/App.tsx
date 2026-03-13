@@ -10,6 +10,7 @@ import Leaderboard from './pages/Leaderboard';
 import PracticeHub from './pages/PracticeHub';
 import Dashboard from './pages/Dashboard';
 import Community from './pages/Community';
+import Projects from './pages/Projects';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -40,8 +41,8 @@ function App() {
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/practice" element={<PracticeHub />} />
             <Route path="/community" element={<Community />} />
+            <Route path="/projects" element={<Projects />} />
             
-            <Route path="/projects" element={<Placeholder title="Projects Showcase" />} />
             <Route path="/blog" element={<Placeholder title="Blog" />} />
             <Route path="/team" element={<Placeholder title="Our Team" />} />
             <Route path="/resources" element={<Placeholder title="Resources" />} />
