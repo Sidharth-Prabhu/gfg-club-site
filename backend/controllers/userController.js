@@ -2,10 +2,45 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import pool from '../config/db.js';
 
+const updateStreak = async (userId) => {
+    try {
+        const [rows] = await pool.execute('SELECT last_login, streak FROM users WHERE id = ?', [userId]);
+        const user = rows[0];
+        
+        const today = new Date().toISOString().split('T')[0];
+        
+        if (!user.last_login) {
+            await pool.execute('UPDATE users SET last_login = ?, streak = 1 WHERE id = ?', [today, userId]);
+            return;
+        }
+
+        const lastLogin = new Date(user.last_login);
+        const todayDate = new Date(today);
+        
+        // Difference in days
+        const diffTime = Math.abs(todayDate - lastLogin);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+            // Logged in yesterday, increment streak
+            await pool.execute('UPDATE users SET last_login = ?, streak = streak + 1 WHERE id = ?', [today, userId]);
+        } else if (diffDays > 1) {
+            // Missed a day or more, reset streak
+            await pool.execute('UPDATE users SET last_login = ?, streak = 1 WHERE id = ?', [today, userId]);
+        }
+        // If diffDays is 0, they already checked in today, do nothing
+    } catch (err) {
+        console.error('Streak Update Error:', err.message);
+    }
+};
+
 export const getUserProfile = async (req, res) => {
   try {
+    // Update streak on every profile fetch (dashboard load)
+    await updateStreak(req.user.id);
+
     const [rows] = await pool.execute(
-      'SELECT id, name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile, problems_solved, gfg_solved, gfg_score, leetcode_solved, github_repos, weekly_points, streak, created_at FROM users WHERE id = ?',
+      'SELECT id, name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile, problems_solved, gfg_solved, gfg_score, leetcode_solved, github_repos, weekly_points, streak, last_login, created_at FROM users WHERE id = ?',
       [req.user.id]
     );
     const user = rows[0];
@@ -44,6 +79,7 @@ export const syncProfiles = async (req, res) => {
     let gfgScore = 0;
     let leetcodeSolved = 0;
     let githubRepos = 0;
+    let solvedSlugs = [];
 
     // GitHub Sync
     if (user.github_profile) {
@@ -87,40 +123,26 @@ export const syncProfiles = async (req, res) => {
             }
         });
 
-        // 1. Search for the userData block specifically (handles escaped quotes)
         const userDataIndex = html.indexOf('userData');
         if (userDataIndex !== -1) {
-            // Extract a chunk of 2000 characters after "userData" to find the stats
             const chunk = html.substring(userDataIndex, userDataIndex + 2000);
-            
-            // Regex to match both \"key\":val and "key":val
             const scoreMatch = chunk.match(/\\?"score\\?":\s?(\d+)/);
             const solvedMatch = chunk.match(/\\?"total_problems_solved\\?":\s?(\d+)/);
-            
             if (scoreMatch) gfgScore = parseInt(scoreMatch[1]);
             if (solvedMatch) gfgSolved = parseInt(solvedMatch[1]);
         }
 
-        // 2. Global Fallback if userData chunk didn't have it
-        if (gfgSolved === 0) {
-            const globalSolvedMatch = html.match(/\\?"total_problems_solved\\?":\s?(\d+)/);
-            if (globalSolvedMatch) gfgSolved = parseInt(globalSolvedMatch[1]);
+        const solvedMatches = html.matchAll(/\\?"problem_slug\\?":\s?\\?"([^"]+)\\?"/g);
+        for (const match of solvedMatches) {
+            if (match[1]) solvedSlugs.push(match[1]);
         }
-        if (gfgScore === 0) {
-            const globalScoreMatch = html.match(/\\?"score\\?":\s?(\d+)/);
-            if (globalScoreMatch) gfgScore = parseInt(globalScoreMatch[1]);
+        
+        const slugMatches = html.matchAll(/"slug":"([^"]+)"/g);
+        for (const match of slugMatches) {
+            if (match[1] && !match[1].includes('/') && match[1].length > 2) solvedSlugs.push(match[1]);
         }
 
-        // 3. Last Resort: Legacy Selector Scraping
-        if (gfgSolved === 0 || gfgScore === 0) {
-            const $ = cheerio.load(html);
-            $('.score_card_value').each((i, el) => {
-                const label = $(el).parent().text().toLowerCase();
-                const val = parseInt($(el).text().replace(/,/g, '')) || 0;
-                if (label.includes('score')) gfgScore = val;
-                if (label.includes('solved')) gfgSolved = val;
-            });
-        }
+        solvedSlugs = [...new Set(solvedSlugs)];
 
         console.log(`GFG SYNC SUCCESS -> User: ${username}, Solved: ${gfgSolved}, Score: ${gfgScore}`);
       } catch (err) { console.error('GfG Sync failed:', err.message); }
@@ -132,6 +154,15 @@ export const syncProfiles = async (req, res) => {
       'UPDATE users SET gfg_solved = ?, gfg_score = ?, leetcode_solved = ?, github_repos = ?, problems_solved = ?, last_synced = CURRENT_TIMESTAMP WHERE id = ?',
       [gfgSolved, gfgScore, leetcodeSolved, githubRepos, totalSolved, userId]
     );
+
+    if (solvedSlugs.length > 0) {
+        for (const slug of solvedSlugs) {
+            await pool.execute(
+                'INSERT IGNORE INTO solved_problems (user_id, problem_slug) VALUES (?, ?)',
+                [userId, slug]
+            );
+        }
+    }
 
     const [existing] = await pool.execute('SELECT * FROM user_activity WHERE user_id = ? AND activity_date = CURDATE()', [userId]);
     if (existing.length > 0) {

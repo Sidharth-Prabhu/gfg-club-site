@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import ProblemCard from '../components/ProblemCard';
-import { BookOpen, Search, Filter, Code2 } from 'lucide-react';
+import { RefreshCw, Code2, Filter } from 'lucide-react';
 
 const PracticeHub = () => {
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [difficulty, setDifficulty] = useState('All');
-  const [language, setLanguage] = useState('python'); // Default language for URL param
+  const [language, setLanguage] = useState('python');
 
-  const fetchProblems = async () => {
+  const fetchProblems = async (isRefresh = false) => {
     setLoading(true);
     try {
-      const { data } = await api.get(`/problems?difficulty=${difficulty}`);
+      // Collect current problem IDs to exclude them from the next set
+      const excludeIds = isRefresh ? problems.map(p => p.id).join(',') : '';
+      const { data } = await api.get(`/problems?difficulty=${difficulty}&excludeIds=${excludeIds}&t=${Date.now()}`);
       setProblems(data);
     } catch (error) {
       console.error('Error fetching problems:', error);
@@ -42,6 +44,16 @@ const PracticeHub = () => {
         </div>
         
         <div className="flex flex-wrap gap-4 w-full md:w-auto">
+          {/* Refresh Button */}
+          <button 
+            onClick={() => fetchProblems(true)}
+            disabled={loading}
+            className="bg-card border border-gray-800 hover:border-accent text-white px-4 py-2 rounded-xl flex items-center gap-2 transition disabled:opacity-50"
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+            New Set
+          </button>
+
           {/* Language Selection */}
           <div className="bg-card border border-gray-800 rounded-xl p-1 flex items-center">
             <div className="px-3 text-gray-500"><Code2 size={18} /></div>
@@ -74,7 +86,7 @@ const PracticeHub = () => {
       {loading ? (
         <div className="py-20 text-center text-accent font-bold animate-pulse">Fetching fresh problems...</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-10">
           {problems.length > 0 ? (
             problems.map(problem => (
               <ProblemCard key={problem.id} problem={problem} selectedLanguage={language} />

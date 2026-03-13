@@ -43,21 +43,29 @@ const Dashboard = () => {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleSync = async () => {
-    setSyncing(true);
+  const handleSync = async (silent = false) => {
+    if (!silent) setSyncing(true);
     try {
       await api.post('/users/sync-profiles');
+      // Refresh data after sync
       await fetchData();
     } catch (error) {
       console.error('Sync failed:', error);
+      if (!silent) alert('Failed to sync profiles.');
     } finally {
-      setSyncing(false);
+      if (!silent) setSyncing(false);
     }
   };
+
+  useEffect(() => {
+    const initDashboard = async () => {
+      // 1. Fetch existing data immediately for fast load
+      await fetchData();
+      // 2. Trigger automatic sync in background
+      handleSync(true); 
+    };
+    initDashboard();
+  }, []);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -77,11 +85,14 @@ const Dashboard = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Welcome, {profile?.name}!</h1>
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            Welcome, {profile?.name}!
+            {syncing && <RefreshCw size={18} className="text-accent animate-spin" />}
+          </h1>
           <p className="text-gray-400">Track your progress and manage your coding journey.</p>
         </div>
         <div className="flex gap-3">
-          <button onClick={handleSync} disabled={syncing} className="bg-accent hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition disabled:opacity-50">
+          <button onClick={() => handleSync(false)} disabled={syncing} className="bg-accent hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition disabled:opacity-50">
             <RefreshCw size={18} className={syncing ? 'animate-spin' : ''} /> {syncing ? 'Syncing...' : 'Sync Profiles'}
           </button>
           <button onClick={() => setIsEditModalOpen(true)} className="bg-card border border-gray-800 px-4 py-2 rounded-lg flex items-center gap-2 hover:border-accent transition">
@@ -168,7 +179,7 @@ const Dashboard = () => {
                   <div><label className="block text-sm font-medium text-gray-400 mb-2">GitHub Profile URL</label><input type="url" placeholder="https://github.com/username" className="w-full bg-background border border-gray-700 rounded-lg py-2.5 px-4 focus:outline-none focus:border-accent" value={editFormData.github_profile} onChange={(e) => setEditFormData({...editFormData, github_profile: e.target.value})} /></div>
                   <div><label className="block text-sm font-medium text-gray-400 mb-2">LeetCode Profile URL</label><input type="url" placeholder="https://leetcode.com/u/username/" className="w-full bg-background border border-gray-700 rounded-lg py-2.5 px-4 focus:outline-none focus:border-accent" value={editFormData.leetcode_profile} onChange={(e) => setEditFormData({...editFormData, leetcode_profile: e.target.value})} /></div>
                 </div>
-                <div className="flex gap-4"><button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 bg-background border border-gray-700 py-3 rounded-xl">Cancel</button><button type="submit" className="flex-1 bg-accent text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2"><Save size={20} /> Save Changes</button></div>
+                <div className="flex gap-4"><button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 bg-background border border-gray-700 py-3 rounded-xl text-white">Cancel</button><button type="submit" className="flex-1 bg-accent text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2"><Save size={20} /> Save Changes</button></div>
               </form>
             </motion.div>
           </div>
