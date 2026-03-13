@@ -12,6 +12,7 @@ import blogRoutes from './routes/blogRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
 import discussionRoutes from './routes/discussionRoutes.js';
 import statsRoutes from './routes/statsRoutes.js';
+import resourceRoutes from './routes/resourceRoutes.js';
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use('/api/blogs', blogRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/discussions', discussionRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/resources', resourceRoutes);
 
 const PORT = process.env.PORT || 5000;
 
