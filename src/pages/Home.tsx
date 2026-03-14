@@ -179,6 +179,154 @@ const Home = () => {
         </div>
       </section>
 
+      {/* About Section */}
+      <section className="container mx-auto px-4 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+          <motion.div 
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            className="space-y-10"
+          >
+            <div className="space-y-4">
+              <h2 className="text-accent font-black uppercase tracking-[0.3em] text-sm text-left">About the Club</h2>
+              <h3 className="text-4xl md:text-6xl font-black text-text uppercase leading-tight">GeeksforGeeks <br /><span className="text-accent">Campus Club</span></h3>
+            </div>
+            <p className="text-text/60 text-lg md:text-xl leading-relaxed font-medium">
+              We are a community of passionate developers and problem solvers at RITChennai. 
+              As an official campus body of GeeksforGeeks, we aim to bridge the gap between 
+              academic learning and industry requirements through a culture of consistent practice.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 pt-4">
+              <div className="space-y-4">
+                <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center text-accent border border-accent/20">
+                  <Zap size={24} />
+                </div>
+                <h4 className="font-black text-text uppercase tracking-widest text-sm">Innovation First</h4>
+                <p className="text-text/40 text-[10px] font-black leading-loose uppercase tracking-widest">We encourage students to build real-world solutions through peer collaboration and open-source contributions.</p>
+              </div>
+              <div className="space-y-4">
+                <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center text-accent border border-accent/20">
+                  <Star size={24} />
+                </div>
+                <h4 className="font-black text-text uppercase tracking-widest text-sm">Skill Centric</h4>
+                <p className="text-text/40 text-[10px] font-black leading-loose uppercase tracking-widest">A structured focus on Data Structures, Algorithms, Full-Stack Development, and Technical Interview Preparation.</p>
+              </div>
+            </div>
+          </motion.div>
+          
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="relative lg:h-[600px] flex items-center justify-center"
+          >
+            <div className="w-full aspect-square md:aspect-video lg:aspect-square rounded-[3.5rem] bg-accent/5 border border-accent/10 p-8 flex items-center justify-center relative overflow-visible">
+              <div className="absolute inset-0 opacity-10 rounded-[3.5rem] overflow-hidden" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20v20H0V0zm20 20h20v20H20V20z' fill='%232f8d46' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E")` }}></div>
+              <Code size={300} className="text-accent opacity-[0.03] absolute animate-pulse" />
+              
+              <div className="relative z-10 w-full max-w-sm">
+                <div className="bg-[#1e1e1e] border border-white/10 rounded-2xl shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-700 overflow-hidden group">
+                  <div className="bg-white/5 border-b border-white/5 px-6 py-4 flex items-center gap-3">
+                    <div className="flex gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+                      <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+                      <div className="w-3 h-3 rounded-full bg-[#27c93f]"></div>
+                    </div>
+                    <div className="text-[10px] font-mono text-white/30 uppercase tracking-widest ml-4">identity.config.ts</div>
+                  </div>
+                  <div className="p-8 font-mono text-sm leading-relaxed">
+                    <p className="text-blue-400">const <span className="text-white">ritGfgClub</span> = {'{'}</p>
+                    <p className="pl-6 text-purple-400">mission: <span className="text-green-400">'Logic Over Luck'</span>,</p>
+                    <p className="pl-6 text-purple-400">focus: [<span className="text-orange-400">'DSA'</span>, <span className="text-orange-400">'Dev'</span>],</p>
+                    <p className="pl-6 text-purple-400">active: <span className="text-blue-400">true</span>,</p>
+                    <p className="pl-6 text-purple-400">impact: <span className="text-green-400">'Exponential'</span></p>
+                    <p className="text-blue-400">{'};'}</p>
+                    <div className="mt-6 pt-6 border-t border-white/5 flex justify-between items-center">
+                        <div className="text-[10px] text-white/20 uppercase tracking-tighter">Status: Fully Operational</div>
+                        <div className="w-2 h-2 rounded-full bg-accent animate-ping"></div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Decorative Elements */}
+                <div className="absolute -top-10 -right-6 bg-accent text-white px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest shadow-xl -rotate-12 group-hover:rotate-0 transition-transform">Official Node</div>
+                <div className="absolute -bottom-8 -left-6 bg-white text-black px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest shadow-xl rotate-12 group-hover:rotate-0 transition-transform">RIT Chennai</div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Mission Section */}
+      <section className="container mx-auto px-4 py-10 relative">
+        <div className="bg-card border border-border rounded-[4rem] p-12 md:p-24 overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-[100px] -mr-48 -mt-48"></div>
+          
+          <div className="relative z-10 space-y-20">
+            <div className="text-center space-y-4">
+              <h2 className="text-accent font-black uppercase tracking-[0.3em] text-sm">Our Purpose</h2>
+              <h3 className="text-4xl md:text-6xl font-black text-text uppercase italic">Mission & Objectives</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              {[
+                { title: 'Knowledge Sharing', icon: BookOpen, desc: 'Conducting peer-to-peer learning sessions and expert workshops to disseminate technical knowledge.' },
+                { title: 'Project Incubation', icon: Lightbulb, desc: 'Providing a platform for students to work on collaborative projects and showcase their builds.' },
+                { title: 'Career Alignment', icon: Target, desc: 'Bridging the gap between campus and industry through mock interviews and placement tracks.' }
+              ].map((obj, i) => (
+                <div key={i} className="space-y-6 group">
+                  <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center text-accent border border-accent/20 group-hover:bg-accent group-hover:text-white transition-all duration-500">
+                    <obj.icon size={28} />
+                  </div>
+                  <h4 className="text-2xl font-black text-text uppercase tracking-tight">{obj.title}</h4>
+                  <p className="text-text/50 leading-relaxed font-medium">{obj.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Coordinators Section */}
+      <section className="container mx-auto px-4 py-10">
+        <div className="text-center space-y-4 mb-20">
+          <h2 className="text-accent font-black uppercase tracking-[0.3em] text-sm">Lead Architects</h2>
+          <h3 className="text-4xl md:text-5xl font-black text-text uppercase">Club Coordinators</h3>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+          {[
+            { name: 'Sidharth Prabhu', role: 'President & Tech Lead', img: '/src/assets/hero.png' },
+            { name: 'Dr. Jane Doe', role: 'Faculty Coordinator', img: '/src/assets/hero.png' },
+            { name: 'Alex Matrix', role: 'Vice President', img: '/src/assets/hero.png' },
+            { name: 'Sarah Logic', role: 'Events Head', img: '/src/assets/hero.png' }
+          ].map((member, i) => (
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="group"
+            >
+              <div className="relative mb-6 rounded-[2rem] overflow-hidden aspect-[4/5] bg-card border border-border group-hover:border-accent transition-colors">
+                <img 
+                  src={member.img} 
+                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700 opacity-50 group-hover:opacity-100" 
+                  alt={member.name} 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60"></div>
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-xl font-black text-text uppercase tracking-tight group-hover:text-accent transition-colors">{member.name}</h4>
+                <p className="text-[10px] font-black text-text/40 uppercase tracking-[0.2em]">{member.role}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
       {/* Upcoming Events Section */}
       <section className="container mx-auto px-4 space-y-12">
         <div className="flex flex-col md:flex-row justify-between items-end gap-6">
