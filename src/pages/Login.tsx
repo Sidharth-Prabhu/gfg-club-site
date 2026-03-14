@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  Mail, Lock, LogIn, Sparkles, Terminal, ShieldCheck, 
-  ChevronRight, Key, Zap, Activity
-} from 'lucide-react';
+  faEnvelope, faLock, faSignInAlt, faTerminal, faShieldAlt, 
+  faChevronRight, faKey, faZap, faChartLine
+} from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 
 const Login = () => {
@@ -37,27 +38,27 @@ const Login = () => {
         animate={{ opacity: 1, scale: 1 }}
         className="bg-card rounded-3xl border border-border shadow-xl relative overflow-hidden flex flex-col md:flex-row"
       >
-        {/* Sidebar Info - Matching Register Aesthetic */}
-        <div className="md:w-1/3 bg-accent p-8 text-white flex flex-col justify-between relative overflow-hidden">
+        {/* Sidebar Info */}
+        <div className="md:w-1/3 bg-accent p-8 text-white flex flex-col justify-between relative overflow-hidden italic">
             <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='3' cy='3' r='3' fill='%23ffffff'/%3E%3C/svg%3E")` }}></div>
             <div className="relative z-10 space-y-6">
                 <div className="bg-white/20 w-12 h-12 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/30 shadow-lg">
-                    <Key size={24} />
+                    <FontAwesomeIcon icon={faKey} size="lg" />
                 </div>
                 <div className="space-y-3">
-                    <h2 className="text-2xl font-black uppercase tracking-tighter leading-none italic">Agent <br/>Authentication</h2>
-                    <p className="text-white/70 text-xs font-medium italic leading-relaxed">Re-establish your connection. Synchronize your progress and access the matrix.</p>
+                    <h2 className="text-2xl font-black uppercase tracking-tighter leading-none">Agent <br/>Auth</h2>
+                    <p className="text-white/70 text-[10px] font-medium leading-relaxed">Re-establish your connection. Synchronize your progress and access the matrix.</p>
                 </div>
                 
                 <div className="space-y-4 pt-6">
                     {[
-                        { label: 'Secure Handshake', icon: ShieldCheck },
-                        { label: 'Identity Verification', icon: Activity },
-                        { label: 'Node Access', icon: Zap }
+                        { label: 'Secure Handshake', icon: faShieldAlt },
+                        { label: 'Identity Verification', icon: faChartLine },
+                        { label: 'Node Access', icon: faZap }
                     ].map((item, i) => (
                         <div key={i} className="flex items-center gap-3 opacity-100 translate-x-1 transition-all duration-500">
                             <div className="w-6 h-6 rounded-md flex items-center justify-center bg-white text-accent border border-white">
-                                <item.icon size={12} />
+                                <FontAwesomeIcon icon={item.icon} className="text-[10px]" />
                             </div>
                             <span className="text-[8px] font-black uppercase tracking-widest">{item.label}</span>
                         </div>
@@ -65,7 +66,7 @@ const Login = () => {
                 </div>
             </div>
             <div className="relative z-10 pt-8">
-                <p className="text-[8px] font-black uppercase tracking-widest opacity-40 italic">AUTHORIZED ACCESS ONLY</p>
+                <p className="text-[8px] font-black uppercase tracking-widest opacity-40">AUTHORIZED ACCESS ONLY</p>
             </div>
         </div>
 
@@ -77,7 +78,7 @@ const Login = () => {
                 <p className="text-[8px] font-black text-text/30 uppercase tracking-widest">Credentials Entry Protocol</p>
             </div>
             <div className="p-2.5 bg-accent/5 rounded-xl text-accent border border-accent/10">
-                <LogIn size={20} />
+                <FontAwesomeIcon icon={faSignInAlt} className="text-lg" />
             </div>
           </div>
 
@@ -92,7 +93,7 @@ const Login = () => {
               <div className="space-y-1.5">
                 <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Matrix Link (Email)</label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={16} />
+                  <FontAwesomeIcon icon={faEnvelope} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors text-sm" />
                   <input 
                     required 
                     type="email" 
@@ -107,7 +108,7 @@ const Login = () => {
               <div className="space-y-1.5">
                 <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Access Key (Password)</label>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={16} />
+                  <FontAwesomeIcon icon={faLock} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors text-sm" />
                   <input 
                     required 
                     type="password" 
@@ -126,7 +127,7 @@ const Login = () => {
                 disabled={loading}
                 className="w-full bg-accent hover:bg-gfg-green-hover text-white font-black py-3.5 rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-accent/10 uppercase tracking-widest text-[10px] active:scale-[0.98] disabled:opacity-50"
               >
-                {loading ? 'Validating...' : <><LogIn size={16} /> Authorize</>}
+                {loading ? 'Validating...' : <><FontAwesomeIcon icon={faSignInAlt} /> Authorize</>}
               </button>
             </div>
           </form>

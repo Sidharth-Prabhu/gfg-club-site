@@ -2,7 +2,12 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, MapPin, Plus, Edit, Trash2, X, Save, Users2, ChevronRight, Clock, Image as ImageIcon, AlignLeft, Info, ToggleRight, Users, BookOpen, ScrollText } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faCalendarAlt, faMapPin, faPlus, faEdit, faTrashAlt, faTimes, faSave, 
+  faUsers, faChevronRight, faClock, faImage, faAlignLeft, faInfoCircle, 
+  faToggleOn, faToggleOff, faBookOpen, faScroll 
+} from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -128,18 +133,18 @@ const Events = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-8 pb-16">
+    <div className="container mx-auto px-4 py-6 space-y-8 pb-16 max-w-6xl">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-1">
           <h1 className="text-3xl md:text-4xl font-black text-text tracking-tighter uppercase italic">Club <span className="text-accent">Events</span></h1>
-          <p className="text-text/60 text-sm font-medium">Workshops, contests, and seminars for the community.</p>
+          <p className="text-text/60 text-sm font-medium">Workshops and seminars for the community.</p>
         </div>
         {canManage && (
           <button 
             onClick={handleOpenCreate}
             className="bg-accent hover:bg-gfg-green-hover text-white px-5 py-2.5 rounded-xl font-black flex items-center gap-2 transition shadow-lg shadow-accent/10 text-[10px] uppercase tracking-widest active:scale-95"
           >
-            <Plus size={16} /> Create Event
+            <FontAwesomeIcon icon={faPlus} /> Create Event
           </button>
         )}
       </div>
@@ -160,7 +165,9 @@ const Events = () => {
                 {event.poster ? (
                   <img src={event.poster} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-text/10 bg-accent/5"><Calendar size={48} /></div>
+                  <div className="w-full h-full flex items-center justify-center text-text/10 bg-accent/5">
+                    <FontAwesomeIcon icon={faCalendarAlt} size="3x" />
+                  </div>
                 )}
                 {!event.is_open && (
                   <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px] flex items-center justify-center">
@@ -177,28 +184,28 @@ const Events = () => {
                   <h3 className="text-xl font-black text-text group-hover:text-accent transition-colors leading-tight tracking-tight uppercase italic">{event.title}</h3>
                   {canManage && (
                     <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                      <button onClick={(e) => handleOpenEdit(e, event)} className="p-1.5 bg-background border border-border rounded-lg text-text/40 hover:text-accent shadow-sm"><Edit size={12} /></button>
-                      <button onClick={(e) => handleDelete(e, event.id)} className="p-1.5 bg-background border border-border rounded-lg text-text/40 hover:text-red-500 shadow-sm"><Trash2 size={12} /></button>
+                      <button onClick={(e) => handleOpenEdit(e, event)} className="p-1.5 bg-background border border-border rounded-lg text-text/40 hover:text-accent shadow-sm"><FontAwesomeIcon icon={faEdit} className="text-[10px]" /></button>
+                      <button onClick={(e) => handleDelete(e, event.id)} className="p-1.5 bg-background border border-border rounded-lg text-text/40 hover:text-red-500 shadow-sm"><FontAwesomeIcon icon={faTrashAlt} className="text-[10px]" /></button>
                     </div>
                   )}
                 </div>
                 
-                <p className="text-text/60 text-xs line-clamp-2 leading-relaxed font-medium">{stripHtml(event.description)}</p>
+                <p className="text-text/60 text-xs line-clamp-2 leading-relaxed font-medium italic">{stripHtml(event.description)}</p>
                 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-text/40 bg-background/50 border border-border px-2 py-1.5 rounded-lg">
-                    <Calendar size={14} className="text-accent" />
+                    <FontAwesomeIcon icon={faCalendarAlt} className="text-accent" />
                     {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </div>
                   <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-text/40 bg-background/50 border border-border px-2 py-1.5 rounded-lg">
-                    <MapPin size={14} className="text-accent" />
+                    <FontAwesomeIcon icon={faMapPin} className="text-accent" />
                     {event.location}
                   </div>
                 </div>
 
                 <div className="mt-auto pt-4 border-t border-border/50 flex items-center justify-between group-hover:text-accent transition-colors font-black uppercase tracking-[0.2em] text-[8px]">
                   <span>Explore Details</span>
-                  <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  <FontAwesomeIcon icon={faChevronRight} className="group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
             </motion.div>
@@ -206,7 +213,7 @@ const Events = () => {
         </div>
       ) : (
         <div className="py-32 text-center text-text/30 bg-card rounded-3xl border border-border border-dashed shadow-inner">
-          <Calendar size={64} className="mx-auto mb-4 opacity-5" />
+          <FontAwesomeIcon icon={faCalendarAlt} size="4x" className="mx-auto mb-4 opacity-5" />
           <p className="text-xl font-black uppercase tracking-widest">No Events Scheduled</p>
         </div>
       )}
@@ -215,92 +222,92 @@ const Events = () => {
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl overflow-y-auto">
-            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-card border border-border rounded-[3.5rem] w-full max-w-5xl my-auto shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-              <div className="p-10 border-b border-border flex justify-between items-center bg-background/50">
-                <h2 className="text-3xl font-black text-text uppercase tracking-tighter">{selectedEvent ? 'Modify Matrix Event' : 'Initialize New Event'}</h2>
-                <button onClick={() => setIsEditModalOpen(false)} className="text-text/40 hover:text-red-500 p-4 hover:bg-red-500/5 rounded-full transition-all group active:scale-90"><X size={32} /></button>
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-card border border-border rounded-3xl w-full max-w-4xl my-auto shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+              <div className="p-6 md:p-8 border-b border-border flex justify-between items-center bg-background/50">
+                <h2 className="text-2xl font-black text-text uppercase tracking-tighter italic">{selectedEvent ? 'Modify Matrix Event' : 'Initialize New Event'}</h2>
+                <button onClick={() => setIsEditModalOpen(false)} className="text-text/40 hover:text-red-500 p-2 rounded-full transition-all group active:scale-90"><FontAwesomeIcon icon={faTimes} size="lg" /></button>
               </div>
-              <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-8 overflow-y-auto custom-scrollbar">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="md:col-span-2 space-y-3">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Event Headline</label>
-                    <input required type="text" className="w-full bg-background border-2 border-border rounded-[1.5rem] py-5 px-8 focus:border-accent outline-none text-2xl font-black text-text shadow-inner transition-colors" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
+              <form onSubmit={handleSubmit} className="p-6 md:p-10 space-y-6 overflow-y-auto custom-scrollbar">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2 space-y-2">
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Event Headline</label>
+                    <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-lg font-black text-text shadow-inner transition-colors italic" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
                   </div>
 
-                  <div className="space-y-3">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Authority / Organizer</label>
-                    <input required type="text" className="w-full bg-background border-2 border-border rounded-2xl py-4 px-6 focus:border-accent outline-none font-bold text-text shadow-inner" value={formData.organizer} onChange={(e) => setFormData({...formData, organizer: e.target.value})} />
+                  <div className="space-y-2">
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Authority / Organizer</label>
+                    <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-sm font-bold text-text shadow-inner italic" value={formData.organizer} onChange={(e) => setFormData({...formData, organizer: e.target.value})} />
                   </div>
-                  <div className="space-y-3">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Spatial Node / Venue</label>
-                    <input required type="text" className="w-full bg-background border-2 border-border rounded-2xl py-4 px-6 focus:border-accent outline-none font-bold text-text shadow-inner" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} />
+                  <div className="space-y-2">
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Spatial Node / Venue</label>
+                    <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-sm font-bold text-text shadow-inner italic" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} />
                   </div>
 
-                  <div className="space-y-3">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Participation Paradigm</label>
-                    <select className="w-full bg-background border-2 border-border rounded-2xl py-4 px-6 focus:border-accent outline-none font-bold text-text shadow-inner appearance-none cursor-pointer" value={formData.participation_type} onChange={(e) => setFormData({...formData, participation_type: e.target.value})}>
+                  <div className="space-y-2">
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Participation Paradigm</label>
+                    <select className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-sm font-bold text-text shadow-inner appearance-none cursor-pointer italic" value={formData.participation_type} onChange={(e) => setFormData({...formData, participation_type: e.target.value})}>
                         <option value="individual">Individual Only</option>
                         <option value="team">Team Only</option>
-                        <option value="both">Both (Team & Individual)</option>
+                        <option value="both">Both</option>
                     </select>
                   </div>
                   {formData.participation_type !== 'individual' && (
-                    <div className="space-y-3">
-                        <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Max Team Size</label>
-                        <input type="number" min="2" max="10" className="w-full bg-background border-2 border-border rounded-2xl py-4 px-6 focus:border-accent outline-none font-bold text-text shadow-inner" value={formData.max_team_size} onChange={(e) => setFormData({...formData, max_team_size: parseInt(e.target.value)})} />
+                    <div className="space-y-2">
+                        <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Max Team Size</label>
+                        <input type="number" min="2" max="10" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-sm font-bold text-text shadow-inner" value={formData.max_team_size} onChange={(e) => setFormData({...formData, max_team_size: parseInt(e.target.value)})} />
                     </div>
                   )}
 
-                  <div className="space-y-3">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Temporal Node / DateTime</label>
-                    <input required type="datetime-local" className="w-full bg-background border-2 border-border rounded-2xl py-4 px-6 focus:border-accent outline-none font-bold text-text shadow-inner" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} />
+                  <div className="space-y-2">
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Temporal Node / DateTime</label>
+                    <input required type="datetime-local" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-sm font-bold text-text shadow-inner" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} />
                   </div>
-                  <div className="space-y-3">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Visual Poster Node (URL)</label>
-                    <input type="url" className="w-full bg-background border-2 border-border rounded-2xl py-4 px-6 focus:border-accent outline-none font-bold text-text shadow-inner" value={formData.poster} onChange={(e) => setFormData({...formData, poster: e.target.value})} />
+                  <div className="space-y-2">
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Visual Poster Node (URL)</label>
+                    <input type="url" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-sm font-bold text-text shadow-inner" value={formData.poster} onChange={(e) => setFormData({...formData, poster: e.target.value})} />
                   </div>
 
-                  <div className="md:col-span-2 space-y-3">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Protocol / Description</label>
-                    <div className="bg-background rounded-2xl overflow-hidden border-2 border-border focus-within:border-accent shadow-inner">
+                  <div className="md:col-span-2 space-y-2">
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Protocol / Description</label>
+                    <div className="bg-background rounded-xl overflow-hidden border-2 border-border focus-within:border-accent shadow-inner">
                         <ReactQuill theme="snow" value={formData.description} onChange={(c) => setFormData({...formData, description: c})} modules={modules} />
                     </div>
                   </div>
 
-                  <div className="md:col-span-2 space-y-3">
-                    <label className="flex items-center gap-2 text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-2"><ScrollText size={12}/> Rules of Engagement</label>
-                    <div className="bg-background rounded-2xl overflow-hidden border-2 border-border focus-within:border-accent shadow-inner">
+                  <div className="md:col-span-2 space-y-2">
+                    <label className="flex items-center gap-2 text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2"><FontAwesomeIcon icon={faScroll} /> Rules</label>
+                    <div className="bg-background rounded-xl overflow-hidden border-2 border-border focus-within:border-accent shadow-inner">
                         <ReactQuill theme="snow" value={formData.rules} onChange={(c) => setFormData({...formData, rules: c})} modules={modules} placeholder="Define the rules..." />
                     </div>
                   </div>
 
-                  <div className="md:col-span-2 space-y-3">
-                    <label className="flex items-center gap-2 text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-2"><BookOpen size={12}/> Technical Requirements</label>
-                    <div className="bg-background rounded-2xl overflow-hidden border-2 border-border focus-within:border-accent shadow-inner">
+                  <div className="md:col-span-2 space-y-2">
+                    <label className="flex items-center gap-2 text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2"><FontAwesomeIcon icon={faBookOpen} /> Requirements</label>
+                    <div className="bg-background rounded-xl overflow-hidden border-2 border-border focus-within:border-accent shadow-inner">
                         <ReactQuill theme="snow" value={formData.requirements} onChange={(c) => setFormData({...formData, requirements: c})} modules={modules} placeholder="List technical requirements..." />
                     </div>
                   </div>
 
-                  <div className="md:col-span-2 flex items-center justify-between p-8 bg-background border-2 border-border rounded-[2rem] shadow-inner">
-                    <div className="flex items-center gap-6">
-                      <div className={`p-4 rounded-2xl shadow-sm ${formData.is_open ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
-                        {formData.is_open ? <Plus size={28} /> : <Clock size={28} />}
+                  <div className="md:col-span-2 flex items-center justify-between p-5 bg-background border-2 border-border rounded-2xl shadow-inner">
+                    <div className="flex items-center gap-4">
+                      <div className={`p-3 rounded-xl shadow-sm ${formData.is_open ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
+                        <FontAwesomeIcon icon={formData.is_open ? faPlus : faClock} className="text-lg" />
                       </div>
                       <div>
-                        <p className="font-black text-text uppercase tracking-widest leading-none mb-2">{formData.is_open ? 'Node Open' : 'Node Restricted'}</p>
-                        <p className="text-xs font-medium text-text/40 uppercase">Registration Access Control</p>
+                        <p className="text-xs font-black text-text uppercase tracking-widest leading-none mb-1">{formData.is_open ? 'Node Open' : 'Node Restricted'}</p>
+                        <p className="text-[8px] font-medium text-text/40 uppercase">Access Control</p>
                       </div>
                     </div>
-                    <button type="button" onClick={() => setFormData({...formData, is_open: !formData.is_open})} className={`relative inline-flex h-10 w-20 items-center rounded-full transition-all focus:outline-none shadow-inner ${formData.is_open ? 'bg-accent' : 'bg-text/10'}`}>
-                      <span className={`inline-block h-7 w-7 transform rounded-full bg-white transition-transform shadow-xl ${formData.is_open ? 'translate-x-11' : 'translate-x-2'}`} />
+                    <button type="button" onClick={() => setFormData({...formData, is_open: !formData.is_open})} className={`relative inline-flex h-8 w-16 items-center rounded-full transition-all focus:outline-none shadow-inner ${formData.is_open ? 'bg-accent' : 'bg-text/10'}`}>
+                      <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-xl ${formData.is_open ? 'translate-x-9' : 'translate-x-2'}`} />
                     </button>
                   </div>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-6 pt-4">
-                    <button type="submit" className="bg-accent hover:bg-gfg-green-hover text-white font-black py-7 px-14 rounded-[1.5rem] transition text-xl flex-grow shadow-2xl shadow-accent/20 uppercase tracking-widest active:scale-95">
-                      <Save size={28} /> {selectedEvent ? 'Commit Updates' : 'Deploy Event'}
+                <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                    <button type="submit" className="bg-accent hover:bg-gfg-green-hover text-white font-black py-4 px-8 rounded-xl transition text-sm flex-grow shadow-lg shadow-accent/10 uppercase tracking-widest active:scale-95">
+                      <FontAwesomeIcon icon={faSave} /> {selectedEvent ? 'Commit Updates' : 'Deploy Event'}
                     </button>
-                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-7 px-14 rounded-[1.5rem] transition text-xl uppercase tracking-widest shadow-sm">Discard</button>
+                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 px-8 rounded-xl transition text-sm uppercase tracking-widest shadow-sm italic">Abort</button>
                 </div>
               </form>
             </motion.div>
@@ -309,9 +316,9 @@ const Events = () => {
       </AnimatePresence>
 
       <style>{`
-        .ql-container { border: none !important; font-family: 'Inter', sans-serif; font-size: 16px; background: transparent; }
-        .ql-toolbar { border: none !important; border-bottom: 1px solid var(--color-border) !important; background: var(--color-card); padding: 15px !important; }
-        .ql-editor { min-height: 200px; color: var(--color-text); padding: 25px !important; line-height: 1.8; }
+        .ql-container { border: none !important; font-family: 'Inter', sans-serif; font-size: 14px; background: transparent; }
+        .ql-toolbar { border: none !important; border-bottom: 1px solid var(--color-border) !important; background: var(--color-card); padding: 8px !important; }
+        .ql-editor { min-height: 150px; color: var(--color-text); padding: 15px !important; line-height: 1.6; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-accent); border-radius: 10px; opacity: 0.2; }

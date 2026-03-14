@@ -1,4 +1,5 @@
 import axios from 'axios';
+import * as cheerio from 'cheerio';
 import pool from '../config/db.js';
 
 const fallbackProblems = [
@@ -141,5 +142,79 @@ export const createProblem = async (req, res) => {
     res.status(201).json({ id: result.insertId, title, difficulty, topic, link });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+export const getProblemOfTheDay = async (req, res) => {
+  try {
+    const { data } = await axios.get('https://www.geeksforgeeks.org/problem-of-the-day', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+    const $ = cheerio.load(data);
+    
+    const title = $('.problemOfTheDay_problemContainerTxt__pPZ3Z').first().text().trim();
+    const date = $('.problemOfTheDay_problemDate__cJl1_').first().text().trim();
+    const difficulty = $('.problemOfTheDay_problemDifficulty__RbgUa').first().text().trim();
+    const submissions = $('.problemOfTheDay_problemSubmissions__Gjckb').first().text().trim();
+    const accuracy = $('.problemOfTheDay_problemAccuracy__ra0SL').first().text().trim();
+    const link = $('#potd_solve_prob').attr('href');
+    
+    const companies = [];
+    $('.problemOfTheDay_problemCompanies__L8L0S').each((i, el) => {
+      companies.push($(el).text().trim());
+    });
+    const moreCompanies = $('.problemOfTheDay_showMoreCompany__nnEgc').text().trim();
+    if (moreCompanies) {
+      companies.push(moreCompanies);
+    }
+
+    const timer = $('.problemOfTheDay_potd_timer_valcnt__NPnHH').text().trim();
+    
+    const sponsorLink = $('#potd_sponsor_top').attr('href');
+    let sponsorLogo = $('#potd_sponsor_top img').last().attr('src');
+    
+    // Handle Next.js image paths if they are relative
+    if (sponsorLogo && sponsorLogo.startsWith('/')) {
+      sponsorLogo = `https://www.geeksforgeeks.org${sponsorLogo}`;
+    }
+
+    if (!title || !link) {
+      throw new Error('Could not parse Problem of the Day');
+    }
+
+    res.json({
+      title,
+      date,
+      difficulty,
+      submissions,
+      accuracy,
+      link,
+      companies,
+      timer,
+      sponsor: {
+        link: sponsorLink,
+        logo: sponsorLogo
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching POTD:', error.message);
+    // Fallback if scraping fails
+    res.json({
+      title: 'Vertical Tree Traversal',
+      date: '15 March',
+      difficulty: 'Medium',
+      submissions: '222K',
+      accuracy: '32.87%',
+      link: 'https://www.geeksforgeeks.org/problems/print-a-binary-tree-in-vertical-order/1',
+      companies: ['Flipkart', 'Accolite', '+ 8 more'],
+      timer: '23:46:06',
+      sponsor: {
+        link: 'https://www.npci.org.in',
+        logo: 'https://www.geeksforgeeks.org/_next/image?url=https%3A%2F%2Fmedia.geeksforgeeks.org%2Fimg-practice%2Fprod%2Fcontests%2F3263%2FWeb%2FHeader%2FDARK%2520MODE%25202_1764570954.png&w=640&q=75'
+      },
+      isFallback: true
+    });
   }
 };

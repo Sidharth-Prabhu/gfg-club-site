@@ -2,7 +2,23 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { LayoutDashboard, LogOut, Menu, User, Calendar, Trophy, BookOpen, MessageSquare, Briefcase, FileText, Sun, Moon, X, Bookmark } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faGaugeHigh, 
+  faSignOutAlt, 
+  faBars, 
+  faUser, 
+  faCalendarAlt, 
+  faTrophy, 
+  faBookOpen, 
+  faComments, 
+  faBriefcase, 
+  faFileAlt, 
+  faSun, 
+  faMoon, 
+  faTimes, 
+  faBookmark 
+} from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
@@ -19,13 +35,13 @@ const Navbar = () => {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const navLinks = [
-    { to: "/events", icon: Calendar, label: "Events" },
-    { to: "/leaderboard", icon: Trophy, label: "Leaderboard" },
-    { to: "/practice", icon: BookOpen, label: "Practice", restricted: true },
-    { to: "/community", icon: MessageSquare, label: "Community" },
-    { to: "/projects", icon: Briefcase, label: "Projects" },
-    { to: "/resources", icon: Bookmark, label: "Resources", restricted: true },
-    { to: "/blog", icon: FileText, label: "Blog" },
+    { to: "/events", icon: faCalendarAlt, label: "Events" },
+    { to: "/leaderboard", icon: faTrophy, label: "Leaderboard" },
+    { to: "/practice", icon: faBookOpen, label: "Practice", restricted: true },
+    { to: "/community", icon: faComments, label: "Community" },
+    { to: "/projects", icon: faBriefcase, label: "Projects" },
+    { to: "/resources", icon: faBookmark, label: "Resources", restricted: true },
+    { to: "/blog", icon: faFileAlt, label: "Blog" },
   ].filter(link => !link.restricted || (user && user.role !== 'Guest'));
 
   return (
@@ -43,7 +59,7 @@ const Navbar = () => {
         <div className="hidden lg:flex items-center gap-5 text-text/80 font-medium text-sm">
           {navLinks.map((link) => (
             <Link key={link.to} to={link.to} className="hover:text-accent flex items-center gap-1 transition-colors">
-              <link.icon size={16} /> {link.label}
+              <FontAwesomeIcon icon={link.icon} className="text-sm" /> {link.label}
             </Link>
           ))}
         </div>
@@ -54,7 +70,7 @@ const Navbar = () => {
             className="p-1.5 rounded-full hover:bg-background transition-colors text-text"
             aria-label="Toggle Theme"
           >
-            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            <FontAwesomeIcon icon={theme === 'light' ? faMoon : faSun} />
           </button>
 
           <div className="hidden sm:flex items-center gap-3 border-l border-border pl-3">
@@ -65,13 +81,13 @@ const Navbar = () => {
                     {user.profile_pic ? (
                         <img src={user.profile_pic} className="w-full h-full object-cover" alt="" />
                     ) : (
-                        <LayoutDashboard size={14} />
+                        <FontAwesomeIcon icon={faGaugeHigh} className="text-xs" />
                     )}
                   </div>
                   <span className="hidden xl:inline">Dashboard</span>
                 </Link>
                 <button onClick={handleLogout} className="text-text hover:text-red-500 transition-colors">
-                  <LogOut size={18} />
+                  <FontAwesomeIcon icon={faSignOutAlt} />
                 </button>
               </>
             ) : (
@@ -83,7 +99,7 @@ const Navbar = () => {
           </div>
 
           <button className="lg:hidden p-2 text-text" onClick={toggleMenu}>
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            <FontAwesomeIcon icon={isMenuOpen ? faTimes : faBars} className="text-lg" />
           </button>
         </div>
       </div>
@@ -99,18 +115,18 @@ const Navbar = () => {
           >
             <div className="flex flex-col p-4 gap-4">
               {navLinks.map((link) => (
-                <Link key={link.to} to={link.to} onClick={toggleMenu} className="flex items-center gap-3 text-text hover:text-accent text-lg font-medium">
-                  <link.icon size={20} /> {link.label}
+                <Link key={link.to} to={link.to} onClick={toggleMenu} className="flex items-center gap-3 text-text hover:text-accent text-base font-medium">
+                  <FontAwesomeIcon icon={link.icon} className="text-base" /> {link.label}
                 </Link>
               ))}
               <hr className="border-border" />
               {user ? (
                 <>
-                  <Link to="/dashboard" onClick={toggleMenu} className="flex items-center gap-3 text-text hover:text-accent text-lg font-medium">
-                    <LayoutDashboard size={20} /> Dashboard
+                  <Link to="/dashboard" onClick={toggleMenu} className="flex items-center gap-3 text-text hover:text-accent text-base font-medium">
+                    <FontAwesomeIcon icon={faGaugeHigh} className="text-base" /> Dashboard
                   </Link>
-                  <button onClick={handleLogout} className="flex items-center gap-3 text-text hover:text-red-500 text-lg font-medium">
-                    <LogOut size={20} /> Logout
+                  <button onClick={handleLogout} className="flex items-center gap-3 text-text hover:text-red-500 text-base font-medium">
+                    <FontAwesomeIcon icon={faSignOutAlt} className="text-base" /> Logout
                   </button>
                 </>
               ) : (

@@ -2,7 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import LeaderboardTable from '../components/LeaderboardTable';
-import { Trophy, Medal, Star, ShieldCheck, Star as StarIcon, Sparkles } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faTrophy, 
+  faMedal, 
+  faStar, 
+  faShieldAlt 
+} from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 
 const Leaderboard = () => {
@@ -32,9 +38,9 @@ const Leaderboard = () => {
       render: (_, i) => (
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 flex items-center justify-center relative">
-            {i === 0 && <Trophy size={20} className="text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]" />}
-            {i === 1 && <Medal size={20} className="text-gray-400 drop-shadow-[0_0_8px_rgba(156,163,175,0.4)]" />}
-            {i === 2 && <Medal size={20} className="text-amber-600 drop-shadow-[0_0_8px_rgba(217,119,6,0.4)]" />}
+            {i === 0 && <FontAwesomeIcon icon={faTrophy} className="text-yellow-500 text-lg drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]" />}
+            {i === 1 && <FontAwesomeIcon icon={faMedal} className="text-gray-400 text-lg drop-shadow-[0_0_8px_rgba(156,163,175,0.4)]" />}
+            {i === 2 && <FontAwesomeIcon icon={faMedal} className="text-amber-600 text-lg drop-shadow-[0_0_8px_rgba(217,119,6,0.4)]" />}
             {i > 2 && <span className="text-text/30 font-black text-base leading-none">#{i + 1}</span>}
           </div>
         </div>
@@ -57,12 +63,12 @@ const Leaderboard = () => {
             <div className="flex gap-1.5 mt-0.5">
               {row.role === 'Admin' && (
                 <span className="bg-red-500/10 text-red-500 text-[7px] font-black px-1.5 py-0.5 rounded border border-red-500/20 flex items-center gap-1 uppercase tracking-widest">
-                  <ShieldCheck size={8} /> ADMIN
+                  <FontAwesomeIcon icon={faShieldAlt} size="xs" /> ADMIN
                 </span>
               )}
               {row.role === 'Core' && (
                 <span className="bg-accent/10 text-accent text-[7px] font-black px-1.5 py-0.5 rounded border border-accent/20 flex items-center gap-1 uppercase tracking-widest">
-                  <StarIcon size={8} fill="currentColor" /> CORE
+                  <FontAwesomeIcon icon={faStar} size="xs" /> CORE
                 </span>
               )}
             </div>
@@ -90,7 +96,7 @@ const Leaderboard = () => {
       key: 'streak', 
       render: (row) => (
         <div className="flex items-center gap-1.5 text-orange-500 font-black text-base">
-          <Star size={14} fill="currentColor" className="drop-shadow-sm" />
+          <FontAwesomeIcon icon={faStar} className="drop-shadow-sm text-xs" />
           {row.streak}D
         </div>
       )
@@ -144,7 +150,7 @@ const Leaderboard = () => {
           </div>
         ) : (
           <div className="py-32 text-center text-text/30 space-y-4">
-            <Trophy size={64} className="mx-auto opacity-5" />
+            <FontAwesomeIcon icon={faTrophy} size="4x" className="mx-auto opacity-5" />
             <p className="text-xl font-black uppercase tracking-widest">No Active Rankings</p>
           </div>
         )}
@@ -159,7 +165,7 @@ const Leaderboard = () => {
          >
             <div className="space-y-3">
                 <div className="flex items-center gap-2 justify-center md:justify-start">
-                    <Sparkles className="text-accent" size={20} />
+                    <FontAwesomeIcon icon={faStar} className="text-accent" size="lg" />
                     <h3 className="text-xl font-black text-text uppercase tracking-tight italic">Climb the Matrix</h3>
                 </div>
                 <p className="text-text/60 text-sm max-w-2xl font-medium">Rankings updated every 24h. Keep solving to secure your position.</p>

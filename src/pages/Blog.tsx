@@ -2,11 +2,12 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  Plus, Edit3, Trash2, X, Save, Clock, 
-  Tag, ArrowLeft, Share2, BookOpen, User, Hash,
-  ChevronRight, Calendar, Edit
-} from 'lucide-react';
+  faPlus, faEdit, faTrashAlt, faTimes, faSave, faClock, 
+  faTag, faArrowLeft, faShareAlt, faBookOpen, faUser, faHashtag,
+  faChevronRight, faCalendarAlt
+} from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -121,13 +122,13 @@ const Blog = () => {
             onClick={handleOpenCreate}
             className="bg-accent hover:bg-gfg-green-hover text-white px-6 py-2.5 rounded-xl font-black flex items-center gap-2 transition shadow-lg shadow-accent/10 text-[10px] uppercase tracking-widest active:scale-95"
           >
-            <Plus size={16} /> Write Entry
+            <FontAwesomeIcon icon={faPlus} /> Write Entry
           </button>
         )}
       </motion.div>
 
       {loading ? (
-        <div className="py-24 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xs italic">Accessing Archives...</div>
+        <div className="py-24 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xs italic">Accessing Knowledge Archives...</div>
       ) : blogs.length > 0 ? (
         <motion.div 
             initial="hidden"
@@ -160,11 +161,11 @@ const Blog = () => {
                         <div className="flex gap-1.5">
                             {(user?.id === blog.author_id || user?.role === 'Admin') && (
                                 <button onClick={(e) => handleOpenEdit(e, blog)} className="p-1.5 bg-background border border-border rounded-lg text-text/40 hover:text-accent opacity-0 group-hover:opacity-100 transition-all shadow-sm active:scale-90">
-                                    <Edit size={14} />
+                                    <FontAwesomeIcon icon={faEdit} className="text-[10px]" />
                                 </button>
                             )}
                             <button onClick={(e) => handleDelete(e, blog.id)} className="p-1.5 bg-background border border-border rounded-lg text-text/40 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all shadow-sm active:scale-90">
-                                <Trash2 size={14} />
+                                <FontAwesomeIcon icon={faTrashAlt} className="text-[10px]" />
                             </button>
                         </div>
                     )}
@@ -187,7 +188,7 @@ const Blog = () => {
                     </div>
                 </div>
                 <div className="text-accent font-black text-[8px] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0 flex items-center gap-1.5">
-                    Read <ChevronRight size={12} />
+                    Read <FontAwesomeIcon icon={faChevronRight} className="text-[10px]" />
                 </div>
               </div>
             </motion.div>
@@ -195,7 +196,7 @@ const Blog = () => {
         </motion.div>
       ) : (
         <div className="py-32 text-center text-text/30 bg-card rounded-3xl border border-border border-dashed shadow-inner flex flex-col items-center justify-center space-y-4">
-          <BookOpen size={64} className="opacity-10" />
+          <FontAwesomeIcon icon={faBookOpen} size="4x" className="opacity-10" />
           <p className="text-xl font-black uppercase tracking-widest italic">No entries.</p>
         </div>
       )}
@@ -204,31 +205,31 @@ const Blog = () => {
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl overflow-y-auto">
-            <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }} className="bg-card border border-border rounded-[3.5rem] w-full max-w-5xl my-auto shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-              <div className="p-10 border-b border-border flex justify-between items-center bg-background/50">
-                <h2 className="text-3xl font-black text-text uppercase tracking-tighter italic">{isEditing ? 'Modify Insight' : 'Draft New Insight'}</h2>
-                <button onClick={() => setIsModalOpen(false)} className="text-text/40 hover:text-red-500 p-4 hover:bg-red-500/5 rounded-full transition-all group active:scale-90"><X size={32} /></button>
+            <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }} className="bg-card border border-border rounded-3xl w-full max-w-4xl my-auto shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+              <div className="p-6 md:p-8 border-b border-border flex justify-between items-center bg-background/50">
+                <h2 className="text-2xl font-black text-text uppercase tracking-tighter italic">{isEditing ? 'Modify Insight' : 'Draft New Insight'}</h2>
+                <button onClick={() => setIsModalOpen(false)} className="text-text/40 hover:text-red-500 p-2 rounded-full transition-all group active:scale-90"><FontAwesomeIcon icon={faTimes} size="lg" /></button>
               </div>
-              <form onSubmit={handleSubmit} className="p-10 md:p-14 space-y-10 overflow-y-auto custom-scrollbar">
-                <div className="space-y-4">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Headline</label>
-                    <input required type="text" className="w-full bg-background border-2 border-border rounded-[1.5rem] py-6 px-10 focus:border-accent outline-none text-2xl font-black text-text shadow-inner transition-colors italic" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
+              <form onSubmit={handleSubmit} className="p-6 md:p-10 space-y-6 overflow-y-auto custom-scrollbar">
+                <div className="space-y-2">
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Headline</label>
+                    <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-lg font-black text-text shadow-inner transition-colors italic" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
                 </div>
-                <div className="space-y-4">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Content Matrix</label>
-                    <div className="bg-background rounded-[2rem] overflow-hidden border-2 border-border focus-within:border-accent transition shadow-inner">
+                <div className="space-y-2">
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Content Matrix</label>
+                    <div className="bg-background rounded-xl overflow-hidden border-2 border-border focus-within:border-accent transition shadow-inner">
                         <ReactQuill theme="snow" value={formData.content} onChange={(content) => setFormData({...formData, content})} modules={modules} />
                     </div>
                 </div>
-                <div className="space-y-4">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Metadata Tags (CSV)</label>
-                    <input type="text" className="w-full bg-background border-2 border-border rounded-[1.5rem] py-6 px-10 focus:border-accent outline-none font-bold text-text shadow-inner transition-colors italic" value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} />
+                <div className="space-y-2">
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Metadata Tags (CSV)</label>
+                    <input type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none font-bold text-sm text-text shadow-inner transition-colors italic" value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} />
                 </div>
-                <div className="flex gap-6 pt-4 sticky bottom-0 bg-card/80 backdrop-blur-md">
-                    <button type="submit" className="flex-grow bg-accent hover:bg-gfg-green-hover text-white font-black py-7 rounded-[1.5rem] transition text-xl shadow-2xl shadow-accent/20 uppercase tracking-widest active:scale-[0.98]">
-                        {isEditing ? 'Commit Update' : 'Deploy Publication'}
+                <div className="flex gap-4 pt-2 sticky bottom-0 bg-card/80 backdrop-blur-md">
+                    <button type="submit" className="flex-grow bg-accent hover:bg-gfg-green-hover text-white font-black py-4 rounded-xl transition text-sm shadow-xl shadow-accent/10 uppercase tracking-widest active:scale-[0.98]">
+                        <FontAwesomeIcon icon={faSave} /> {isEditing ? 'Update' : 'Deploy'}
                     </button>
-                    <button type="button" onClick={() => setIsModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-7 px-14 rounded-[1.5rem] transition text-xl uppercase tracking-widest shadow-sm italic">Abort</button>
+                    <button type="button" onClick={() => setIsModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 rounded-xl transition text-sm flex-grow uppercase tracking-widest shadow-sm italic">Abort</button>
                 </div>
               </form>
             </motion.div>
@@ -237,14 +238,14 @@ const Blog = () => {
       </AnimatePresence>
 
       <style>{`
-        .ql-container { border: none !important; font-family: inherit; font-size: 18px; background: transparent; }
-        .ql-toolbar { border: none !important; border-bottom: 2px solid var(--color-border) !important; background: var(--color-card); padding: 20px !important; }
-        .ql-editor { min-height: 400px; color: var(--color-text); padding: 40px !important; line-height: 1.8; }
+        .ql-container { border: none !important; font-family: 'Inter', sans-serif; font-size: 14px; background: transparent; }
+        .ql-toolbar { border: none !important; border-bottom: 1px solid var(--color-border) !important; background: var(--color-card); padding: 8px !important; }
+        .ql-editor { min-height: 150px; color: var(--color-text); padding: 15px !important; line-height: 1.6; }
         .ql-snow .ql-stroke { stroke: var(--color-text); opacity: 0.4; stroke-width: 2px; }
         .ql-snow .ql-fill { fill: var(--color-text); opacity: 0.4; }
         .ql-snow .ql-picker { color: var(--color-text); opacity: 0.6; font-weight: 800; }
-        .ql-snow .ql-picker-options { background-color: var(--color-card); border: 2px solid var(--color-border); border-radius: 16px; padding: 10px; }
-        .ql-snow .ql-editor pre.ql-syntax { background-color: var(--color-background); color: var(--color-accent); padding: 30px; border-radius: 24px; border: 1px solid var(--color-border); font-family: 'JetBrains Mono', monospace; font-size: 15px; }
+        .ql-snow .ql-picker-options { background-color: var(--color-card); border: 2px solid var(--color-border); border-radius: 12px; padding: 5px; }
+        .ql-snow .ql-editor pre.ql-syntax { background-color: var(--color-background); color: var(--color-accent); padding: 15px; border-radius: 16px; border: 1px solid var(--color-border); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
         .dark .ql-editor *, .dark .ql-editor span { background-color: transparent !important; color: var(--color-text) !important; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

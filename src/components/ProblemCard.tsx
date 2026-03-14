@@ -1,5 +1,6 @@
 import React from 'react';
-import { ArrowRight } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 
 const ProblemCard = ({ problem, selectedLanguage }) => {
@@ -16,19 +17,19 @@ const ProblemCard = ({ problem, selectedLanguage }) => {
 
   return (
     <motion.div 
-      whileHover={{ y: -5, borderColor: 'var(--color-accent)' }}
-      className="bg-card p-8 rounded-[2rem] border border-border flex flex-col md:flex-row justify-between items-start md:items-center gap-8 group transition-all duration-300 shadow-sm hover:shadow-xl"
+      whileHover={{ y: -4, borderColor: 'var(--color-accent)' }}
+      className="bg-card p-6 rounded-3xl border border-border flex flex-col md:flex-row justify-between items-start md:items-center gap-6 group transition-all duration-300 shadow-sm hover:shadow-lg"
     >
-      <div className="space-y-4 flex-grow">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getDifficultyColor(problem.difficulty)}`}>
+      <div className="space-y-3 flex-grow">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${getDifficultyColor(problem.difficulty)}`}>
             {problem.difficulty}
           </span>
-          <span className="text-text/40 text-[10px] font-black uppercase tracking-widest bg-background border border-border px-3 py-1.5 rounded-lg shadow-inner">
+          <span className="text-text/40 text-[8px] font-black uppercase tracking-widest bg-background border border-border px-2 py-1 rounded-md shadow-inner">
             {problem.topic}
           </span>
         </div>
-        <h3 className="font-black text-2xl md:text-3xl text-text group-hover:text-accent transition-colors leading-tight tracking-tight uppercase">
+        <h3 className="font-black text-xl md:text-2xl text-text group-hover:text-accent transition-colors leading-tight tracking-tight uppercase italic">
           {problem.title}
         </h3>
       </div>
@@ -37,9 +38,9 @@ const ProblemCard = ({ problem, selectedLanguage }) => {
         href={finalLink} 
         target="_blank" 
         rel="noopener noreferrer"
-        className="w-full md:w-auto px-8 py-4 rounded-2xl bg-accent hover:bg-gfg-green-hover text-white font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all shadow-md group-hover:shadow-accent/30 active:scale-95 whitespace-nowrap"
+        className="w-full md:w-auto px-6 py-3 rounded-xl bg-accent hover:bg-gfg-green-hover text-white font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md group-hover:shadow-accent/30 active:scale-95 whitespace-nowrap"
       >
-        Solve Problem <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+        Solve <FontAwesomeIcon icon={faArrowRight} className="group-hover:translate-x-1 transition-transform" />
       </a>
     </motion.div>
   );

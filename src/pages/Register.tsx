@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  User, Mail, Lock, Book, Calendar, Zap, Github, 
-  Globe, Code2, FileText, Send, CheckCircle2, ChevronRight, 
-  ChevronLeft, Sparkles, Hash, Terminal, Plus
-} from 'lucide-react';
+  faUser, faEnvelope, faLock, faBook, faCalendarAlt, faZap, 
+  faGlobe, faCode, faFileAlt, faPaperPlane, faCheckCircle, faChevronRight, 
+  faChevronLeft, faStar, faHashtag, faTerminal, faPlus 
+} from '@fortawesome/free-solid-svg-icons';
+import { 
+  faGithub 
+} from '@fortawesome/free-brands-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Register = () => {
@@ -68,35 +72,35 @@ const Register = () => {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-2xl w-full bg-card border border-border p-12 md:p-20 rounded-[4rem] text-center space-y-8 shadow-2xl relative overflow-hidden"
+          className="max-w-2xl w-full bg-card border border-border p-12 md:p-20 rounded-3xl text-center space-y-8 shadow-2xl relative overflow-hidden italic"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-          <div className="w-24 h-24 bg-accent/10 rounded-3xl flex items-center justify-center mx-auto text-accent mb-8 shadow-inner border border-accent/20">
-            <CheckCircle2 size={48} className="animate-pulse" />
+          <div className="w-20 h-20 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto text-accent mb-8 shadow-inner border border-accent/20">
+            <FontAwesomeIcon icon={faCheckCircle} size="2x" className="animate-pulse" />
           </div>
           {userRole === 'Guest' ? (
             <>
-              <h2 className="text-4xl md:text-5xl font-black text-text uppercase tracking-tighter italic">Guest Account <span className="text-accent">Created</span></h2>
-              <p className="text-text/60 text-lg font-medium leading-relaxed italic">
+              <h2 className="text-3xl md:text-4xl font-black text-text uppercase tracking-tighter italic">Guest Account <span className="text-accent">Created</span></h2>
+              <p className="text-text/60 text-base font-medium leading-relaxed italic">
                 Your guest account has been successfully registered. You can now login and explore the public features of our community.
               </p>
             </>
           ) : (
             <>
-              <h2 className="text-4xl md:text-5xl font-black text-text uppercase tracking-tighter italic">Transmission <span className="text-accent">Logged</span></h2>
-              <p className="text-text/60 text-lg font-medium leading-relaxed italic">
-                Your ingress application has been broadcasted to the Central Command. 
-                The Architects (Admins) will review your technical stack and institutional data.
+              <h2 className="text-3xl md:text-4xl font-black text-text uppercase tracking-tighter italic">Transmission <span className="text-accent">Logged</span></h2>
+              <p className="text-text/60 text-base font-medium leading-relaxed italic">
+                Your ingress application has been broadcasted to Central Command. 
+                The Architects will review your technical stack and institutional data.
               </p>
             </>
           )}
-          <div className="bg-background/50 border border-border p-6 rounded-2xl text-left font-mono text-xs space-y-2 opacity-60">
+          <div className="bg-background/50 border border-border p-6 rounded-2xl text-left font-mono text-[10px] space-y-2 opacity-60">
             <p className="text-accent">{">"} Status: {userRole === 'Guest' ? 'APPROVED' : 'PENDING_APPROVAL'}</p>
             <p>{">"} Encryption: AES-256-GCM</p>
             <p>{">"} Role: {userRole === 'Guest' ? 'GUEST_ENTITY' : 'CORE_AGENT'}</p>
           </div>
-          <Link to="/login" className="inline-flex items-center gap-2 bg-accent hover:bg-gfg-green-hover text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-accent/20 active:scale-95">
-            Return to Matrix <ChevronRight size={20} />
+          <Link to="/login" className="inline-flex items-center gap-2 bg-accent hover:bg-gfg-green-hover text-white px-8 py-4 rounded-xl font-black uppercase tracking-widest transition-all shadow-xl shadow-accent/20 active:scale-95 text-[10px]">
+            Return to Matrix <FontAwesomeIcon icon={faChevronRight} />
           </Link>
         </motion.div>
       </div>
@@ -111,26 +115,26 @@ const Register = () => {
         className="bg-card rounded-3xl border border-border shadow-xl relative overflow-hidden flex flex-col md:flex-row"
       >
         {/* Sidebar Info */}
-        <div className="md:w-1/3 bg-accent p-8 text-white flex flex-col justify-between relative overflow-hidden">
+        <div className="md:w-1/3 bg-accent p-8 text-white flex flex-col justify-between relative overflow-hidden italic">
             <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='3' cy='3' r='3' fill='%23ffffff'/%3E%3C/svg%3E")` }}></div>
             <div className="relative z-10 space-y-6">
                 <div className="bg-white/20 w-12 h-12 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/30 shadow-lg">
-                    <Terminal size={24} />
+                    <FontAwesomeIcon icon={faTerminal} size="lg" />
                 </div>
                 <div className="space-y-3">
                     <h2 className="text-2xl font-black uppercase tracking-tighter leading-none italic">Apply for <br/>Core Ingress</h2>
-                    <p className="text-white/70 text-xs font-medium italic leading-relaxed">Join the elite community. Your application represents your technical potential.</p>
+                    <p className="text-white/70 text-[10px] font-medium leading-relaxed">Join the elite community. Your application represents your technical potential.</p>
                 </div>
                 
                 <div className="space-y-4 pt-6">
                     {[
-                        { s: 1, label: 'Institutional Data', icon: Book },
-                        { s: 2, label: 'Technical Nodes', icon: Github },
-                        { s: 3, label: 'Persona Profile', icon: FileText }
+                        { s: 1, label: 'Institutional Data', icon: faBook },
+                        { s: 2, label: 'Technical Nodes', icon: faGithub },
+                        { s: 3, label: 'Persona Profile', icon: faFileAlt }
                     ].map((item) => (
                         <div key={item.s} className={`flex items-center gap-3 transition-all duration-500 ${step >= item.s ? 'opacity-100 translate-x-1' : 'opacity-40'}`}>
                             <div className={`w-6 h-6 rounded-md flex items-center justify-center font-black text-[10px] border ${step >= item.s ? 'bg-white text-accent border-white' : 'border-white/30'}`}>
-                                {step > item.s ? <CheckCircle2 size={12} /> : item.s}
+                                {step > item.s ? <FontAwesomeIcon icon={faCheckCircle} /> : item.s}
                             </div>
                             <span className="text-[8px] font-black uppercase tracking-widest">{item.label}</span>
                         </div>
@@ -138,7 +142,7 @@ const Register = () => {
                 </div>
             </div>
             <div className="relative z-10 pt-8">
-                <p className="text-[8px] font-black uppercase tracking-widest opacity-40 italic">GfG RITChennai Node</p>
+                <p className="text-[8px] font-black uppercase tracking-widest opacity-40">GfG RITChennai Node</p>
             </div>
         </div>
 
@@ -159,14 +163,14 @@ const Register = () => {
                   <div className="space-y-1.5">
                     <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Real Name (Agent ID)</label>
                     <div className="relative group">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={16} />
+                      <FontAwesomeIcon icon={faUser} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors text-sm" />
                       <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner italic" placeholder="Alan Turing" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
                     <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Matrix Link (Email)</label>
                     <div className="relative group">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={16} />
+                      <FontAwesomeIcon icon={faEnvelope} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors text-sm" />
                       <input required type="email" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner" placeholder="agent@ritchennai.edu.in" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                     </div>
                   </div>
@@ -183,7 +187,7 @@ const Register = () => {
                   <div className="space-y-1.5">
                     <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Access Key (Password)</label>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={16} />
+                      <FontAwesomeIcon icon={faLock} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors text-sm" />
                       <input required type="password" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner" placeholder="••••••••" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
                     </div>
                   </div>
@@ -196,23 +200,23 @@ const Register = () => {
                   className="space-y-4"
                 >
                   <div className="space-y-1.5">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2 text-accent flex items-center gap-1.5"><Sparkles size={10}/> GeeksforGeeks URL</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2 text-accent flex items-center gap-1.5"><FontAwesomeIcon icon={faStar} className="text-[8px]"/> GeeksforGeeks URL</label>
                     <div className="relative group">
-                      <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={16} />
+                      <FontAwesomeIcon icon={faGlobe} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors text-sm" />
                       <input required type="url" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner" placeholder="https://www.geeksforgeeks.org/user/..." value={formData.gfg_profile} onChange={(e) => setFormData({ ...formData, gfg_profile: e.target.value })} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2 text-orange-500 flex items-center gap-1.5"><Code2 size={10}/> LeetCode Hub URL</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2 text-orange-500 flex items-center gap-1.5"><FontAwesomeIcon icon={faCode} className="text-[8px]"/> LeetCode Hub URL</label>
                     <div className="relative group">
-                      <Code2 className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-orange-500 transition-colors" size={16} />
+                      <FontAwesomeIcon icon={faCode} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-orange-500 transition-colors text-sm" />
                       <input required type="url" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-orange-500 outline-none text-text text-sm font-bold transition shadow-inner" placeholder="https://leetcode.com/..." value={formData.leetcode_profile} onChange={(e) => setFormData({ ...formData, leetcode_profile: e.target.value })} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2 text-text flex items-center gap-1.5"><Github size={10}/> GitHub Repository</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2 text-text flex items-center gap-1.5"><FontAwesomeIcon icon={faGithub} className="text-[8px]"/> GitHub Repository</label>
                     <div className="relative group">
-                      <Github className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-text transition-colors" size={16} />
+                      <FontAwesomeIcon icon={faGithub} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-text transition-colors text-sm" />
                       <input required type="url" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-text outline-none text-text text-sm font-bold transition shadow-inner" placeholder="https://github.com/..." value={formData.github_profile} onChange={(e) => setFormData({ ...formData, github_profile: e.target.value })} />
                     </div>
                   </div>
@@ -229,7 +233,7 @@ const Register = () => {
                       <div className="space-y-1.5">
                         <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Technological Skills (CSV)</label>
                         <div className="relative group">
-                          <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={16} />
+                          <FontAwesomeIcon icon={faHashtag} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors text-sm" />
                           <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner italic" placeholder="React, Node.js, Python" value={formData.skills} onChange={(e) => setFormData({ ...formData, skills: e.target.value })} />
                         </div>
                       </div>
@@ -241,15 +245,15 @@ const Register = () => {
                         <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Resume PDF</label>
                         <div className="relative">
                             <input required type="file" accept="application/pdf" className="hidden" id="resume-upload" onChange={handleFileChange} />
-                            <label htmlFor="resume-upload" className="w-full flex items-center justify-between bg-background border-2 border-dashed border-border hover:border-accent rounded-xl p-4 cursor-pointer transition-all group">
+                            <label htmlFor="resume-upload" className="w-full flex items-center justify-between bg-background border-2 border-dashed border-border hover:border-accent rounded-xl p-4 cursor-pointer transition-all group shadow-inner">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-accent/5 rounded-lg text-accent group-hover:bg-accent group-hover:text-white transition-all"><FileText size={18} /></div>
+                                    <div className="p-2 bg-accent/5 rounded-lg text-accent group-hover:bg-accent group-hover:text-white transition-all"><FontAwesomeIcon icon={faFileAlt} /></div>
                                     <div className="text-left">
-                                        <p className="text-xs font-black text-text uppercase tracking-widest">{resumeName || 'Select PDF Dossier'}</p>
+                                        <p className="text-[10px] font-black text-text uppercase tracking-widest">{resumeName || 'Select PDF Dossier'}</p>
                                         <p className="text-[7px] font-bold text-text/30 uppercase tracking-widest mt-0.5">Max 2MB | PDF Only</p>
                                     </div>
                                 </div>
-                                <Plus size={16} className="text-text/20 group-hover:text-accent" />
+                                <FontAwesomeIcon icon={faPlus} className="text-text/20 group-hover:text-accent text-sm" />
                             </label>
                         </div>
                       </div>
@@ -257,10 +261,10 @@ const Register = () => {
                   ) : (
                     <div className="py-8 text-center space-y-3">
                       <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto text-accent shadow-inner">
-                        <Sparkles size={32} />
+                        <FontAwesomeIcon icon={faStar} size="2x" />
                       </div>
                       <h4 className="text-lg font-black text-text uppercase tracking-widest italic">Guest Ready</h4>
-                      <p className="text-text/50 text-xs font-medium italic">Guest accounts do not require extra technical profile data.</p>
+                      <p className="text-text/50 text-[10px] font-medium italic">Guest accounts do not require extra technical profile data.</p>
                     </div>
                   )}
                 </motion.div>
@@ -269,8 +273,8 @@ const Register = () => {
 
             <div className="flex gap-3 pt-4">
               {step > 1 && (
-                <button type="button" onClick={() => setStep(step - 1)} className="flex-grow bg-card border border-border hover:bg-background text-text/60 font-black py-3.5 rounded-xl flex items-center justify-center gap-2 transition uppercase tracking-widest text-[10px] shadow-sm">
-                  <ChevronLeft size={16} /> Back
+                <button type="button" onClick={() => setStep(step - 1)} className="flex-grow bg-card border border-border hover:bg-background text-text/60 font-black py-3.5 rounded-xl flex items-center justify-center gap-2 transition uppercase tracking-widest text-[10px] shadow-sm italic">
+                  <FontAwesomeIcon icon={faChevronLeft} /> Back
                 </button>
               )}
               <button
@@ -278,7 +282,7 @@ const Register = () => {
                 disabled={loading}
                 className="flex-[2] bg-accent hover:bg-gfg-green-hover text-white font-black py-3.5 rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-accent/10 uppercase tracking-widest text-[10px] active:scale-[0.98] disabled:opacity-50"
               >
-                {loading ? 'Transmitting...' : step === 3 ? <><Send size={16} /> Submit</> : <><ChevronRight size={16} /> Continue</>}
+                {loading ? 'Transmitting...' : step === 3 ? <><FontAwesomeIcon icon={faPaperPlane} /> Submit</> : <><FontAwesomeIcon icon={faChevronRight} /> Continue</>}
               </button>
             </div>
           </form>

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import ProblemCard from '../components/ProblemCard';
-import { RefreshCw, Code2, Filter } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSync, faCode, faFilter } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 
 const PracticeHub = () => {
@@ -53,12 +54,12 @@ const PracticeHub = () => {
             disabled={loading}
             className="bg-card border border-border hover:border-accent text-text/80 hover:text-accent px-4 py-2 rounded-xl flex items-center gap-2 transition-all shadow-sm font-black uppercase text-[10px] tracking-widest disabled:opacity-50 active:scale-95 group"
           >
-            <RefreshCw size={14} className={`${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+            <FontAwesomeIcon icon={faSync} className={`${loading ? 'fa-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
             Refresh
           </button>
 
           <div className="bg-card border border-border rounded-xl p-0.5 flex items-center shadow-sm">
-            <div className="px-3 text-text/30 border-r border-border/50 mr-1"><Code2 size={16} /></div>
+            <div className="px-3 text-text/30 border-r border-border/50 mr-1"><FontAwesomeIcon icon={faCode} /></div>
             <select 
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
@@ -113,7 +114,7 @@ const PracticeHub = () => {
             ))
           ) : (
             <div className="col-span-full py-32 bg-card rounded-3xl border-2 border-dashed border-border text-center text-text/30 shadow-inner">
-              <Filter size={64} className="mx-auto mb-4 opacity-5" />
+              <FontAwesomeIcon icon={faFilter} size="4x" className="mx-auto mb-4 opacity-5" />
               <p className="text-xl font-black uppercase tracking-widest">No Matches Found</p>
             </div>
           )}

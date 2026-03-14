@@ -2,9 +2,10 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  Heart, ArrowLeft, Clock, Reply, MessageSquare, User, Tag, Edit3, Trash2, Save, X, Hash
-} from 'lucide-react';
+  faHeart, faArrowLeft, faClock, faReply, faMessage, faUser, faTag, faEdit, faTrashAlt, faSave, faTimes, faHashtag 
+} from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -167,15 +168,15 @@ const PostDetail = () => {
     const [replyText, setReplyText] = useState('');
 
     return (
-        <div className={`space-y-4 ${depth > 0 ? 'ml-6 md:ml-12 border-l-2 border-border/50 pl-4 md:pl-8' : ''}`}>
+        <div className={`space-y-3 ${depth > 0 ? 'ml-4 md:ml-10 border-l border-border/50 pl-4 md:pl-6' : ''}`}>
           <motion.div 
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-card border border-border p-6 rounded-[2rem] space-y-4 shadow-sm"
+            className="bg-card border border-border p-4 rounded-2xl space-y-3 shadow-sm italic"
           >
             <div className="flex justify-between items-start">
-              <div className="flex items-center gap-3">
-                <Link to={`/profile/${comment.user_id}`} className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-sm font-bold border border-accent/20 text-accent hover:bg-accent hover:text-white transition-all overflow-hidden">
+              <div className="flex items-center gap-2.5">
+                <Link to={`/profile/${comment.user_id}`} className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-[10px] font-bold border border-accent/20 text-accent hover:bg-accent hover:text-white transition-all overflow-hidden italic">
                     {comment.author_pic ? (
                         <img src={comment.author_pic} className="w-full h-full object-cover" alt="" />
                     ) : (
@@ -183,19 +184,19 @@ const PostDetail = () => {
                     )}
                 </Link>
                 <div>
-                    <Link to={`/profile/${comment.user_id}`} className="font-black text-sm text-text uppercase tracking-widest hover:text-accent transition-colors">{comment.author_name}</Link>
-                    <p className="text-[10px] text-text/40 font-bold uppercase tracking-widest">{new Date(comment.created_at).toLocaleDateString()}</p>
+                    <Link to={`/profile/${comment.user_id}`} className="font-black text-xs text-text uppercase tracking-widest hover:text-accent transition-colors italic">{comment.author_name}</Link>
+                    <p className="text-[7px] text-text/40 font-bold uppercase tracking-widest">{new Date(comment.created_at).toLocaleDateString()}</p>
                 </div>
               </div>
-              <button onClick={() => handleReactComment(comment.id)} className="flex items-center gap-2 text-xs text-text/40 hover:text-red-500 transition-colors font-black uppercase tracking-widest bg-background px-4 py-2 rounded-xl border border-border">
-                <Heart size={14} className={comment.reaction_count > 0 ? 'fill-red-500 text-red-500' : ''} />
+              <button onClick={() => handleReactComment(comment.id)} className="flex items-center gap-1.5 text-[8px] text-text/40 hover:text-red-500 transition-colors font-black uppercase tracking-widest bg-background px-2.5 py-1 rounded-lg border border-border italic">
+                <FontAwesomeIcon icon={faHeart} className={comment.reaction_count > 0 ? 'text-red-500' : ''} />
                 <span>{comment.reaction_count || 0}</span>
               </button>
             </div>
-            <p className="text-base text-text/80 leading-relaxed font-medium">{comment.content}</p>
-            <div className="flex gap-4 pt-1">
-                <button onClick={() => setIsReplying(!isReplying)} className="text-[10px] font-black text-text/40 hover:text-accent flex items-center gap-2 transition-colors uppercase tracking-widest">
-                    <Reply size={14} /> Reply
+            <p className="text-sm text-text/80 leading-relaxed font-medium">{comment.content}</p>
+            <div className="flex gap-3 pt-0.5">
+                <button onClick={() => setIsReplying(!isReplying)} className="text-[8px] font-black text-text/40 hover:text-accent flex items-center gap-1.5 transition-colors uppercase tracking-widest italic">
+                    <FontAwesomeIcon icon={faReply} /> Reply
                 </button>
             </div>
             <AnimatePresence>
@@ -205,12 +206,12 @@ const PostDetail = () => {
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
                         onSubmit={(e) => { e.preventDefault(); if(!replyText.trim()) return; onReply(replyText, comment.id); setReplyText(''); setIsReplying(false); }} 
-                        className="pt-2 space-y-3 overflow-hidden"
+                        className="pt-1.5 space-y-2 overflow-hidden"
                     >
-                        <textarea autoFocus className="w-full bg-background border border-border rounded-2xl p-6 text-sm focus:border-accent outline-none resize-none text-text shadow-inner font-medium" placeholder={`Reply to ${comment.author_name}...`} value={replyText} onChange={(e) => setReplyText(e.target.value)} />
-                        <div className="flex justify-end gap-3">
-                            <button type="button" onClick={() => setIsReplying(false)} className="text-xs text-text/40 px-6 py-3 hover:text-text transition-colors font-black uppercase tracking-widest">Cancel</button>
-                            <button type="submit" className="bg-accent hover:bg-gfg-green-hover text-white text-xs font-black px-8 py-3 rounded-xl transition shadow-md uppercase tracking-widest">Post Reply</button>
+                        <textarea autoFocus className="w-full bg-background border border-border rounded-xl p-4 text-[10px] focus:border-accent outline-none resize-none text-text shadow-inner font-medium italic" placeholder={`Reply...`} value={replyText} onChange={(e) => setReplyText(e.target.value)} />
+                        <div className="flex justify-end gap-2">
+                            <button type="button" onClick={() => setIsReplying(false)} className="text-[8px] text-text/40 px-3 py-1.5 hover:text-text transition-colors font-black uppercase tracking-widest">Cancel</button>
+                            <button type="submit" className="bg-accent hover:bg-gfg-green-hover text-white text-[8px] font-black px-4 py-1.5 rounded-lg transition shadow-md uppercase tracking-widest">Reply</button>
                         </div>
                     </motion.form>
                 )}
@@ -226,8 +227,8 @@ const PostDetail = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center text-accent font-black tracking-[0.3em] uppercase animate-pulse text-xl italic">
-          Fetching Transmission Node...
+        <div className="text-center text-accent font-black tracking-[0.2em] uppercase animate-pulse text-xs italic">
+          Fetching Node...
         </div>
       </div>
     );
@@ -236,39 +237,38 @@ const PostDetail = () => {
   if (!post) return null;
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Hero Section - Flexible Height */}
-      <section className="relative min-h-[50vh] md:min-h-[60vh] w-full overflow-hidden bg-card border-b border-border flex flex-col justify-end">
-        {/* Abstract Background Design */}
-        <div className="absolute inset-0 opacity-20 pointer-events-none">
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[120px] -mr-64 -mt-64"></div>
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px] -ml-48 -mb-48"></div>
+    <div className="min-h-screen bg-background pb-16">
+      {/* Hero Section */}
+      <section className="relative h-[40vh] md:h-[50vh] w-full overflow-hidden bg-card border-b border-border flex flex-col justify-end">
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
+          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-accent/20 rounded-full blur-[80px] -mr-32 -mt-32"></div>
+          <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-500/10 rounded-full blur-[60px] -ml-24 -mb-24"></div>
         </div>
         
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
         
-        <div className="absolute top-8 left-8 z-20 flex gap-4">
+        <div className="absolute top-6 left-6 z-20">
           <button 
             onClick={() => navigate(group ? `/groups/${group.id}` : '/community')} 
-            className="flex items-center gap-2 text-text/60 bg-card/40 hover:bg-card backdrop-blur-md px-6 py-3 rounded-full border border-border transition-all group font-black uppercase text-xs tracking-widest active:scale-95"
+            className="flex items-center gap-1.5 text-text/60 bg-card/40 hover:bg-card backdrop-blur-md px-4 py-2 rounded-full border border-border transition-all group font-black uppercase text-[10px] tracking-widest active:scale-95 shadow-sm"
           >
-            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /> Back to {group ? 'Sector' : 'Matrix'}
+            <FontAwesomeIcon icon={faArrowLeft} className="group-hover:-translate-x-1 transition-transform" /> Back
           </button>
         </div>
 
-        <div className="relative w-full p-8 md:p-20 z-10 pt-32 md:pt-48">
+        <div className="relative w-full p-6 md:p-12 z-10 pt-24 md:pt-32">
           <div className="max-w-7xl mx-auto space-y-6">
             <motion.div 
               initial={{ opacity: 0, y: 20 }} 
               animate={{ opacity: 1, y: 0 }} 
-              className="flex flex-wrap items-center gap-4"
+              className="flex flex-wrap items-center gap-3"
             >
-              <span className="bg-accent/10 text-accent text-[10px] font-black px-5 py-2 rounded-full border border-accent/20 tracking-widest uppercase backdrop-blur-md">
-                {group ? `SECTOR: ${group.title}` : 'COMMUNITY TRANSMISSION'}
+              <span className="bg-accent/10 text-accent text-[8px] font-black px-3 py-1 rounded-full border border-accent/20 tracking-widest uppercase backdrop-blur-md italic">
+                {group ? `SECTOR: ${group.title}` : 'COMMUNITY'}
               </span>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 {post.tags?.split(',').map((tag, i) => (
-                  <span key={i} className="text-[10px] font-black text-text/40 bg-card/60 border border-border px-4 py-2 rounded-full uppercase tracking-widest backdrop-blur-sm">
+                  <span key={i} className="text-[8px] font-black text-text/40 bg-card/60 border border-border px-3 py-1 rounded-full uppercase tracking-widest backdrop-blur-sm italic">
                     #{tag.trim()}
                   </span>
                 ))}
@@ -278,7 +278,7 @@ const PostDetail = () => {
               initial={{ opacity: 0, y: 30 }} 
               animate={{ opacity: 1, y: 0 }} 
               transition={{ delay: 0.1 }} 
-              className="text-4xl md:text-7xl font-black text-text leading-tight tracking-tighter uppercase max-w-5xl break-words"
+              className="text-3xl md:text-6xl font-black text-text leading-tight tracking-tighter uppercase max-w-5xl italic break-words"
             >
               {post.title}
             </motion.h1>
@@ -287,10 +287,10 @@ const PostDetail = () => {
               initial={{ opacity: 0, y: 20 }} 
               animate={{ opacity: 1, y: 0 }} 
               transition={{ delay: 0.2 }}
-              className="flex flex-wrap items-center gap-8 text-sm pt-4"
+              className="flex flex-wrap items-center gap-8 text-[10px] pt-2"
             >
-              <div className="flex items-center gap-4">
-                <Link to={`/profile/${post.author_id}`} className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-lg font-black text-accent border border-accent/20 shadow-inner hover:bg-accent hover:text-white transition-all overflow-hidden">
+              <div className="flex items-center gap-3">
+                <Link to={`/profile/${post.author_id}`} className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-base font-black text-accent border border-accent/20 shadow-inner hover:bg-accent hover:text-white transition-all italic">
                   {post.author_pic ? (
                       <img src={post.author_pic} className="w-full h-full object-cover" alt="" />
                   ) : (
@@ -298,16 +298,16 @@ const PostDetail = () => {
                   )}
                 </Link>
                 <div>
-                  <Link to={`/profile/${post.author_id}`} className="font-black text-text uppercase tracking-widest text-xs hover:text-accent transition-colors">{post.author_name}</Link>
-                  <p className="text-[9px] font-bold text-accent uppercase tracking-[0.2em]">Author Node</p>
+                  <Link to={`/profile/${post.author_id}`} className="font-black text-text uppercase tracking-widest text-[10px] hover:text-accent transition-colors italic">{post.author_name}</Link>
+                  <p className="text-[7px] font-bold text-accent uppercase tracking-[0.2em] italic">Author</p>
                 </div>
               </div>
-              <div className="h-8 w-[1px] bg-border/50 hidden sm:block"></div>
-              <span className="flex items-center gap-2 font-black uppercase text-[11px] tracking-widest text-text/40">
-                <Clock size={18} className="text-accent" /> {new Date(post.created_at).toLocaleDateString()}
+              <div className="h-6 w-[1px] bg-border/50 hidden sm:block"></div>
+              <span className="flex items-center gap-2 font-black uppercase tracking-widest text-text/40 italic">
+                <FontAwesomeIcon icon={faClock} className="text-accent" /> {new Date(post.created_at).toLocaleDateString()}
               </span>
-              <span className="flex items-center gap-2 font-black uppercase text-[11px] tracking-widest text-text/40">
-                <MessageSquare size={18} className="text-accent" /> {comments.length} Signals
+              <span className="flex items-center gap-2 font-black uppercase tracking-widest text-text/40 italic">
+                <FontAwesomeIcon icon={faMessage} className="text-accent" /> {comments.length} Signals
               </span>
             </motion.div>
           </div>
@@ -315,48 +315,48 @@ const PostDetail = () => {
       </section>
 
       {/* Main Content Grid */}
-      <section className="max-w-7xl mx-auto px-8 md:px-20 mt-12 md:mt-20">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
-          <div className="lg:col-span-2 space-y-20">
+      <section className="max-w-7xl mx-auto px-6 md:px-12 mt-10 md:mt-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="lg:col-span-2 space-y-12">
             {/* Post Content */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }} 
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-8"
+              className="bg-card border border-border p-8 md:p-12 rounded-3xl shadow-xl italic"
             >
-              <div className="prose prose-accent dark:prose-invert max-w-none text-text/80 text-xl leading-[1.8] font-medium ql-editor !p-0" dangerouslySetInnerHTML={{ __html: post.content }} />
+              <div className="prose prose-accent dark:prose-invert max-w-none text-text/80 text-base md:text-lg leading-[1.7] font-medium ql-editor !p-0" dangerouslySetInnerHTML={{ __html: post.content }} />
             </motion.div>
 
             {/* Comments Section */}
-            <div className="space-y-12">
-              <div className="flex items-center gap-6">
-                <h3 className="text-3xl font-black text-text uppercase tracking-tight italic">Transmission Feed</h3>
-                <div className="h-[2px] flex-grow bg-gradient-to-r from-border to-transparent"></div>
+            <div className="space-y-8">
+              <div className="flex items-center gap-4">
+                <h3 className="text-xl font-black text-text uppercase tracking-tight italic">Feed</h3>
+                <div className="h-[1px] flex-grow bg-gradient-to-r from-border to-transparent"></div>
               </div>
               
-              <div className="space-y-10">
+              <div className="space-y-6">
                 {threadedComments.length > 0 ? (
                   threadedComments.map(comment => (
                     <CommentItem key={comment.id} comment={comment} onReply={handleAddReply} />
                   ))
                 ) : (
-                  <div className="py-24 text-center bg-card border-2 border-dashed border-border rounded-[3rem] shadow-inner">
-                    <p className="text-xl text-text/30 font-black uppercase tracking-widest">No active signals detected in this sector.</p>
+                  <div className="py-16 text-center bg-card border border-dashed border-border rounded-3xl shadow-inner italic">
+                    <p className="text-sm text-text/30 font-black uppercase tracking-widest">No signals detected.</p>
                   </div>
                 )}
               </div>
               
               {/* Main Reply Form */}
-              <div className="bg-card border border-border rounded-[3rem] p-8 md:p-12 shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full -mr-32 -mt-32 blur-3xl transition-all group-hover:bg-accent/10"></div>
-                <form onSubmit={handleAddMainComment} className="space-y-8 relative z-10">
-                  <div className="space-y-3">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Broadcast Signal</label>
+              <div className="bg-card border border-border rounded-3xl p-6 md:p-8 shadow-xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-48 h-48 bg-accent/5 rounded-full -mr-24 -mt-24 blur-2xl transition-all group-hover:bg-accent/10"></div>
+                <form onSubmit={handleAddMainComment} className="space-y-6 relative z-10">
+                  <div className="space-y-2">
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Broadcast Signal</label>
                     <textarea 
                       required 
-                      rows={5} 
-                      className="w-full bg-background border border-border rounded-[2rem] py-8 px-10 focus:border-accent outline-none resize-none text-text text-xl leading-relaxed shadow-inner transition-colors font-medium" 
-                      placeholder="Input your transmission sequence..." 
+                      rows={4} 
+                      className="w-full bg-background border border-border rounded-2xl py-5 px-6 focus:border-accent outline-none resize-none text-text text-sm leading-relaxed shadow-inner transition-colors font-medium italic" 
+                      placeholder="Input sequence..." 
                       value={mainComment} 
                       onChange={(e) => setMainComment(e.target.value)} 
                     />
@@ -364,7 +364,7 @@ const PostDetail = () => {
                   <div className="flex justify-end">
                     <button 
                       type="submit" 
-                      className="bg-accent hover:bg-gfg-green-hover text-white font-black px-14 py-6 rounded-[1.5rem] transition shadow-xl text-xl uppercase tracking-widest active:scale-95"
+                      className="bg-accent hover:bg-gfg-green-hover text-white font-black px-10 py-4 rounded-xl transition shadow-lg text-[10px] uppercase tracking-widest active:scale-95"
                     >
                       Post Signal
                     </button>
@@ -380,26 +380,26 @@ const PostDetail = () => {
               initial={{ opacity: 0, x: 20 }} 
               animate={{ opacity: 1, x: 0 }} 
               transition={{ delay: 0.3 }}
-              className="bg-card border border-border p-10 rounded-[3rem] shadow-xl sticky top-24"
+              className="bg-card border border-border p-8 rounded-3xl shadow-xl sticky top-20"
             >
-              <div className="space-y-10">
-                <div className="text-center space-y-4">
-                  <div className="p-6 bg-accent/5 rounded-[2rem] border border-accent/10 inline-block">
-                    <Heart size={48} className={post?.reaction_count > 0 ? 'text-accent fill-accent' : 'text-text/20'} />
+              <div className="space-y-8">
+                <div className="text-center space-y-3">
+                  <div className="p-4 bg-accent/5 rounded-2xl border border-accent/10 inline-block italic">
+                    <FontAwesomeIcon icon={faHeart} size="2x" className={post?.reaction_count > 0 ? 'text-accent' : 'text-text/20'} />
                   </div>
                   <div>
-                    <h4 className="text-2xl font-black text-text uppercase tracking-widest italic">{post?.reaction_count || 0}</h4>
-                    <p className="text-text/40 font-black uppercase text-[10px] tracking-[0.3em]">Recognition Score</p>
+                    <h4 className="text-xl font-black text-text uppercase tracking-widest italic">{post?.reaction_count || 0}</h4>
+                    <p className="text-text/40 font-black uppercase text-[8px] tracking-widest">Recognition Score</p>
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <button 
                     onClick={handleReactPost} 
-                    className={`w-full py-6 rounded-2xl font-black text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-3 active:scale-95 shadow-lg ${post?.reaction_count > 0 ? 'bg-accent text-white shadow-accent/20' : 'bg-background border border-border text-text hover:border-accent hover:text-accent'}`}
+                    className={`w-full py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95 shadow-md italic ${post?.reaction_count > 0 ? 'bg-accent text-white shadow-accent/20' : 'bg-background border border-border text-text hover:border-accent hover:text-accent'}`}
                   >
-                    <Heart size={20} className={post?.reaction_count > 0 ? 'fill-white' : ''} />
-                    {post?.reaction_count > 0 ? 'Acknowledged' : 'Give Recognition'}
+                    <FontAwesomeIcon icon={faHeart} />
+                    {post?.reaction_count > 0 ? 'Acknowledged' : 'Recognize'}
                   </button>
                   
                   <button 
@@ -408,39 +408,39 @@ const PostDetail = () => {
                       el?.focus();
                       el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }}
-                    className="w-full py-6 rounded-2xl bg-card border border-border text-text/60 hover:text-accent hover:border-accent transition-all font-black uppercase text-sm tracking-widest flex items-center justify-center gap-3 active:scale-95"
+                    className="w-full py-4 rounded-xl bg-card border border-border text-text/60 hover:text-accent hover:border-accent transition-all font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 active:scale-95 italic shadow-sm"
                   >
-                    <Reply size={20} /> Deploy Signal
+                    <FontAwesomeIcon icon={faReply} /> Signal
                   </button>
 
                   {/* Author Actions */}
                   {(user?.id === post?.author_id) && (
                     <button 
                       onClick={handleOpenEditModal}
-                      className="w-full py-4 rounded-xl bg-blue-500/5 text-blue-500 border border-border/50 hover:bg-blue-500 hover:text-white transition-all font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2 active:scale-95"
+                      className="w-full py-3 rounded-lg bg-blue-500/5 text-blue-500 border border-border/50 hover:bg-blue-500 hover:text-white transition-all font-black uppercase text-[8px] tracking-widest flex items-center justify-center gap-2 active:scale-95 italic"
                     >
-                      <Edit3 size={16} /> Edit Transmission
+                      <FontAwesomeIcon icon={faEdit} /> Edit
                     </button>
                   )}
                   
                   {(user?.id === post?.author_id || user?.role === 'Admin' || user?.role === 'Core') && (
                     <button 
                       onClick={handleDeletePost}
-                      className="w-full py-4 rounded-xl bg-red-500/5 text-red-500 border border-border/50 hover:bg-red-500 hover:text-white transition-all font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2 active:scale-95"
+                      className="w-full py-3 rounded-lg bg-red-500/5 text-red-500 border border-border/50 hover:bg-red-500 hover:text-white transition-all font-black uppercase text-[8px] tracking-widest flex items-center justify-center gap-2 active:scale-95 italic"
                     >
-                      <Trash2 size={16} /> Terminate Post
+                      <FontAwesomeIcon icon={faTrashAlt} /> Terminate
                     </button>
                   )}
                 </div>
 
-                <div className="pt-8 border-t border-border/50">
-                   <div className="flex items-center gap-4 text-text/40 mb-6">
-                      <Tag size={18} className="text-accent" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Metadata Tags</span>
+                <div className="pt-6 border-t border-border/50">
+                   <div className="flex items-center gap-3 text-text/40 mb-4">
+                      <FontAwesomeIcon icon={faTag} className="text-accent text-xs" />
+                      <span className="text-[8px] font-black uppercase tracking-widest italic">Metadata</span>
                    </div>
-                   <div className="flex flex-wrap gap-2">
+                   <div className="flex flex-wrap gap-1.5">
                       {post?.tags?.split(',').map((tag, i) => (
-                        <span key={i} className="text-[10px] font-black text-text bg-background border border-border px-4 py-2 rounded-xl uppercase tracking-widest shadow-sm">
+                        <span key={i} className="text-[8px] font-black text-text bg-background border border-border px-3 py-1.5 rounded-lg uppercase tracking-widest shadow-sm italic">
                           {tag.trim()}
                         </span>
                       ))}
@@ -456,43 +456,40 @@ const PostDetail = () => {
       <AnimatePresence>
         {isEditModalOpen && (
           <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl overflow-y-auto">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-card border border-border rounded-[3.5rem] w-full max-w-4xl my-auto shadow-2xl overflow-hidden">
-              <div className="p-8 border-b border-border flex justify-between items-center bg-background/50">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-accent/10 rounded-xl text-accent"><Edit3 size={24} /></div>
-                    <div>
-                        <h2 className="text-3xl font-black text-text uppercase tracking-tighter italic">Edit Transmission</h2>
-                        <p className="text-[10px] font-black text-text/40 uppercase tracking-widest">Re-broadcast updated signal to the matrix</p>
-                    </div>
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-card border border-border rounded-3xl w-full max-w-4xl my-auto shadow-2xl overflow-hidden">
+              <div className="p-6 md:p-8 border-b border-border flex justify-between items-center bg-background/50">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-accent/10 rounded-lg text-accent"><FontAwesomeIcon icon={faEdit} /></div>
+                    <h2 className="text-xl font-black text-text uppercase tracking-tighter italic">Edit Node</h2>
                 </div>
-                <button onClick={() => setIsEditModalOpen(false)} className="text-text/40 hover:text-red-500 p-2 rounded-full transition-all active:scale-90"><X size={32} /></button>
+                <button onClick={() => setIsEditModalOpen(false)} className="text-text/40 hover:text-red-500 p-1.5 rounded-full transition-all active:scale-90"><FontAwesomeIcon icon={faTimes} size="lg" /></button>
               </div>
-              <form onSubmit={handleEditPost} className="p-8 md:p-12 space-y-8 overflow-y-auto max-h-[75vh] custom-scrollbar">
-                <div className="space-y-3">
-                  <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Topic Heading</label>
-                  <input required type="text" className="w-full bg-background border-2 border-border rounded-2xl py-5 px-8 focus:border-accent outline-none text-text font-black text-xl transition shadow-inner" placeholder="Enter a compelling title..." value={editFormData.title} onChange={(e) => setEditFormData({...editFormData, title: e.target.value})} />
+              <form onSubmit={handleEditPost} className="p-6 md:p-10 space-y-6 overflow-y-auto max-h-[75vh] custom-scrollbar">
+                <div className="space-y-2">
+                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Headline</label>
+                  <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-lg font-black text-text shadow-inner transition-colors italic" value={editFormData.title} onChange={(e) => setEditFormData({...editFormData, title: e.target.value})} />
                 </div>
 
-                <div className="space-y-3">
-                  <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Transmission Data</label>
-                  <div className="bg-background rounded-2xl border-2 border-border overflow-hidden focus-within:border-accent transition-colors shadow-inner">
-                    <ReactQuill theme="snow" value={editFormData.content} onChange={(content) => setEditFormData({...editFormData, content})} className="h-64 mb-12" />
+                <div className="space-y-2">
+                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Transmission Data</label>
+                  <div className="bg-background rounded-xl border-2 border-border overflow-hidden focus-within:border-accent transition-colors shadow-inner">
+                    <ReactQuill theme="snow" value={editFormData.content} onChange={(content) => setEditFormData({...editFormData, content})} />
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Identification Tags (comma separated)</label>
+                <div className="space-y-2">
+                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Metadata</label>
                   <div className="relative">
-                      <Hash className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20" size={18}/>
-                      <input type="text" className="w-full bg-background border-2 border-border rounded-2xl py-5 pl-14 pr-8 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner" placeholder="dsa, project, help, resource" value={editFormData.tags} onChange={(e) => setEditFormData({...editFormData, tags: e.target.value})} />
+                      <FontAwesomeIcon icon={faHashtag} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 text-xs"/>
+                      <input type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-10 focus:border-accent outline-none text-text font-black text-sm transition shadow-inner italic" value={editFormData.tags} onChange={(e) => setEditFormData({...editFormData, tags: e.target.value})} />
                   </div>
                 </div>
 
-                <div className="flex gap-6 pt-6 sticky bottom-0 bg-card/80 backdrop-blur-md">
-                    <button type="submit" disabled={isSubmitting} className="flex-grow bg-accent hover:bg-gfg-green-hover text-white font-black py-6 rounded-[1.5rem] flex items-center justify-center gap-4 transition shadow-2xl shadow-accent/20 uppercase tracking-widest text-sm active:scale-[0.98] disabled:opacity-50">
-                        {isSubmitting ? 'Updating...' : <><Save size={24} /> Update Transmission</>}
+                <div className="flex gap-4 pt-2">
+                    <button type="submit" disabled={isSubmitting} className="flex-grow bg-accent hover:bg-gfg-green-hover text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 transition shadow-xl shadow-accent/10 uppercase tracking-widest text-[10px] active:scale-[0.98] disabled:opacity-50">
+                        <FontAwesomeIcon icon={faSave} /> {isSubmitting ? 'Updating...' : 'Commit'}
                     </button>
-                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-grow bg-card border border-border hover:bg-background text-text/60 font-black py-6 rounded-[1.5rem] transition uppercase tracking-widest text-xs shadow-sm">Abort</button>
+                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 px-8 rounded-xl transition text-[10px] uppercase tracking-widest shadow-sm italic">Abort</button>
                 </div>
               </form>
             </motion.div>
@@ -501,11 +498,16 @@ const PostDetail = () => {
       </AnimatePresence>
 
       <style>{`
+        .ql-toolbar.ql-snow { border: none !important; border-bottom: 1px solid var(--color-border) !important; background: var(--color-background); padding: 8px !important; }
+        .ql-container.ql-snow { border: none !important; }
+        .ql-editor { font-family: inherit; font-size: 1rem; padding: 15px !important; min-height: 150px; }
         .ql-editor a { color: var(--color-accent); font-weight: 800; text-decoration: underline; }
-        .ql-editor h1, .ql-editor h2, .ql-editor h3 { color: var(--color-text); font-weight: 900; margin-top: 1.5em; margin-bottom: 0.5em; text-transform: uppercase; }
-        .ql-editor ul, .ql-editor ol { padding-left: 1.5em; margin-bottom: 1em; list-style: disc; }
-        .ql-editor p { margin-bottom: 1.5em; }
+        .ql-editor h1, .ql-editor h2, .ql-editor h3 { color: var(--color-text); font-weight: 900; margin-top: 1.2em; margin-bottom: 0.4em; text-transform: uppercase; }
+        .ql-editor ul, .ql-editor ol { padding-left: 1.2em; margin-bottom: 0.8em; list-style: disc; }
         .dark .ql-editor *, .dark .ql-editor span { background-color: transparent !important; color: var(--color-text) !important; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-accent); border-radius: 10px; opacity: 0.2; }
       `}</style>
     </div>
   );
