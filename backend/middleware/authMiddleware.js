@@ -34,6 +34,14 @@ export const admin = (req, res, next) => {
   }
 };
 
+export const isApproved = (req, res, next) => {
+  if (req.user && req.user.status === 'Approved') {
+    next();
+  } else {
+    res.status(403).json({ message: 'Access denied. Your application is not yet approved.' });
+  }
+};
+
 export const optionalProtect = async (req, res, next) => {
   let token;
 

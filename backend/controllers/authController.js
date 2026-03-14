@@ -2,8 +2,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
 
-const generateToken = (id, role) => {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET, {
+const generateToken = (id, role, status) => {
+  return jwt.sign({ id, role, status }, process.env.JWT_SECRET, {
     expiresIn: '30d',
   });
 };
@@ -67,7 +67,7 @@ export const loginUser = async (req, res) => {
         email: user.email,
         role: user.role,
         status: user.status,
-        token: generateToken(user.id, user.role),
+        token: generateToken(user.id, user.role, user.status),
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });

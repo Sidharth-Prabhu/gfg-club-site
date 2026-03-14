@@ -45,7 +45,7 @@ const Footer = () => {
           <div>
             <h3 className="text-xl font-bold mb-6 text-text border-l-4 border-accent pl-3">Explore</h3>
             <ul className="space-y-4">
-              {['Events', 'Leaderboard', 'Practice', 'Community', 'Projects', 'Blog'].map((item) => (
+              {['Events', 'Leaderboard', 'Practice', 'Community', 'Projects', 'Resources', 'Blog'].map((item) => (
                 <li key={item}>
                   <Link to={`/${item.toLowerCase()}`} className="text-text/60 hover:text-accent transition-colors flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-accent/40 rounded-full"></span>

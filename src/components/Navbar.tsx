@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { LayoutDashboard, LogOut, Menu, User, Calendar, Trophy, BookOpen, MessageSquare, Briefcase, FileText, Sun, Moon, X } from 'lucide-react';
+import { LayoutDashboard, LogOut, Menu, User, Calendar, Trophy, BookOpen, MessageSquare, Briefcase, FileText, Sun, Moon, X, Bookmark } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
@@ -24,6 +24,7 @@ const Navbar = () => {
     { to: "/practice", icon: BookOpen, label: "Practice" },
     { to: "/community", icon: MessageSquare, label: "Community" },
     { to: "/projects", icon: Briefcase, label: "Projects" },
+    { to: "/resources", icon: Bookmark, label: "Resources" },
     { to: "/blog", icon: FileText, label: "Blog" },
   ];
 
