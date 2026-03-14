@@ -3,7 +3,7 @@ import pool from '../config/db.js';
 export const getBlogs = async (req, res) => {
   try {
     const [rows] = await pool.execute(
-      'SELECT b.*, u.name as author_name FROM blogs b JOIN users u ON b.author_id = u.id ORDER BY b.created_at DESC'
+      'SELECT b.*, u.name as author_name, u.profile_pic as author_pic FROM blogs b JOIN users u ON b.author_id = u.id ORDER BY b.created_at DESC'
     );
     res.json(rows);
   } catch (error) {
@@ -14,7 +14,7 @@ export const getBlogs = async (req, res) => {
 export const getBlogById = async (req, res) => {
   try {
     const [rows] = await pool.execute(
-      'SELECT b.*, u.name as author_name FROM blogs b JOIN users u ON b.author_id = u.id WHERE b.id = ?',
+      'SELECT b.*, u.name as author_name, u.profile_pic as author_pic FROM blogs b JOIN users u ON b.author_id = u.id WHERE b.id = ?',
       [req.params.id]
     );
     if (rows.length > 0) {
