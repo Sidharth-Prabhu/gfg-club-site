@@ -137,7 +137,7 @@ export const getGroupMembers = async (req, res) => {
     const { id } = req.params;
     try {
         const [rows] = await pool.execute(
-            'SELECT m.*, u.name as user_name FROM group_members m JOIN users u ON m.user_id = u.id WHERE m.group_id = ? AND m.status = "Accepted"',
+            'SELECT m.*, u.name as user_name, u.profile_pic as user_pic FROM group_members m JOIN users u ON m.user_id = u.id WHERE m.group_id = ? AND m.status = "Accepted"',
             [id]
         );
         res.json(rows);

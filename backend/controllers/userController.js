@@ -45,7 +45,7 @@ export const getUserProfile = async (req, res) => {
     await updateStreak(req.user.id);
 
     const [rows] = await pool.execute(
-      'SELECT id, name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile, problems_solved, gfg_solved, gfg_score, leetcode_solved, github_repos, weekly_points, streak, role, last_login, created_at FROM users WHERE id = ?',
+      'SELECT id, name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile, problems_solved, gfg_solved, gfg_score, leetcode_solved, github_repos, weekly_points, streak, role, last_login, created_at, skills, about, resume_url, status, profile_pic FROM users WHERE id = ?',
       [req.user.id]
     );
     const user = rows[0];
@@ -60,13 +60,66 @@ export const getUserProfile = async (req, res) => {
   }
 };
 
+export const getUserProfileById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await pool.execute(
+      `SELECT id, name, email, department, year, gfg_profile, leetcode_profile, github_profile, 
+       problems_solved, gfg_solved, gfg_score, leetcode_solved, github_repos, streak, role, created_at, 
+       skills, about, profile_pic,
+       (SELECT COUNT(*) FROM discussions WHERE author_id = users.id) as discussion_count,
+       (SELECT COUNT(*) FROM projects WHERE created_by = users.id AND status = 'Approved') as project_count
+       FROM users WHERE id = ? AND status = 'Approved'`,
+      [id]
+    );
+    if (rows.length === 0) return res.status(404).json({ message: 'User not found or not approved' });
+    res.json(rows[0]);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getApplicants = async (req, res) => {
+  if (req.user.role !== 'Admin') return res.status(403).json({ message: 'Admin access required' });
+  try {
+    const [rows] = await pool.execute(
+      'SELECT id, name, email, department, year, gfg_profile, leetcode_profile, github_profile, skills, about, resume_url, created_at, profile_pic FROM users WHERE status = "Pending" ORDER BY created_at DESC'
+    );
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const approveUser = async (req, res) => {
+  if (req.user.role !== 'Admin') return res.status(403).json({ message: 'Admin access required' });
+  const { id } = req.params;
+  try {
+    await pool.execute('UPDATE users SET status = "Approved" WHERE id = ?', [id]);
+    res.json({ message: 'User approved' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const rejectUser = async (req, res) => {
+  if (req.user.role !== 'Admin') return res.status(403).json({ message: 'Admin access required' });
+  const { id } = req.params;
+  try {
+    await pool.execute('UPDATE users SET status = "Rejected" WHERE id = ?', [id]);
+    res.json({ message: 'User rejected' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const updateUserProfile = async (req, res) => {
-  const { name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile } = req.body;
+  const { name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile, skills, about, profile_pic } = req.body;
 
   try {
     await pool.execute(
-      'UPDATE users SET name = ?, email = ?, department = ?, year = ?, gfg_profile = ?, leetcode_profile = ?, codeforces_profile = ?, github_profile = ? WHERE id = ?',
-      [name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile, req.user.id]
+      'UPDATE users SET name = ?, email = ?, department = ?, year = ?, gfg_profile = ?, leetcode_profile = ?, codeforces_profile = ?, github_profile = ?, skills = ?, about = ?, profile_pic = ? WHERE id = ?',
+      [name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile, skills, about, profile_pic, req.user.id]
     );
     res.json({ message: 'Profile updated successfully' });
   } catch (error) {

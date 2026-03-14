@@ -10,6 +10,7 @@ import EventDetail from './pages/EventDetail';
 import Leaderboard from './pages/Leaderboard';
 import PracticeHub from './pages/PracticeHub';
 import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
 import Community from './pages/Community';
 import PostDetail from './pages/PostDetail';
 import GroupDetail from './pages/GroupDetail';
@@ -57,14 +58,13 @@ function App() {
             
             <Route path="/team" element={<Placeholder title="Our Team" />} />
             
-            <Route 
-              path="/dashboard" 
-              element={
+            <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Dashboard />
                 </ProtectedRoute>
               } 
             />
+            <Route path="/profile/:userId" element={<Profile />} />
           </Routes>
         </MainLayout>
       </Router>

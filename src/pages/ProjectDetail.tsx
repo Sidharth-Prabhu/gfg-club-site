@@ -168,11 +168,11 @@ const ProjectDetail = () => {
               className="flex flex-wrap items-center gap-12 text-text/40 pt-4"
             >
               <div className="flex items-center gap-5">
-                <div className="w-16 h-16 rounded-[1.5rem] bg-accent/10 flex items-center justify-center text-2xl font-black text-accent border border-accent/20 shadow-inner">
+                <Link to={`/profile/${project.created_by}`} className="w-16 h-16 rounded-[1.5rem] bg-accent/10 flex items-center justify-center text-2xl font-black text-accent border border-accent/20 shadow-inner hover:bg-accent hover:text-white transition-all">
                   {project.creator_name[0]}
-                </div>
+                </Link>
                 <div>
-                  <p className="font-black text-2xl text-text uppercase tracking-widest">{project.creator_name}</p>
+                  <Link to={`/profile/${project.created_by}`} className="font-black text-2xl text-text uppercase tracking-widest hover:text-accent transition-colors">{project.creator_name}</Link>
                   <p className="text-[10px] text-accent font-black uppercase tracking-[0.3em] mt-1">Lead Architect</p>
                 </div>
               </div>

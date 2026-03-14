@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../services/api';
 import LeaderboardTable from '../components/LeaderboardTable';
 import { Trophy, Medal, Star, ShieldCheck, Star as StarIcon, Sparkles } from 'lucide-react';
@@ -44,11 +45,15 @@ const Leaderboard = () => {
       key: 'name', 
       render: (row) => (
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-2xl bg-accent/5 flex items-center justify-center text-accent font-black text-sm border border-accent/10 shadow-inner">
-            {row.name[0]}
-          </div>
+          <Link to={`/profile/${row.id}`} className="w-10 h-10 rounded-2xl bg-accent/5 flex items-center justify-center text-accent font-black text-sm border border-accent/10 shadow-inner hover:bg-accent hover:text-white transition-all overflow-hidden">
+            {row.profile_pic ? (
+                <img src={row.profile_pic} className="w-full h-full object-cover" alt="" />
+            ) : (
+                row.name[0]
+            )}
+          </Link>
           <div className="flex flex-col">
-            <span className="font-black text-text uppercase tracking-tight text-lg italic">{row.name}</span>
+            <Link to={`/profile/${row.id}`} className="font-black text-text uppercase tracking-tight text-lg italic hover:text-accent transition-colors">{row.name}</Link>
             <div className="flex gap-2 mt-1">
               {row.role === 'Admin' && (
                 <span className="bg-red-500/10 text-red-500 text-[8px] font-black px-2 py-0.5 rounded border border-red-500/20 flex items-center gap-1 uppercase tracking-widest">

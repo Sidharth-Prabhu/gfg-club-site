@@ -4,7 +4,7 @@ export const getDiscussionById = async (req, res) => {
   const { id } = req.params;
   try {
     const sql = `
-      SELECT d.*, u.name as author_name, u.role as author_role,
+      SELECT d.*, u.name as author_name, u.role as author_role, u.profile_pic as author_pic,
       (SELECT COUNT(*) FROM post_reactions WHERE post_id = d.id) as reaction_count,
       (SELECT COUNT(*) FROM post_comments WHERE post_id = d.id) as comment_count,
       (SELECT GROUP_CONCAT(tag) FROM post_tags WHERE post_id = d.id) as tags
@@ -21,12 +21,12 @@ export const getDiscussionById = async (req, res) => {
 };
 
 export const getDiscussions = async (req, res) => {
-  const { search, tag, groupId } = req.query;
+  const { search, tag, groupId, authorId } = req.query;
   const userId = req.user?.id;
 
   try {
     let sql = `
-      SELECT d.*, u.name as author_name, u.role as author_role,
+      SELECT d.*, u.name as author_name, u.role as author_role, u.profile_pic as author_pic,
       (SELECT COUNT(*) FROM post_reactions WHERE post_id = d.id) as reaction_count,
       (SELECT COUNT(*) FROM post_comments WHERE post_id = d.id) as comment_count,
       (SELECT GROUP_CONCAT(tag) FROM post_tags WHERE post_id = d.id) as tags
@@ -37,9 +37,11 @@ export const getDiscussions = async (req, res) => {
     const params = [];
 
     if (groupId) {
-      // Fetching for a specific group
       sql += ` AND d.group_id = ?`;
       params.push(groupId);
+    } else if (authorId) {
+      sql += ` AND d.author_id = ?`;
+      params.push(authorId);
     } else {
       // Main Broadcast Feed
       if (userId) {
@@ -173,7 +175,7 @@ export const reactToPost = async (req, res) => {
 export const getComments = async (req, res) => {
   try {
     const [rows] = await pool.execute(
-      `SELECT c.*, u.name as author_name, u.role as author_role,
+      `SELECT c.*, u.name as author_name, u.role as author_role, u.profile_pic as author_pic,
        (SELECT COUNT(*) FROM comment_reactions WHERE comment_id = c.id) as reaction_count
        FROM post_comments c 
        JOIN users u ON c.user_id = u.id 

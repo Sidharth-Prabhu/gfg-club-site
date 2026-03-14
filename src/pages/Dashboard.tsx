@@ -21,6 +21,7 @@ const Dashboard = () => {
   const [myDiscussions, setMyDiscussions] = useState([]);
   const [pendingProjects, setPendingProjects] = useState([]);
   const [groupRequests, setGroupRequests] = useState([]);
+  const [userApplicants, setUserApplicants] = useState([]);
   const [invitations, setInvitations] = useState([]);
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +29,7 @@ const Dashboard = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   const [editFormData, setEditFormData] = useState({
-    name: '', email: '', department: '', year: '', gfg_profile: '', leetcode_profile: '', codeforces_profile: '', github_profile: ''
+    name: '', email: '', department: '', year: '', gfg_profile: '', leetcode_profile: '', codeforces_profile: '', github_profile: '', skills: '', about: '', profile_pic: ''
   });
 
   const canModerate = user?.role === 'Admin' || user?.role === 'Core';
@@ -45,20 +46,22 @@ const Dashboard = () => {
         }
       };
 
-      const [profileRes, activityRes, projectsRes, discussionsRes, invRes, regRes, groupReqRes] = await Promise.all([
+      const [profileRes, activityRes, projectsRes, discussionsRes, invRes, regRes, groupReqRes, applicantsRes] = await Promise.all([
         safeGet('/users/profile'),
         safeGet('/stats/user-activity'),
         safeGet('/projects/my-projects'),
         safeGet('/discussions'),
         safeGet('/events/invitations'),
         safeGet('/events/my-registrations'),
-        safeGet('/groups/pending-requests')
+        safeGet('/groups/pending-requests'),
+        safeGet('/users/applicants')
       ]);
 
       if (profileRes) setProfile(profileRes.data);
       if (activityRes) setActivityData(activityRes.data);
       if (projectsRes) setMyProjects(projectsRes.data);
       if (groupReqRes) setGroupRequests(groupReqRes.data);
+      if (applicantsRes) setUserApplicants(applicantsRes.data);
       
       if (discussionsRes && Array.isArray(discussionsRes.data) && profileRes) {
         setMyDiscussions(discussionsRes.data.filter(d => d.author_id === profileRes.data.id));
@@ -81,7 +84,10 @@ const Dashboard = () => {
           gfg_profile: profileRes.data.gfg_profile || '',
           leetcode_profile: profileRes.data.leetcode_profile || '',
           codeforces_profile: profileRes.data.codeforces_profile || '',
-          github_profile: profileRes.data.github_profile || ''
+          github_profile: profileRes.data.github_profile || '',
+          skills: profileRes.data.skills || '',
+          about: profileRes.data.about || '',
+          profile_pic: profileRes.data.profile_pic || ''
         });
       }
     } catch (error) {
@@ -125,6 +131,15 @@ const Dashboard = () => {
     }
   };
 
+  const handleModerateApplicant = async (applicantId, action) => {
+    try {
+        await api.put(`/users/applicants/${applicantId}/${action}`);
+        fetchData();
+    } catch (error) {
+        alert(`${action} failed`);
+    }
+  };
+
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
@@ -133,6 +148,17 @@ const Dashboard = () => {
       setIsEditModalOpen(false);
     } catch (error) {
       console.error('Update failed:', error);
+    }
+  };
+
+  const handleProfilePicChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditFormData({ ...editFormData, profile_pic: reader.result });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -245,6 +271,93 @@ const Dashboard = () => {
                               >
                                   Deny
                               </button>
+                          </div>
+                      </div>
+                  ))}
+              </div>
+          </motion.div>
+      )}
+
+      {/* User Ingress Applications */}
+      {user?.role === 'Admin' && userApplicants.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 bg-accent/5 border border-accent/20 p-10 rounded-[3rem] shadow-xl shadow-accent/5 mb-12">
+              <div className="flex items-center gap-4">
+                  <UserPlus size={28} className="text-accent" />
+                  <h3 className="text-3xl font-black text-text uppercase italic tracking-tight">Pending Core Applications</h3>
+              </div>
+              <div className="grid grid-cols-1 gap-8">
+                  {userApplicants.map((app) => (
+                      <div key={app.id} className="bg-card border border-border p-10 rounded-[3rem] space-y-8 shadow-lg hover:border-accent/30 transition-all group">
+                          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                              <div className="flex items-center gap-6">
+                                  <div className="w-20 h-20 rounded-[2rem] bg-accent/10 flex items-center justify-center text-accent font-black border border-accent/20 text-3xl shadow-inner group-hover:scale-110 transition-transform">
+                                      {app.name[0]}
+                                  </div>
+                                  <div className="space-y-2">
+                                      <h4 className="text-3xl font-black text-text uppercase italic tracking-tighter">{app.name}</h4>
+                                      <div className="flex flex-wrap gap-4 items-center">
+                                          <span className="text-[10px] font-black text-text/40 uppercase tracking-widest bg-background px-3 py-1 rounded-full border border-border flex items-center gap-2">
+                                              <Mail size={12} className="text-accent" /> {app.email}
+                                          </span>
+                                          <span className="text-[10px] font-black text-text/40 uppercase tracking-widest bg-background px-3 py-1 rounded-full border border-border flex items-center gap-2">
+                                              <Book size={12} className="text-accent" /> {app.department}
+                                          </span>
+                                          <span className="text-[10px] font-black text-text/40 uppercase tracking-widest bg-background px-3 py-1 rounded-full border border-border flex items-center gap-2">
+                                              <Calendar size={12} className="text-accent" /> Year {app.year}
+                                          </span>
+                                      </div>
+                                  </div>
+                              </div>
+                              <div className="flex gap-4 w-full md:w-auto">
+                                  <button 
+                                      onClick={() => handleModerateApplicant(app.id, 'approve')}
+                                      className="flex-grow md:flex-none bg-accent hover:bg-gfg-green-hover text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition shadow-xl shadow-accent/20 flex items-center justify-center gap-3 active:scale-95"
+                                  >
+                                      <Check size={18} /> Authorize Ingress
+                                  </button>
+                                  <button 
+                                      onClick={() => handleModerateApplicant(app.id, 'reject')}
+                                      className="bg-card border border-border hover:bg-red-500 hover:text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition active:scale-95"
+                                  >
+                                      Decline
+                                  </button>
+                              </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 pt-8 border-t border-border/50">
+                              <div className="space-y-6">
+                                  <div className="space-y-2">
+                                      <p className="text-[10px] font-black text-text/30 uppercase tracking-[0.3em]">Technical Persona</p>
+                                      <p className="text-text/60 leading-relaxed font-medium italic">{app.about}</p>
+                                  </div>
+                                  <div className="space-y-3">
+                                      <p className="text-[10px] font-black text-text/30 uppercase tracking-[0.3em]">Skill Matrix</p>
+                                      <div className="flex flex-wrap gap-2">
+                                          {app.skills?.split(',').map((s, i) => (
+                                              <span key={i} className="text-[9px] font-black text-accent bg-accent/5 px-3 py-1 rounded-lg border border-accent/10 uppercase tracking-widest">{s.trim()}</span>
+                                          ))}
+                                      </div>
+                                  </div>
+                              </div>
+                              <div className="space-y-6">
+                                  <div className="space-y-4">
+                                      <p className="text-[10px] font-black text-text/30 uppercase tracking-[0.3em]">External Nodes</p>
+                                      <div className="flex flex-wrap gap-3">
+                                          {app.github_profile && <a href={app.github_profile} target="_blank" className="p-3 bg-background border border-border rounded-xl text-text/40 hover:text-text transition-colors"><Github size={20} /></a>}
+                                          {app.leetcode_profile && <a href={app.leetcode_profile} target="_blank" className="p-3 bg-background border border-border rounded-xl text-text/40 hover:text-orange-500 transition-colors"><Code2 size={20} /></a>}
+                                          {app.gfg_profile && <a href={app.gfg_profile} target="_blank" className="p-3 bg-background border border-border rounded-xl text-text/40 hover:text-accent transition-colors"><Globe size={20} /></a>}
+                                      </div>
+                                  </div>
+                                  {app.resume_url && (
+                                      <a 
+                                          href={app.resume_url} 
+                                          download={`${app.name}_Resume.pdf`}
+                                          className="inline-flex items-center gap-3 bg-blue-500/10 text-blue-500 border border-blue-500/20 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-lg shadow-blue-500/5"
+                                      >
+                                          <FileText size={18} /> Review Technical Dossier (PDF)
+                                      </a>
+                                  )}
+                              </div>
                           </div>
                       </div>
                   ))}
@@ -424,6 +537,29 @@ const Dashboard = () => {
                 <button onClick={() => setIsEditModalOpen(false)} className="text-text/40 hover:text-red-500 p-4 hover:bg-red-500/5 rounded-full transition-all active:scale-90"><X size={32} /></button>
               </div>
               <form onSubmit={handleUpdateProfile} className="p-10 md:p-14 space-y-10 custom-scrollbar overflow-y-auto max-h-[70vh]">
+                <div className="flex flex-col items-center gap-6 pb-10 border-b border-border/50">
+                    <div className="relative group">
+                        <div className="w-32 h-32 rounded-[2.5rem] bg-accent/10 border-2 border-dashed border-accent/30 flex items-center justify-center overflow-hidden relative">
+                            {editFormData.profile_pic ? (
+                                <img src={editFormData.profile_pic} className="w-full h-full object-cover" alt="Profile" />
+                            ) : (
+                                <span className="text-4xl font-black text-accent/40">{editFormData.name[0]}</span>
+                            )}
+                            <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={handleProfilePicChange} />
+                            <div className="absolute inset-0 bg-accent/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                <Plus size={32} className="text-white" />
+                            </div>
+                        </div>
+                        <div className="absolute -bottom-2 -right-2 bg-accent text-white p-2 rounded-xl shadow-lg border border-white/20">
+                            <User size={16} />
+                        </div>
+                    </div>
+                    <div className="text-center">
+                        <p className="text-xs font-black text-text uppercase tracking-widest">Identify Node Avatar</p>
+                        <p className="text-[9px] font-bold text-text/30 uppercase tracking-[0.2em] mt-1 italic">Click to upload new visual ID</p>
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                     <div className="space-y-3">
                         <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Agent Name</label>
@@ -438,6 +574,17 @@ const Dashboard = () => {
                             <Globe className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20" size={18}/>
                             <input type="text" className="w-full bg-background border-2 border-border rounded-2xl py-5 pl-14 pr-8 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner" value={editFormData.department} onChange={(e) => setEditFormData({...editFormData, department: e.target.value})} />
                         </div>
+                    </div>
+                    <div className="space-y-3 md:col-span-2">
+                        <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Technological Skills (CSV)</label>
+                        <div className="relative">
+                            <Hash className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20" size={18}/>
+                            <input type="text" className="w-full bg-background border-2 border-border rounded-2xl py-5 pl-14 pr-8 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner italic" placeholder="React, Node.js, Python, C++" value={editFormData.skills} onChange={(e) => setEditFormData({ ...editFormData, skills: e.target.value })} />
+                        </div>
+                    </div>
+                    <div className="space-y-3 md:col-span-2">
+                        <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Persona Narrative</label>
+                        <textarea required rows={4} className="w-full bg-background border-2 border-border rounded-2xl py-5 px-8 focus:border-accent outline-none text-text font-medium text-lg transition shadow-inner resize-none italic" placeholder="Briefly define your technical focus and goals..." value={editFormData.about} onChange={(e) => setEditFormData({ ...editFormData, about: e.target.value })} />
                     </div>
                 </div>
 

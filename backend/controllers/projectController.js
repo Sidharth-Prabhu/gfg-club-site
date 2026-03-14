@@ -20,7 +20,7 @@ export const getProjectById = async (req, res) => {
 };
 
 export const getProjects = async (req, res) => {
-  const { category, status } = req.query;
+  const { category, status, userId } = req.query;
   const userRole = req.user?.role;
   
   try {
@@ -46,6 +46,11 @@ export const getProjects = async (req, res) => {
     if (category && category !== 'All') {
       conditions.push('p.category = ?');
       params.push(category);
+    }
+
+    if (userId) {
+      conditions.push('p.created_by = ?');
+      params.push(userId);
     }
 
     if (conditions.length > 0) {

@@ -59,8 +59,14 @@ const Navbar = () => {
           <div className="hidden sm:flex items-center gap-4 border-l border-border pl-4">
             {user ? (
               <>
-                <Link to="/dashboard" className="text-text hover:text-accent flex items-center gap-1 transition-colors">
-                  <LayoutDashboard size={20} />
+                <Link to="/dashboard" className="text-text hover:text-accent flex items-center gap-2 transition-colors">
+                  <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center overflow-hidden border border-accent/20">
+                    {user.profile_pic ? (
+                        <img src={user.profile_pic} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                        <LayoutDashboard size={18} />
+                    )}
+                  </div>
                   <span className="hidden xl:inline">Dashboard</span>
                 </Link>
                 <button onClick={handleLogout} className="text-text hover:text-red-500 transition-colors">

@@ -9,7 +9,11 @@ const generateToken = (id, role) => {
 };
 
 export const registerUser = async (req, res) => {
-  const { name, email, password, department, year } = req.body;
+  const { 
+    name, email, password, department, year, 
+    gfg_profile, leetcode_profile, github_profile, 
+    skills, about, resume_url 
+  } = req.body;
 
   try {
     const [rows] = await pool.execute('SELECT * FROM users WHERE email = ?', [email]);
@@ -21,16 +25,21 @@ export const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const [result] = await pool.execute(
-      'INSERT INTO users (name, email, password, department, year, role) VALUES (?, ?, ?, ?, ?, ?)',
-      [name, email, hashedPassword, department, year, 'User']
+      `INSERT INTO users (
+        name, email, password, department, year, 
+        gfg_profile, leetcode_profile, github_profile, 
+        skills, about, resume_url, role, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'User', 'Pending')`,
+      [
+        name, email, hashedPassword, department, year, 
+        gfg_profile, leetcode_profile, github_profile, 
+        skills, about, resume_url
+      ]
     );
 
     res.status(201).json({
-      id: result.insertId,
-      name,
-      email,
-      role: 'User',
-      token: generateToken(result.insertId, 'User'),
+      message: 'Application submitted successfully. Waiting for admin approval.',
+      id: result.insertId
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -45,11 +54,19 @@ export const loginUser = async (req, res) => {
     const user = rows[0];
 
     if (user && (await bcrypt.compare(password, user.password))) {
+      if (user.status === 'Pending') {
+        return res.status(403).json({ message: 'Your application is still pending approval.' });
+      }
+      if (user.status === 'Rejected') {
+        return res.status(403).json({ message: 'Your application has been declined.' });
+      }
+
       res.json({
         id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
+        status: user.status,
         token: generateToken(user.id, user.role),
       });
     } else {

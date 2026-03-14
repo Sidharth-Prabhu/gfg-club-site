@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -114,7 +114,7 @@ const GroupDetail = () => {
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-8 pt-4">
                 <div className="flex flex-col">
                     <span className="text-[10px] font-black text-text/20 uppercase tracking-[0.2em]">Architect</span>
-                    <span className="text-sm font-black text-text/60 uppercase">{group.creator_name}</span>
+                    <Link to={`/profile/${group.created_by}`} className="text-sm font-black text-text/60 uppercase hover:text-accent transition-colors cursor-pointer">{group.creator_name}</Link>
                 </div>
                 <div className="flex flex-col border-l border-border/50 pl-8">
                     <span className="text-[10px] font-black text-text/20 uppercase tracking-[0.2em]">Synchronization</span>
@@ -200,12 +200,16 @@ const GroupDetail = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {members.map(member => (
-                <div key={member.id} className="bg-card border border-border p-8 rounded-[2rem] flex items-center gap-6 shadow-sm">
-                    <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center text-xl font-black text-accent border border-accent/20">
-                        {member.user_name[0]}
-                    </div>
+                <div key={member.id} className="bg-card border border-border p-8 rounded-[2rem] flex items-center gap-6 shadow-sm group">
+                    <Link to={`/profile/${member.user_id}`} className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center text-xl font-black text-accent border border-accent/20 group-hover:bg-accent group-hover:text-white transition-all cursor-pointer overflow-hidden">
+                        {member.user_pic ? (
+                            <img src={member.user_pic} className="w-full h-full object-cover" alt="" />
+                        ) : (
+                            member.user_name[0]
+                        )}
+                    </Link>
                     <div>
-                        <h4 className="text-xl font-black text-text uppercase italic">{member.user_name}</h4>
+                        <Link to={`/profile/${member.user_id}`} className="text-xl font-black text-text uppercase italic hover:text-accent transition-colors cursor-pointer">{member.user_name}</Link>
                         <p className="text-[10px] font-black text-accent uppercase tracking-widest mt-1">{member.role}</p>
                     </div>
                 </div>

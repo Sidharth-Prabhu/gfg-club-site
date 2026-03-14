@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -217,6 +217,13 @@ const Community = () => {
                 {posts.map(post => (
                     <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }} whileHover={{ y: -4, borderColor: 'var(--color-accent)' }} key={post.id} onClick={() => handleOpenPost(post)} className="bg-card border border-border rounded-[2.5rem] p-8 hover:shadow-xl transition-all group cursor-pointer flex flex-col md:flex-row gap-8 shadow-sm">
                     <div className="hidden md:flex flex-col items-center gap-4 text-text/30 min-w-[100px] border-r border-border/50 pr-8">
+                        <Link to={`/profile/${post.author_id}`} className="w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform mb-2">
+                            {post.author_pic ? (
+                                <img src={post.author_pic} className="w-full h-full object-cover" alt="" />
+                            ) : (
+                                <span className="text-2xl font-black text-accent">{post.author_name[0]}</span>
+                            )}
+                        </Link>
                         <div className="text-center">
                             <p className="text-3xl font-black text-text group-hover:text-accent transition-colors">{post.reaction_count || 0}</p>
                             <p className="text-[10px] font-black uppercase tracking-[0.2em]">votes</p>
@@ -229,7 +236,7 @@ const Community = () => {
                     <div className="flex-grow min-w-0 space-y-4">
                         <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-text/40">
-                            <span className="text-accent">{post.author_name}</span>
+                            <Link to={`/profile/${post.author_id}`} onClick={(e) => e.stopPropagation()} className="text-accent hover:underline">{post.author_name}</Link>
                             <span className="w-1 h-1 bg-text/20 rounded-full"></span>
                             <span>{new Date(post.created_at).toLocaleDateString()}</span>
                         </div>

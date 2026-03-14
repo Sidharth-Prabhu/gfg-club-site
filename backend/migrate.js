@@ -37,6 +37,26 @@ const migrate = async () => {
         await connection.execute("ALTER TABLE users ADD COLUMN streak INT DEFAULT 0");
         console.log('Added streak to users');
     }
+    if (!userColNames.includes('skills')) {
+        await connection.execute("ALTER TABLE users ADD COLUMN skills TEXT");
+        console.log('Added skills to users');
+    }
+    if (!userColNames.includes('resume_url')) {
+        await connection.execute("ALTER TABLE users ADD COLUMN resume_url VARCHAR(255)");
+        console.log('Added resume_url to users');
+    }
+    if (!userColNames.includes('about')) {
+        await connection.execute("ALTER TABLE users ADD COLUMN about TEXT");
+        console.log('Added about to users');
+    }
+    if (!userColNames.includes('status')) {
+        await connection.execute("ALTER TABLE users ADD COLUMN status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending'");
+        console.log('Added status to users');
+    }
+    if (!userColNames.includes('profile_pic')) {
+        await connection.execute("ALTER TABLE users ADD COLUMN profile_pic LONGTEXT");
+        console.log('Added profile_pic to users');
+    }
 
     // 2. Update events table
     const [eventsCols] = await connection.execute('SHOW COLUMNS FROM events');

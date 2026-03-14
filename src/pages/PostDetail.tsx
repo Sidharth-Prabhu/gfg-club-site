@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -175,11 +175,15 @@ const PostDetail = () => {
           >
             <div className="flex justify-between items-start">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-sm font-bold border border-accent/20 text-accent">
-                    {comment.author_name[0]}
-                </div>
+                <Link to={`/profile/${comment.user_id}`} className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-sm font-bold border border-accent/20 text-accent hover:bg-accent hover:text-white transition-all overflow-hidden">
+                    {comment.author_pic ? (
+                        <img src={comment.author_pic} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                        comment.author_name[0]
+                    )}
+                </Link>
                 <div>
-                    <span className="font-black text-sm text-text uppercase tracking-widest">{comment.author_name}</span>
+                    <Link to={`/profile/${comment.user_id}`} className="font-black text-sm text-text uppercase tracking-widest hover:text-accent transition-colors">{comment.author_name}</Link>
                     <p className="text-[10px] text-text/40 font-bold uppercase tracking-widest">{new Date(comment.created_at).toLocaleDateString()}</p>
                 </div>
               </div>
@@ -286,11 +290,15 @@ const PostDetail = () => {
               className="flex flex-wrap items-center gap-8 text-sm pt-4"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-lg font-black text-accent border border-accent/20 shadow-inner">
-                  {post.author_name[0]}
-                </div>
+                <Link to={`/profile/${post.author_id}`} className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-lg font-black text-accent border border-accent/20 shadow-inner hover:bg-accent hover:text-white transition-all overflow-hidden">
+                  {post.author_pic ? (
+                      <img src={post.author_pic} className="w-full h-full object-cover" alt="" />
+                  ) : (
+                      post.author_name[0]
+                  )}
+                </Link>
                 <div>
-                  <p className="font-black text-text uppercase tracking-widest text-xs">{post.author_name}</p>
+                  <Link to={`/profile/${post.author_id}`} className="font-black text-text uppercase tracking-widest text-xs hover:text-accent transition-colors">{post.author_name}</Link>
                   <p className="text-[9px] font-bold text-accent uppercase tracking-[0.2em]">Author Node</p>
                 </div>
               </div>
@@ -377,10 +385,10 @@ const PostDetail = () => {
               <div className="space-y-10">
                 <div className="text-center space-y-4">
                   <div className="p-6 bg-accent/5 rounded-[2rem] border border-accent/10 inline-block">
-                    <Heart size={48} className={post.reaction_count > 0 ? 'text-accent fill-accent' : 'text-text/20'} />
+                    <Heart size={48} className={post?.reaction_count > 0 ? 'text-accent fill-accent' : 'text-text/20'} />
                   </div>
                   <div>
-                    <h4 className="text-2xl font-black text-text uppercase tracking-widest italic">{post.reaction_count || 0}</h4>
+                    <h4 className="text-2xl font-black text-text uppercase tracking-widest italic">{post?.reaction_count || 0}</h4>
                     <p className="text-text/40 font-black uppercase text-[10px] tracking-[0.3em]">Recognition Score</p>
                   </div>
                 </div>
@@ -388,10 +396,10 @@ const PostDetail = () => {
                 <div className="space-y-4">
                   <button 
                     onClick={handleReactPost} 
-                    className={`w-full py-6 rounded-2xl font-black text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-3 active:scale-95 shadow-lg ${post.reaction_count > 0 ? 'bg-accent text-white shadow-accent/20' : 'bg-background border border-border text-text hover:border-accent hover:text-accent'}`}
+                    className={`w-full py-6 rounded-2xl font-black text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-3 active:scale-95 shadow-lg ${post?.reaction_count > 0 ? 'bg-accent text-white shadow-accent/20' : 'bg-background border border-border text-text hover:border-accent hover:text-accent'}`}
                   >
-                    <Heart size={20} className={post.reaction_count > 0 ? 'fill-white' : ''} />
-                    {post.reaction_count > 0 ? 'Acknowledged' : 'Give Recognition'}
+                    <Heart size={20} className={post?.reaction_count > 0 ? 'fill-white' : ''} />
+                    {post?.reaction_count > 0 ? 'Acknowledged' : 'Give Recognition'}
                   </button>
                   
                   <button 
@@ -406,7 +414,7 @@ const PostDetail = () => {
                   </button>
 
                   {/* Author Actions */}
-                  {(user?.id === post.author_id) && (
+                  {(user?.id === post?.author_id) && (
                     <button 
                       onClick={handleOpenEditModal}
                       className="w-full py-4 rounded-xl bg-blue-500/5 text-blue-500 border border-border/50 hover:bg-blue-500 hover:text-white transition-all font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2 active:scale-95"
@@ -415,7 +423,7 @@ const PostDetail = () => {
                     </button>
                   )}
                   
-                  {(user?.id === post.author_id || user?.role === 'Admin' || user?.role === 'Core') && (
+                  {(user?.id === post?.author_id || user?.role === 'Admin' || user?.role === 'Core') && (
                     <button 
                       onClick={handleDeletePost}
                       className="w-full py-4 rounded-xl bg-red-500/5 text-red-500 border border-border/50 hover:bg-red-500 hover:text-white transition-all font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2 active:scale-95"
@@ -431,7 +439,7 @@ const PostDetail = () => {
                       <span className="text-[10px] font-black uppercase tracking-widest">Metadata Tags</span>
                    </div>
                    <div className="flex flex-wrap gap-2">
-                      {post.tags?.split(',').map((tag, i) => (
+                      {post?.tags?.split(',').map((tag, i) => (
                         <span key={i} className="text-[10px] font-black text-text bg-background border border-border px-4 py-2 rounded-xl uppercase tracking-widest shadow-sm">
                           {tag.trim()}
                         </span>
