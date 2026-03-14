@@ -1,0 +1,274 @@
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { 
+  MessageSquare, Users, Shield, Plus, X, ArrowLeft, Clock, Save, Hash, Trash2, Heart, Lock, Globe
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
+
+const GroupDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  const [group, setGroup] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('feed');
+  
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newPost, setNewPost] = useState({ title: '', content: '', tags: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const fetchGroupData = async () => {
+    try {
+      const [groupRes, postsRes, membersRes] = await Promise.all([
+        api.get(`/groups/${id}`),
+        api.get(`/discussions?groupId=${id}`),
+        api.get(`/groups/${id}/members`)
+      ]);
+      setGroup(groupRes.data);
+      setPosts(postsRes.data);
+      setMembers(membersRes.data);
+    } catch (error) {
+      console.error('Error fetching group data:', error);
+      navigate('/community');
+    }
+  };
+
+  useEffect(() => {
+    const init = async () => {
+      setLoading(true);
+      await fetchGroupData();
+      setLoading(false);
+    };
+    init();
+  }, [id]);
+
+  const handleCreatePost = async (e) => {
+    e.preventDefault();
+    if (!newPost.title.trim() || !newPost.content.trim()) return;
+    setIsSubmitting(true);
+    try {
+      const tagsArray = newPost.tags.split(',').map(t => t.trim()).filter(t => t !== '');
+      await api.post('/discussions', {
+        title: newPost.title,
+        content: newPost.content,
+        tags: tagsArray,
+        groupId: id
+      });
+      setIsCreateModalOpen(false);
+      setNewPost({ title: '', content: '', tags: '' });
+      fetchGroupData();
+    } catch (error) {
+      alert('Transmission failed');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (loading) return <div className="py-32 text-center text-accent font-black tracking-widest animate-pulse uppercase italic">Syncing Sector Data...</div>;
+  if (!group) return null;
+
+  const isMember = group.user_status === 'Accepted';
+
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-6xl space-y-12 pb-20">
+      <button 
+        onClick={() => navigate('/community')} 
+        className="flex items-center gap-2 text-text/60 hover:text-accent transition-colors group font-black uppercase text-xs tracking-widest bg-card px-6 py-3 rounded-2xl border border-border shadow-sm active:scale-95 transition-all"
+      >
+        <ArrowLeft size={18} /> Exit Sector
+      </button>
+
+      {/* Group Header */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-card border border-border rounded-[3rem] p-8 md:p-16 flex flex-col md:flex-row gap-12 items-center relative overflow-hidden shadow-2xl"
+      >
+        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-[100px] -mr-48 -mt-48"></div>
+        
+        <div className="w-32 h-32 md:w-48 md:h-48 rounded-[2.5rem] bg-accent/10 border border-accent/20 flex items-center justify-center text-5xl shadow-inner relative z-10">
+            {group.logo ? <img src={group.logo} className="w-24 h-24 object-contain" alt="" /> : <Shield size={64} className="text-accent" />}
+        </div>
+
+        <div className="flex-grow space-y-6 text-center md:text-left relative z-10">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                <span className="bg-accent/10 text-accent text-[10px] font-black px-5 py-2 rounded-full border border-accent/20 tracking-widest uppercase backdrop-blur-md">
+                    OPERATIONAL SECTOR
+                </span>
+                {group.allow_guests ? (
+                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2 bg-blue-500/5 px-4 py-2 rounded-full border border-blue-500/10"><Globe size={14} /> Global Sync</span>
+                ) : (
+                    <span className="text-[10px] font-black text-red-400 uppercase tracking-widest flex items-center gap-2 bg-red-500/5 px-4 py-2 rounded-full border border-red-500/10"><Lock size={14} /> Restricted Node</span>
+                )}
+            </div>
+            <h1 className="text-4xl md:text-7xl font-black text-text uppercase tracking-tighter italic">{group.title}</h1>
+            <p className="text-text/60 text-lg md:text-xl font-medium leading-relaxed italic max-w-2xl">{group.description}</p>
+            
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-8 pt-4">
+                <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-text/20 uppercase tracking-[0.2em]">Architect</span>
+                    <span className="text-sm font-black text-text/60 uppercase">{group.creator_name}</span>
+                </div>
+                <div className="flex flex-col border-l border-border/50 pl-8">
+                    <span className="text-[10px] font-black text-text/20 uppercase tracking-[0.2em]">Synchronization</span>
+                    <span className="text-sm font-black text-text/60 uppercase">{group.member_count} / {group.max_members} Nodes</span>
+                </div>
+            </div>
+        </div>
+
+        {isMember && (
+            <button 
+                onClick={() => setIsCreateModalOpen(true)}
+                className="bg-accent hover:bg-gfg-green-hover text-white px-10 py-6 rounded-[1.5rem] font-black flex items-center gap-3 transition shadow-xl shadow-accent/20 text-sm uppercase tracking-widest active:scale-95"
+            >
+                <Plus size={24} /> New Transmission
+            </button>
+        )}
+      </motion.div>
+
+      {/* Tabs */}
+      <div className="flex border-b border-border gap-12">
+        <button 
+            onClick={() => setActiveTab('feed')}
+            className={`pb-6 text-sm font-black uppercase tracking-[0.3em] transition-all relative ${activeTab === 'feed' ? 'text-accent' : 'text-text/30 hover:text-text/60'}`}
+        >
+            Sector Feed
+            {activeTab === 'feed' && <motion.div layoutId="tab-underline-group" className="absolute bottom-0 left-0 w-full h-1 bg-accent rounded-full" />}
+        </button>
+        <button 
+            onClick={() => setActiveTab('members')}
+            className={`pb-6 text-sm font-black uppercase tracking-[0.3em] transition-all relative ${activeTab === 'members' ? 'text-accent' : 'text-text/30 hover:text-text/60'}`}
+        >
+            Active Nodes
+            {activeTab === 'members' && <motion.div layoutId="tab-underline-group" className="absolute bottom-0 left-0 w-full h-1 bg-accent rounded-full" />}
+        </button>
+      </div>
+
+      {activeTab === 'feed' ? (
+        <div className="space-y-8">
+            {posts.length > 0 ? (
+                <div className="grid grid-cols-1 gap-8">
+                    {posts.map(post => (
+                        <motion.div 
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            key={post.id} 
+                            onClick={() => navigate(`/community/${post.id}`)}
+                            className="bg-card border border-border rounded-[2.5rem] p-10 hover:shadow-2xl transition-all group cursor-pointer flex flex-col md:flex-row gap-10 shadow-sm"
+                        >
+                            <div className="hidden md:flex flex-col items-center gap-4 text-text/30 min-w-[120px] border-r border-border/50 pr-10">
+                                <div className="text-center">
+                                    <p className="text-4xl font-black text-text group-hover:text-accent transition-colors">{post.reaction_count || 0}</p>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">Recognition</p>
+                                </div>
+                                <div className={`text-center p-4 rounded-2xl border w-full transition-all ${post.comment_count > 0 ? 'border-accent/30 bg-accent/5 text-accent' : 'border-border'}`}>
+                                    <p className="text-2xl font-black">{post.comment_count || 0}</p>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-text/40">Signals</p>
+                                </div>
+                            </div>
+                            <div className="flex-grow min-w-0 space-y-6">
+                                <div className="flex items-center gap-4 text-[11px] font-black uppercase tracking-widest text-text/40">
+                                    <span className="text-accent italic">{post.author_name}</span>
+                                    <span className="w-1.5 h-1.5 bg-text/20 rounded-full"></span>
+                                    <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                                </div>
+                                <h2 className="text-3xl md:text-4xl font-black text-text group-hover:text-accent transition-colors leading-tight tracking-tight uppercase break-words italic">{post.title}</h2>
+                                <div className="text-text/60 text-lg line-clamp-3 leading-relaxed font-medium break-words overflow-hidden italic" dangerouslySetInnerHTML={{ __html: post.content }} />
+                                <div className="flex flex-wrap gap-3 pt-4">
+                                    {post.tags?.split(',').map((tag, i) => (
+                                    <span key={i} className="text-[10px] font-black uppercase text-accent bg-accent/5 px-4 py-2 rounded-xl border border-accent/10 tracking-widest italic">#{tag.trim()}</span>
+                                    ))}
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            ) : (
+                <div className="py-40 text-center bg-card rounded-[4rem] border border-border border-dashed shadow-inner">
+                    <MessageSquare size={80} className="mx-auto mb-8 opacity-5" />
+                    <p className="text-3xl font-black uppercase tracking-widest text-text/20 italic">Sector Feed is Dormant</p>
+                </div>
+            )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {members.map(member => (
+                <div key={member.id} className="bg-card border border-border p-8 rounded-[2rem] flex items-center gap-6 shadow-sm">
+                    <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center text-xl font-black text-accent border border-accent/20">
+                        {member.user_name[0]}
+                    </div>
+                    <div>
+                        <h4 className="text-xl font-black text-text uppercase italic">{member.user_name}</h4>
+                        <p className="text-[10px] font-black text-accent uppercase tracking-widest mt-1">{member.role}</p>
+                    </div>
+                </div>
+            ))}
+        </div>
+      )}
+
+      {/* Create Post Modal */}
+      <AnimatePresence>
+        {isCreateModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl overflow-y-auto">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-card border border-border rounded-[3.5rem] w-full max-w-4xl my-auto shadow-2xl overflow-hidden">
+              <div className="p-10 border-b border-border flex justify-between items-center bg-background/50">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-accent/10 rounded-xl text-accent"><MessageSquare size={24} /></div>
+                    <h2 className="text-3xl font-black text-text uppercase tracking-tighter italic text-accent">New Sector Transmission</h2>
+                </div>
+                <button onClick={() => setIsCreateModalOpen(false)} className="text-text/40 hover:text-red-500 p-2 rounded-full transition-all active:scale-90"><X size={32} /></button>
+              </div>
+              <form onSubmit={handleCreatePost} className="p-10 md:p-14 space-y-10 overflow-y-auto max-h-[75vh] custom-scrollbar">
+                <div className="space-y-4">
+                  <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Transmission Title</label>
+                  <input required type="text" className="w-full bg-background border-2 border-border rounded-2xl py-6 px-10 focus:border-accent outline-none text-text font-black text-2xl transition shadow-inner italic" placeholder="Enter identification code..." value={newPost.title} onChange={(e) => setNewPost({...newPost, title: e.target.value})} />
+                </div>
+
+                <div className="space-y-4">
+                  <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Signal Data</label>
+                  <div className="bg-background rounded-2xl border-2 border-border overflow-hidden focus-within:border-accent transition-colors shadow-inner">
+                    <ReactQuill theme="snow" value={newPost.content} onChange={(content) => setNewPost({...newPost, content})} className="h-64 mb-14" />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Metadata Tags</label>
+                  <div className="relative">
+                      <Hash className="absolute left-6 top-1/2 -translate-y-1/2 text-text/20" size={20}/>
+                      <input type="text" className="w-full bg-background border-2 border-border rounded-2xl py-6 pl-16 pr-8 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner italic" placeholder="internal, logic, core" value={newPost.tags} onChange={(e) => setNewPost({...newPost, tags: e.target.value})} />
+                  </div>
+                </div>
+
+                <div className="flex gap-8 pt-8 sticky bottom-0 bg-card/80 backdrop-blur-md">
+                    <button type="submit" disabled={isSubmitting} className="flex-grow bg-accent hover:bg-gfg-green-hover text-white font-black py-7 rounded-[2rem] flex items-center justify-center gap-4 transition shadow-2xl shadow-accent/20 uppercase tracking-widest text-lg active:scale-[0.98] disabled:opacity-50">
+                        {isSubmitting ? 'Transmitting Signal...' : <><Save size={28} /> Deploy Transmission</>}
+                    </button>
+                    <button type="button" onClick={() => setIsCreateModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-7 px-14 rounded-[2rem] transition uppercase tracking-widest text-sm shadow-sm italic">Abort</button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-accent); border-radius: 10px; opacity: 0.2; }
+        .ql-toolbar.ql-snow { border: none !important; border-bottom: 1px solid var(--color-border) !important; background: var(--color-background); padding: 15px !important; }
+        .ql-container.ql-snow { border: none !important; }
+        .ql-editor { font-family: inherit; font-size: 1.25rem; padding: 30px !important; }
+        .dark .ql-editor *, .dark .ql-editor span { background-color: transparent !important; color: var(--color-text) !important; }
+      `}</style>
+    </div>
+  );
+};
+
+export default GroupDetail;

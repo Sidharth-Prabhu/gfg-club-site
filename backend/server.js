@@ -11,6 +11,7 @@ import problemRoutes from './routes/problemRoutes.js';
 import blogRoutes from './routes/blogRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
 import discussionRoutes from './routes/discussionRoutes.js';
+import groupRoutes from './routes/groupRoutes.js';
 import statsRoutes from './routes/statsRoutes.js';
 import resourceRoutes from './routes/resourceRoutes.js';
 
@@ -35,6 +36,7 @@ app.use('/api/problems', problemRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/discussions', discussionRoutes);
+app.use('/api/groups', groupRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/resources', resourceRoutes);
 

@@ -13,12 +13,12 @@ import {
   reactToComment
 } from '../controllers/discussionController.js';
 
-import { protect } from '../middleware/authMiddleware.js';
+import { protect, optionalProtect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 router.route('/')
-  .get(getDiscussions)
+  .get(optionalProtect, getDiscussions)
   .post(protect, createDiscussion);
 
 router.route('/:id')

@@ -14,6 +14,7 @@ const PostDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [post, setPost] = useState(null);
+  const [group, setGroup] = useState(null);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mainComment, setMainComment] = useState('');
@@ -27,6 +28,12 @@ const PostDetail = () => {
     try {
       const { data } = await api.get(`/discussions/${postId}`);
       setPost(data);
+      if (data.group_id) {
+        try {
+          const { data: groupData } = await api.get(`/groups/${data.group_id}`);
+          setGroup(groupData);
+        } catch (e) { console.error('Failed to fetch group info'); }
+      }
     } catch (error) {
       console.error('Error fetching post:', error);
       navigate('/community');
@@ -236,12 +243,12 @@ const PostDetail = () => {
         
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
         
-        <div className="absolute top-8 left-8 z-20">
+        <div className="absolute top-8 left-8 z-20 flex gap-4">
           <button 
-            onClick={() => navigate('/community')} 
+            onClick={() => navigate(group ? `/groups/${group.id}` : '/community')} 
             className="flex items-center gap-2 text-text/60 bg-card/40 hover:bg-card backdrop-blur-md px-6 py-3 rounded-full border border-border transition-all group font-black uppercase text-xs tracking-widest active:scale-95"
           >
-            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /> Back to Matrix
+            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /> Back to {group ? 'Sector' : 'Matrix'}
           </button>
         </div>
 
@@ -253,7 +260,7 @@ const PostDetail = () => {
               className="flex flex-wrap items-center gap-4"
             >
               <span className="bg-accent/10 text-accent text-[10px] font-black px-5 py-2 rounded-full border border-accent/20 tracking-widest uppercase backdrop-blur-md">
-                COMMUNITY TRANSMISSION
+                {group ? `SECTOR: ${group.title}` : 'COMMUNITY TRANSMISSION'}
               </span>
               <div className="flex gap-2">
                 {post.tags?.split(',').map((tag, i) => (

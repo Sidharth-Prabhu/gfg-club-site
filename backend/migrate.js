@@ -115,6 +115,49 @@ const migrate = async () => {
     `);
     console.log('Ensured user_activity table exists');
 
+    // 6. Create community_groups table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS community_groups (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        logo VARCHAR(255),
+        created_by INT NOT NULL,
+        max_members INT DEFAULT 100,
+        allow_guests BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+    console.log('Ensured community_groups table exists');
+
+    // 7. Create group_members table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS group_members (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        group_id INT NOT NULL,
+        user_id INT NOT NULL,
+        status ENUM('Pending', 'Accepted', 'Declined') DEFAULT 'Pending',
+        role ENUM('Member', 'Moderator', 'Admin') DEFAULT 'Member',
+        joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (group_id) REFERENCES community_groups(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY user_group (user_id, group_id)
+      )
+    `);
+    console.log('Ensured group_members table exists');
+
+    // 8. Update discussions table to include group_id
+    const [discCols] = await connection.execute('SHOW COLUMNS FROM discussions');
+    const discColNames = discCols.map(c => c.Field);
+    if (!discColNames.includes('group_id')) {
+      await connection.execute("ALTER TABLE discussions ADD COLUMN group_id INT DEFAULT NULL");
+      try {
+          await connection.execute("ALTER TABLE discussions ADD FOREIGN KEY (group_id) REFERENCES community_groups(id) ON DELETE CASCADE");
+      } catch (e) { /* might exist */ }
+      console.log('Added group_id to discussions');
+    }
+
     console.log('Migration completed successfully!');
   } catch (error) {
     console.error('Migration failed:', error);

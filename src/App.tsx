@@ -12,6 +12,7 @@ import PracticeHub from './pages/PracticeHub';
 import Dashboard from './pages/Dashboard';
 import Community from './pages/Community';
 import PostDetail from './pages/PostDetail';
+import GroupDetail from './pages/GroupDetail';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import Blog from './pages/Blog';
@@ -48,6 +49,7 @@ function App() {
             <Route path="/practice" element={<PracticeHub />} />
             <Route path="/community" element={<Community />} />
             <Route path="/community/:postId" element={<PostDetail />} />
+            <Route path="/groups/:id" element={<GroupDetail />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/projects/:id" element={<ProjectDetail />} />
             <Route path="/blog" element={<Blog />} />

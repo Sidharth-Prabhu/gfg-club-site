@@ -21,7 +21,9 @@ export const getDiscussionById = async (req, res) => {
 };
 
 export const getDiscussions = async (req, res) => {
-  const { search, tag } = req.query;
+  const { search, tag, groupId } = req.query;
+  const userId = req.user?.id;
+
   try {
     let sql = `
       SELECT d.*, u.name as author_name, u.role as author_role,
@@ -33,6 +35,22 @@ export const getDiscussions = async (req, res) => {
       WHERE 1=1
     `;
     const params = [];
+
+    if (groupId) {
+      // Fetching for a specific group
+      sql += ` AND d.group_id = ?`;
+      params.push(groupId);
+    } else {
+      // Main Broadcast Feed
+      if (userId) {
+        // Logged in: Public posts OR posts from user's joined groups
+        sql += ` AND (d.group_id IS NULL OR d.group_id IN (SELECT group_id FROM group_members WHERE user_id = ? AND status = 'Accepted'))`;
+        params.push(userId);
+      } else {
+        // Not logged in: only Public posts
+        sql += ` AND d.group_id IS NULL`;
+      }
+    }
 
     if (search) {
       sql += ` AND (d.title LIKE ? OR d.content LIKE ?)`;
@@ -54,13 +72,24 @@ export const getDiscussions = async (req, res) => {
 };
 
 export const createDiscussion = async (req, res) => {
-  const { title, content, tags } = req.body;
+  const { title, content, tags, groupId } = req.body;
   const authorId = req.user.id;
 
   try {
+    if (groupId) {
+      // Check if user is a member of the group
+      const [membership] = await pool.execute(
+        'SELECT * FROM group_members WHERE group_id = ? AND user_id = ? AND status = "Accepted"',
+        [groupId, authorId]
+      );
+      if (membership.length === 0) {
+        return res.status(403).json({ message: 'Only accepted members can post in this group' });
+      }
+    }
+
     const [result] = await pool.execute(
-      'INSERT INTO discussions (title, content, author_id) VALUES (?, ?, ?)',
-      [title, content, authorId]
+      'INSERT INTO discussions (title, content, author_id, group_id) VALUES (?, ?, ?, ?)',
+      [title, content, authorId, groupId || null]
     );
     const postId = result.insertId;
 
@@ -70,7 +99,7 @@ export const createDiscussion = async (req, res) => {
       }
     }
 
-    res.status(201).json({ id: postId, title, content, authorId });
+    res.status(201).json({ id: postId, title, content, authorId, groupId });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

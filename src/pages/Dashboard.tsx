@@ -5,7 +5,7 @@ import StatsCard from '../components/StatsCard';
 import { 
   User, Code, Trophy, Star, Settings, ExternalLink, 
   Github, Link as LinkIcon, Zap, Terminal, RefreshCw, X, Save,
-  ShieldAlert, BookOpen, FileText, Monitor, ChevronRight, MessageSquare, Plus, ArrowLeft, Hash, Sparkles, TrendingUp, UserPlus, Check, Trash2, Calendar, Edit3, Globe
+  ShieldAlert, Shield, BookOpen, FileText, Monitor, ChevronRight, MessageSquare, Plus, ArrowLeft, Hash, Sparkles, TrendingUp, UserPlus, Check, Trash2, Calendar, Edit3, Globe
 } from 'lucide-react';
 import { CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,6 +20,7 @@ const Dashboard = () => {
   const [myProjects, setMyProjects] = useState([]);
   const [myDiscussions, setMyDiscussions] = useState([]);
   const [pendingProjects, setPendingProjects] = useState([]);
+  const [groupRequests, setGroupRequests] = useState([]);
   const [invitations, setInvitations] = useState([]);
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,18 +45,20 @@ const Dashboard = () => {
         }
       };
 
-      const [profileRes, activityRes, projectsRes, discussionsRes, invRes, regRes] = await Promise.all([
+      const [profileRes, activityRes, projectsRes, discussionsRes, invRes, regRes, groupReqRes] = await Promise.all([
         safeGet('/users/profile'),
         safeGet('/stats/user-activity'),
         safeGet('/projects/my-projects'),
         safeGet('/discussions'),
         safeGet('/events/invitations'),
-        safeGet('/events/my-registrations')
+        safeGet('/events/my-registrations'),
+        safeGet('/groups/pending-requests')
       ]);
 
       if (profileRes) setProfile(profileRes.data);
       if (activityRes) setActivityData(activityRes.data);
       if (projectsRes) setMyProjects(projectsRes.data);
+      if (groupReqRes) setGroupRequests(groupReqRes.data);
       
       if (discussionsRes && Array.isArray(discussionsRes.data) && profileRes) {
         setMyDiscussions(discussionsRes.data.filter(d => d.author_id === profileRes.data.id));
@@ -110,6 +113,15 @@ const Dashboard = () => {
       console.error('Sync failed:', error);
     } finally {
       if (!silent) setSyncing(false);
+    }
+  };
+
+  const handleRespondGroupRequest = async (requestId, status) => {
+    try {
+        await api.post('/groups/respond-request', { requestId, status });
+        fetchData();
+    } catch (error) {
+        alert('Action failed');
     }
   };
 
@@ -200,6 +212,45 @@ const Dashboard = () => {
               </motion.div>
           )}
       </AnimatePresence>
+
+      {/* Group Join Requests */}
+      {groupRequests.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 bg-blue-500/5 border border-blue-500/20 p-10 rounded-[3rem] shadow-xl shadow-blue-500/5 mb-12">
+              <div className="flex items-center gap-4">
+                  <Shield size={28} className="text-blue-500" />
+                  <h3 className="text-3xl font-black text-text uppercase italic tracking-tight">Group Ingress Requests</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {groupRequests.map((req) => (
+                      <div key={req.id} className="bg-card border border-border p-8 rounded-[2rem] flex flex-col justify-between gap-8 shadow-lg hover:border-blue-500/30 transition-all">
+                          <div className="flex items-center gap-5">
+                              <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 font-black border border-blue-500/20 text-xl shadow-inner">
+                                  {req.user_name[0]}
+                              </div>
+                              <div className="space-y-1">
+                                  <h4 className="text-xl font-black text-text uppercase italic tracking-tight">{req.user_name}</h4>
+                                  <p className="text-[10px] text-text/40 font-black uppercase tracking-widest leading-loose">Requests access to <br/><span className="text-blue-400">{req.group_title}</span></p>
+                              </div>
+                          </div>
+                          <div className="flex gap-4">
+                              <button 
+                                  onClick={() => handleRespondGroupRequest(req.id, 'Accepted')}
+                                  className="flex-grow bg-blue-500 hover:bg-blue-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 active:scale-95"
+                              >
+                                  <Check size={16} /> Grant Entry
+                              </button>
+                              <button 
+                                  onClick={() => handleRespondGroupRequest(req.id, 'Declined')}
+                                  className="bg-card border border-border hover:bg-red-500 hover:text-white px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition active:scale-95"
+                              >
+                                  Deny
+                              </button>
+                          </div>
+                      </div>
+                  ))}
+              </div>
+          </motion.div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         <StatsCard title="Problems Solved" value={profile?.problems_solved || 0} icon={Code} color="bg-accent" />
