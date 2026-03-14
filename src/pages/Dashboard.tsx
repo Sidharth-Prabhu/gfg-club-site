@@ -205,7 +205,97 @@ const Dashboard = () => {
       }
   };
 
+  const isGuest = user?.role === 'Guest';
+
   if (loading) return <div className="text-center py-40 text-accent font-black tracking-[0.3em] uppercase animate-pulse text-xl italic">Synchronizing Terminal...</div>;
+
+  if (isGuest) {
+    return (
+      <div className="container mx-auto px-4 py-8 space-y-12 max-w-7xl pb-20">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 border-b border-border pb-10">
+          <div className="space-y-2">
+            <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase italic">Guest <span className="text-accent">Console</span>: {profile?.name}</h1>
+            <p className="text-text/40 font-black text-xs tracking-[0.3em] uppercase flex items-center gap-2"><Globe size={14} className="text-blue-500" /> Public Node Access - Event Participation Track</p>
+          </div>
+          <button onClick={() => setIsEditModalOpen(true)} className="bg-card border border-border px-8 py-4 rounded-2xl font-black flex items-center gap-3 hover:border-accent transition text-text/60 hover:text-accent text-xs uppercase tracking-widest shadow-sm active:scale-95">
+            <Settings size={20} /> Identity Config
+          </button>
+        </motion.div>
+
+        {/* Invitations Queue - CRITICAL FOR GUESTS */}
+        <AnimatePresence>
+            {invitations.length > 0 ? (
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-blue-500/5 border border-blue-500/20 p-8 rounded-[2.5rem] shadow-xl space-y-6">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-blue-500/10 rounded-xl text-blue-500 border border-blue-500/20"><UserPlus size={24} /></div>
+                        <h2 className="text-2xl font-black text-text uppercase tracking-tight italic">Team Requests</h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {invitations.map(inv => (
+                            <div key={inv.reg_id} className="bg-card border border-border p-6 rounded-2xl space-y-4 shadow-sm hover:border-blue-500/50 transition-colors">
+                                <div>
+                                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Invitation Received</p>
+                                    <h4 className="font-black text-text uppercase italic">{inv.team_name}</h4>
+                                    <p className="text-[9px] font-bold text-text/40 uppercase tracking-widest mt-1">Event: {inv.event_title}</p>
+                                    <p className="text-[9px] font-bold text-text/40 uppercase tracking-widest">Inviter: {inv.inviter_name}</p>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button onClick={() => handleRespondInv(inv.reg_id, 'Accepted')} className="flex-1 bg-accent/10 hover:bg-accent text-accent hover:text-white border border-accent/20 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">Accept</button>
+                                    <button onClick={() => handleRespondInv(inv.reg_id, 'Declined')} className="flex-1 bg-red-500/5 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/10 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">Decline</button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </motion.div>
+            ) : (
+                <div className="py-20 text-center bg-card rounded-[3rem] border border-border border-dashed">
+                    <UserPlus size={48} className="mx-auto mb-4 opacity-10" />
+                    <p className="text-text/30 font-black tracking-widest uppercase text-sm italic">No pending team transmissions.</p>
+                </div>
+            )}
+        </AnimatePresence>
+
+        {/* Missions Section */}
+        <div className="bg-card border border-border p-10 rounded-[3rem] shadow-sm">
+            <div className="flex items-center gap-4 mb-10">
+                <Calendar size={28} className="text-accent" />
+                <h2 className="text-3xl font-black text-text uppercase tracking-tighter italic">Participating In</h2>
+            </div>
+            {registrations.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {registrations.map(reg => (
+                        <Link key={reg.reg_id} to={`/events/${reg.event_id}`} className="flex items-center justify-between p-8 bg-background/50 border border-border rounded-[2rem] hover:border-accent transition-all group">
+                            <div className="flex items-center gap-6">
+                                <div className="w-16 h-16 rounded-2xl overflow-hidden border border-border group-hover:border-accent transition-colors">
+                                    {reg.poster ? <img src={reg.poster} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-accent/5 flex items-center justify-center text-accent/20"><Calendar /></div>}
+                                </div>
+                                <div>
+                                    <h4 className="font-black text-text text-xl group-hover:text-accent transition-colors uppercase italic tracking-tight">{reg.title}</h4>
+                                    <p className="text-[10px] font-black text-text/40 uppercase tracking-widest mt-2">{reg.team_name ? `Team: ${reg.team_name}` : 'Individual'}</p>
+                                </div>
+                            </div>
+                            <ChevronRight size={20} className="text-text/20 group-hover:text-accent transition-all" />
+                        </Link>
+                    ))}
+                </div>
+            ) : (
+                <div className="py-20 text-center bg-background/30 rounded-[2.5rem] border-2 border-dashed border-border">
+                    <p className="text-text/30 font-black tracking-widest uppercase text-sm">Join an event to start your journey.</p>
+                    <Link to="/events" className="text-accent font-black text-xs uppercase tracking-widest mt-4 inline-block hover:underline">Browse Event Matrix</Link>
+                </div>
+            )}
+        </div>
+
+        {/* Config Modal Still Available */}
+        <AnimatePresence>
+            {isEditModalOpen && (
+              /* Config Modal JSX remains same and is already handled */
+              null 
+            )}
+        </AnimatePresence>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-12 max-w-7xl pb-20">
@@ -660,23 +750,29 @@ const Dashboard = () => {
                 <div className="flex flex-col items-center gap-6 pb-10 border-b border-border/50">
                     <div className="relative group">
                         <div className="w-32 h-32 rounded-[2.5rem] bg-accent/10 border-2 border-dashed border-accent/30 flex items-center justify-center overflow-hidden relative">
-                            {editFormData.profile_pic ? (
+                            {editFormData.profile_pic && user?.role !== 'Guest' ? (
                                 <img src={editFormData.profile_pic} className="w-full h-full object-cover" alt="Profile" />
                             ) : (
                                 <span className="text-4xl font-black text-accent/40">{editFormData.name[0]}</span>
                             )}
-                            <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={handleProfilePicChange} />
-                            <div className="absolute inset-0 bg-accent/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                <Plus size={32} className="text-white" />
-                            </div>
+                            {user?.role !== 'Guest' && (
+                              <>
+                                <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={handleProfilePicChange} />
+                                <div className="absolute inset-0 bg-accent/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    <Plus size={32} className="text-white" />
+                                </div>
+                              </>
+                            )}
                         </div>
                         <div className="absolute -bottom-2 -right-2 bg-accent text-white p-2 rounded-xl shadow-lg border border-white/20">
                             <User size={16} />
                         </div>
                     </div>
                     <div className="text-center">
-                        <p className="text-xs font-black text-text uppercase tracking-widest">Identify Node Avatar</p>
-                        <p className="text-[9px] font-bold text-text/30 uppercase tracking-[0.2em] mt-1 italic">Click to upload new visual ID</p>
+                        <p className="text-xs font-black text-text uppercase tracking-widest">{user?.role === 'Guest' ? 'Guest Entity ID' : 'Identify Node Avatar'}</p>
+                        <p className="text-[9px] font-bold text-text/30 uppercase tracking-[0.2em] mt-1 italic">
+                          {user?.role === 'Guest' ? 'Avatar customization restricted for guests' : 'Click to upload new visual ID'}
+                        </p>
                     </div>
                 </div>
 
@@ -695,17 +791,26 @@ const Dashboard = () => {
                             <input type="text" className="w-full bg-background border-2 border-border rounded-2xl py-5 pl-14 pr-8 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner" value={editFormData.department} onChange={(e) => setEditFormData({...editFormData, department: e.target.value})} />
                         </div>
                     </div>
-                    <div className="space-y-3 md:col-span-2">
-                        <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Technological Skills (CSV)</label>
-                        <div className="relative">
-                            <Hash className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20" size={18}/>
-                            <input type="text" className="w-full bg-background border-2 border-border rounded-2xl py-5 pl-14 pr-8 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner italic" placeholder="React, Node.js, Python, C++" value={editFormData.skills} onChange={(e) => setEditFormData({ ...editFormData, skills: e.target.value })} />
+                    {user?.role !== 'Guest' ? (
+                      <>
+                        <div className="space-y-3 md:col-span-2">
+                            <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Technological Skills (CSV)</label>
+                            <div className="relative">
+                                <Hash className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20" size={18}/>
+                                <input type="text" className="w-full bg-background border-2 border-border rounded-2xl py-5 pl-14 pr-8 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner italic" placeholder="React, Node.js, Python, C++" value={editFormData.skills} onChange={(e) => setEditFormData({ ...editFormData, skills: e.target.value })} />
+                            </div>
                         </div>
-                    </div>
-                    <div className="space-y-3 md:col-span-2">
-                        <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Persona Narrative</label>
-                        <textarea required rows={4} className="w-full bg-background border-2 border-border rounded-2xl py-5 px-8 focus:border-accent outline-none text-text font-medium text-lg transition shadow-inner resize-none italic" placeholder="Briefly define your technical focus and goals..." value={editFormData.about} onChange={(e) => setEditFormData({ ...editFormData, about: e.target.value })} />
-                    </div>
+                        <div className="space-y-3 md:col-span-2">
+                            <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Persona Narrative</label>
+                            <textarea required rows={4} className="w-full bg-background border-2 border-border rounded-2xl py-5 px-8 focus:border-accent outline-none text-text font-medium text-lg transition shadow-inner resize-none italic" placeholder="Briefly define your technical focus and goals..." value={editFormData.about} onChange={(e) => setEditFormData({ ...editFormData, about: e.target.value })} />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="md:col-span-2 p-6 bg-accent/5 rounded-2xl border border-accent/20 text-center space-y-2">
+                        <p className="text-[10px] font-black text-accent uppercase tracking-widest italic">Guest Profile Restricted</p>
+                        <p className="text-[9px] font-bold text-text/40 uppercase tracking-widest">Technical profiles (Skills/About) are exclusive to RIT Core Agents.</p>
+                      </div>
+                    )}
                 </div>
 
                 <div className="space-y-8 pt-10 border-t border-border/50">

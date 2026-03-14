@@ -28,6 +28,15 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// RIT Students Only Route Component
+const RITRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center text-accent font-bold">Loading...</div>;
+  if (!user) return <Navigate to="/login" />;
+  if (user.role === 'Guest') return <Navigate to="/" />;
+  return children;
+};
+
 // Placeholder components for remaining pages
 const Placeholder = ({ title }) => (
   <div className="py-20 text-center">
@@ -48,7 +57,11 @@ function App() {
             <Route path="/events" element={<Events />} />
             <Route path="/events/:id" element={<EventDetail />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
-            <Route path="/practice" element={<PracticeHub />} />
+            <Route path="/practice" element={
+              <RITRoute>
+                <PracticeHub />
+              </RITRoute>
+            } />
             <Route path="/community" element={<Community />} />
             <Route path="/community/:postId" element={<PostDetail />} />
             <Route path="/groups/:id" element={<GroupDetail />} />
@@ -56,7 +69,11 @@ function App() {
             <Route path="/projects/:id" element={<ProjectDetail />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:id" element={<BlogDetail />} />
-            <Route path="/resources" element={<Resources />} />
+            <Route path="/resources" element={
+              <RITRoute>
+                <Resources />
+              </RITRoute>
+            } />
             
             <Route path="/team" element={<Placeholder title="Our Team" />} />
             
@@ -66,7 +83,11 @@ function App() {
                 </ProtectedRoute>
               } 
             />
-            <Route path="/profile/:userId" element={<Profile />} />
+            <Route path="/profile/:userId" element={
+              <RITRoute>
+                <Profile />
+              </RITRoute>
+            } />
           </Routes>
         </MainLayout>
       </Router>

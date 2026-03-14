@@ -21,12 +21,12 @@ const Navbar = () => {
   const navLinks = [
     { to: "/events", icon: Calendar, label: "Events" },
     { to: "/leaderboard", icon: Trophy, label: "Leaderboard" },
-    { to: "/practice", icon: BookOpen, label: "Practice" },
+    { to: "/practice", icon: BookOpen, label: "Practice", restricted: true },
     { to: "/community", icon: MessageSquare, label: "Community" },
     { to: "/projects", icon: Briefcase, label: "Projects" },
-    { to: "/resources", icon: Bookmark, label: "Resources" },
+    { to: "/resources", icon: Bookmark, label: "Resources", restricted: true },
     { to: "/blog", icon: FileText, label: "Blog" },
-  ];
+  ].filter(link => !link.restricted || (user && user.role !== 'Guest'));
 
   return (
     <nav className="bg-card border-b border-border sticky top-0 z-50 px-4 py-3 shadow-sm transition-colors duration-300">
@@ -77,7 +77,7 @@ const Navbar = () => {
             ) : (
               <>
                 <Link to="/login" className="text-text hover:text-accent font-medium">Login</Link>
-                <Link to="/register" className="bg-accent hover:bg-gfg-green-hover text-white px-5 py-2 rounded-lg font-bold transition-all shadow-md hover:shadow-lg">Join Now</Link>
+                <Link to="/register" className="bg-accent hover:bg-gfg-green-hover text-white px-5 py-2 rounded-lg font-bold transition-all shadow-md hover:shadow-lg">Sign Up</Link>
               </>
             )}
           </div>
@@ -105,13 +105,18 @@ const Navbar = () => {
               ))}
               <hr className="border-border" />
               {user ? (
-                <Link to="/dashboard" onClick={toggleMenu} className="flex items-center gap-3 text-text hover:text-accent text-lg font-medium">
-                  <LayoutDashboard size={20} /> Dashboard
-                </Link>
+                <>
+                  <Link to="/dashboard" onClick={toggleMenu} className="flex items-center gap-3 text-text hover:text-accent text-lg font-medium">
+                    <LayoutDashboard size={20} /> Dashboard
+                  </Link>
+                  <button onClick={handleLogout} className="flex items-center gap-3 text-text hover:text-red-500 text-lg font-medium">
+                    <LogOut size={20} /> Logout
+                  </button>
+                </>
               ) : (
                 <div className="flex flex-col gap-3">
                   <Link to="/login" onClick={toggleMenu} className="text-center py-2 text-text font-medium">Login</Link>
-                  <Link to="/register" onClick={toggleMenu} className="bg-accent text-center text-white py-3 rounded-lg font-bold">Join Now</Link>
+                  <Link to="/register" onClick={toggleMenu} className="bg-accent text-center text-white py-3 rounded-lg font-bold">Sign Up</Link>
                 </div>
               )}
             </div>

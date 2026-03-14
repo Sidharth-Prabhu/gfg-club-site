@@ -118,9 +118,15 @@ export const updateUserProfile = async (req, res) => {
   const { name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile, skills, about, profile_pic } = req.body;
 
   try {
+    // Restrict Guest users from updating sensitive fields
+    const isGuest = req.user.role === 'Guest';
+    const finalSkills = isGuest ? null : skills;
+    const finalAbout = isGuest ? null : about;
+    const finalProfilePic = isGuest ? null : profile_pic;
+
     await pool.execute(
       'UPDATE users SET name = ?, email = ?, department = ?, year = ?, gfg_profile = ?, leetcode_profile = ?, codeforces_profile = ?, github_profile = ?, skills = ?, about = ?, profile_pic = ? WHERE id = ?',
-      [name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile, skills, about, profile_pic, req.user.id]
+      [name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile, finalSkills, finalAbout, finalProfilePic, req.user.id]
     );
     res.json({ message: 'Profile updated successfully' });
   } catch (error) {

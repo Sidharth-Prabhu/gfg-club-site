@@ -19,7 +19,10 @@ const Register = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [userRole, setUserRole] = useState('User');
   const navigate = useNavigate();
+
+  const isGuest = !formData.email.toLowerCase().includes('rit') && !formData.email.toLowerCase().includes('ritchennai');
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -39,6 +42,8 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check if we can skip some fields for Guest users
     if (step < 3) {
         setStep(step + 1);
         return;
@@ -47,7 +52,8 @@ const Register = () => {
     setError('');
     setLoading(true);
     try {
-      await api.post('/auth/register', formData);
+      const response = await api.post('/auth/register', formData);
+      setUserRole(response.data.role);
       setSubmitted(true);
     } catch (err) {
       setError(err.response?.data?.message || 'Application deployment failed.');
@@ -68,15 +74,26 @@ const Register = () => {
           <div className="w-24 h-24 bg-accent/10 rounded-3xl flex items-center justify-center mx-auto text-accent mb-8 shadow-inner border border-accent/20">
             <CheckCircle2 size={48} className="animate-pulse" />
           </div>
-          <h2 className="text-4xl md:text-5xl font-black text-text uppercase tracking-tighter italic">Transmission <span className="text-accent">Logged</span></h2>
-          <p className="text-text/60 text-lg font-medium leading-relaxed italic">
-            Your ingress application has been broadcasted to the Central Command. 
-            The Architects (Admins) will review your technical stack and institutional data.
-          </p>
+          {userRole === 'Guest' ? (
+            <>
+              <h2 className="text-4xl md:text-5xl font-black text-text uppercase tracking-tighter italic">Guest Account <span className="text-accent">Created</span></h2>
+              <p className="text-text/60 text-lg font-medium leading-relaxed italic">
+                Your guest account has been successfully registered. You can now login and explore the public features of our community.
+              </p>
+            </>
+          ) : (
+            <>
+              <h2 className="text-4xl md:text-5xl font-black text-text uppercase tracking-tighter italic">Transmission <span className="text-accent">Logged</span></h2>
+              <p className="text-text/60 text-lg font-medium leading-relaxed italic">
+                Your ingress application has been broadcasted to the Central Command. 
+                The Architects (Admins) will review your technical stack and institutional data.
+              </p>
+            </>
+          )}
           <div className="bg-background/50 border border-border p-6 rounded-2xl text-left font-mono text-xs space-y-2 opacity-60">
-            <p className="text-accent">{">"} Status: PENDING_APPROVAL</p>
+            <p className="text-accent">{">"} Status: {userRole === 'Guest' ? 'APPROVED' : 'PENDING_APPROVAL'}</p>
             <p>{">"} Encryption: AES-256-GCM</p>
-            <p>{">"} Priority: HIGH</p>
+            <p>{">"} Role: {userRole === 'Guest' ? 'GUEST_ENTITY' : 'CORE_AGENT'}</p>
           </div>
           <Link to="/login" className="inline-flex items-center gap-2 bg-accent hover:bg-gfg-green-hover text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-accent/20 active:scale-95">
             Return to Matrix <ChevronRight size={20} />
@@ -207,33 +224,45 @@ const Register = () => {
                   key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                   className="space-y-6"
                 >
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Technological Skills (CSV)</label>
-                    <div className="relative group">
-                      <Hash className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={20} />
-                      <input required type="text" className="w-full bg-background border-2 border-border rounded-2xl py-5 pl-14 pr-6 focus:border-accent outline-none text-text font-bold transition shadow-inner italic" placeholder="React, Node.js, Python, C++" value={formData.skills} onChange={(e) => setFormData({ ...formData, skills: e.target.value })} />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">About Your Persona</label>
-                    <textarea required rows={4} className="w-full bg-background border-2 border-border rounded-2xl py-5 px-8 focus:border-accent outline-none text-text font-medium text-lg transition shadow-inner resize-none italic" placeholder="Briefly define your technical focus and goals..." value={formData.about} onChange={(e) => setFormData({ ...formData, about: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Technical Dossier (Resume PDF)</label>
-                    <div className="relative">
-                        <input required type="file" accept="application/pdf" className="hidden" id="resume-upload" onChange={handleFileChange} />
-                        <label htmlFor="resume-upload" className="w-full flex items-center justify-between bg-background border-2 border-dashed border-border hover:border-accent rounded-2xl p-6 cursor-pointer transition-all group">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-accent/5 rounded-xl text-accent group-hover:bg-accent group-hover:text-white transition-all"><FileText size={24} /></div>
-                                <div className="text-left">
-                                    <p className="text-sm font-black text-text uppercase tracking-widest">{resumeName || 'Select PDF Dossier'}</p>
-                                    <p className="text-[9px] font-bold text-text/30 uppercase tracking-[0.2em] mt-1">Maximum Size: 2MB | Format: PDF Only</p>
+                  {!isGuest ? (
+                    <>
+                      <div className="space-y-2">
+                        <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Technological Skills (CSV)</label>
+                        <div className="relative group">
+                          <Hash className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={20} />
+                          <input required type="text" className="w-full bg-background border-2 border-border rounded-2xl py-5 pl-14 pr-6 focus:border-accent outline-none text-text font-bold transition shadow-inner italic" placeholder="React, Node.js, Python, C++" value={formData.skills} onChange={(e) => setFormData({ ...formData, skills: e.target.value })} />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">About Your Persona</label>
+                        <textarea required rows={4} className="w-full bg-background border-2 border-border rounded-2xl py-5 px-8 focus:border-accent outline-none text-text font-medium text-lg transition shadow-inner resize-none italic" placeholder="Briefly define your technical focus and goals..." value={formData.about} onChange={(e) => setFormData({ ...formData, about: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Technical Dossier (Resume PDF)</label>
+                        <div className="relative">
+                            <input required type="file" accept="application/pdf" className="hidden" id="resume-upload" onChange={handleFileChange} />
+                            <label htmlFor="resume-upload" className="w-full flex items-center justify-between bg-background border-2 border-dashed border-border hover:border-accent rounded-2xl p-6 cursor-pointer transition-all group">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-accent/5 rounded-xl text-accent group-hover:bg-accent group-hover:text-white transition-all"><FileText size={24} /></div>
+                                    <div className="text-left">
+                                        <p className="text-sm font-black text-text uppercase tracking-widest">{resumeName || 'Select PDF Dossier'}</p>
+                                        <p className="text-[9px] font-bold text-text/30 uppercase tracking-[0.2em] mt-1">Maximum Size: 2MB | Format: PDF Only</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <Plus size={20} className="text-text/20 group-hover:text-accent" />
-                        </label>
+                                <Plus size={20} className="text-text/20 group-hover:text-accent" />
+                            </label>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="py-10 text-center space-y-4">
+                      <div className="w-20 h-20 bg-accent/10 rounded-3xl flex items-center justify-center mx-auto text-accent">
+                        <Sparkles size={40} />
+                      </div>
+                      <h4 className="text-xl font-black text-text uppercase tracking-widest">Guest Access Ready</h4>
+                      <p className="text-text/50 text-sm font-medium italic">Guest accounts do not require technical dossiers or skill profiles. You're all set to join the community!</p>
                     </div>
-                  </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

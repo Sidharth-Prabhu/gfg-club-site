@@ -89,6 +89,11 @@ const Community = () => {
     e.preventDefault();
     if (!newPost.title.trim() || !newPost.content.trim()) return;
     
+    if (user?.role === 'Guest' && activeTab === 'groups') {
+      alert('Guest entities are restricted to public broadcasting in the main feed only.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const tagsArray = newPost.tags.split(',').map(t => t.trim()).filter(t => t !== '');
@@ -150,7 +155,7 @@ const Community = () => {
         </motion.div>
         
         <div className="flex gap-4">
-            {canCreateGroup && (
+            {canCreateGroup && user?.role !== 'Guest' && (
                 <button 
                     onClick={() => setIsGroupModalOpen(true)}
                     className="bg-card border border-border hover:border-accent text-text/60 hover:text-accent px-8 py-4 rounded-2xl font-black flex items-center gap-3 transition shadow-sm text-xs uppercase tracking-widest active:scale-95"
@@ -163,7 +168,7 @@ const Community = () => {
                 onClick={() => setIsCreateModalOpen(true)}
                 className="bg-accent hover:bg-gfg-green-hover text-white px-8 py-4 rounded-2xl font-black flex items-center gap-3 transition shadow-xl shadow-accent/20 text-xs uppercase tracking-widest active:scale-95"
             >
-                <Plus size={20} /> Start Discussion
+                <Plus size={20} /> {activeTab === 'groups' ? 'Request Ingress' : 'Start Discussion'}
             </button>
             )}
         </div>
@@ -265,7 +270,7 @@ const Community = () => {
       ) : (
         <div className="space-y-10">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {groups.map(group => (
+                {groups.filter(g => user?.role !== 'Guest' || g.allow_guests).map(group => (
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}

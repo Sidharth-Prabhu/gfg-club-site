@@ -3,15 +3,23 @@ import pool from '../config/db.js';
 export const getGroups = async (req, res) => {
   try {
     const userId = req.user?.id;
-    const sql = `
+    const isGuest = req.user?.role === 'Guest';
+    let sql = `
       SELECT g.*, u.name as creator_name,
       (SELECT COUNT(*) FROM group_members WHERE group_id = g.id AND status = 'Accepted') as member_count,
       (SELECT status FROM group_members WHERE group_id = g.id AND user_id = ?) as user_status
       FROM community_groups g
       JOIN users u ON g.created_by = u.id
-      ORDER BY g.created_at DESC
+      WHERE 1=1
     `;
-    const [rows] = await pool.execute(sql, [userId || null]);
+    const params = [userId || null];
+
+    if (isGuest) {
+      sql += ` AND g.allow_guests = 1`;
+    }
+
+    sql += ` ORDER BY g.created_at DESC`;
+    const [rows] = await pool.execute(sql, params);
     res.json(rows);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -72,9 +80,13 @@ export const joinGroup = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    const [group] = await pool.execute('SELECT max_members, (SELECT COUNT(*) FROM group_members WHERE group_id = ? AND status = "Accepted") as current_members FROM community_groups WHERE id = ?', [groupId, groupId]);
+    const [group] = await pool.execute('SELECT allow_guests, max_members, (SELECT COUNT(*) FROM group_members WHERE group_id = ? AND status = "Accepted") as current_members FROM community_groups WHERE id = ?', [groupId, groupId]);
     if (group.length === 0) return res.status(404).json({ message: 'Group not found' });
     
+    if (req.user.role === 'Guest' && !group[0].allow_guests) {
+      return res.status(403).json({ message: 'Guests are not allowed to join this restricted sector' });
+    }
+
     if (group[0].current_members >= group[0].max_members) {
         return res.status(400).json({ message: 'Group is full' });
     }

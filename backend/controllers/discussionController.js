@@ -76,9 +76,14 @@ export const getDiscussions = async (req, res) => {
 export const createDiscussion = async (req, res) => {
   const { title, content, tags, groupId } = req.body;
   const authorId = req.user.id;
+  const userRole = req.user.role;
 
   try {
     if (groupId) {
+      if (userRole === 'Guest') {
+        return res.status(403).json({ message: 'Guest entities are restricted to public broadcasting only' });
+      }
+
       // Check if user is a member of the group
       const [membership] = await pool.execute(
         'SELECT * FROM group_members WHERE group_id = ? AND user_id = ? AND status = "Accepted"',

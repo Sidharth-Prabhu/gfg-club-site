@@ -24,22 +24,32 @@ export const registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Determine role and status based on email
+    const isRIT = email.toLowerCase().includes('rit') || email.toLowerCase().includes('ritchennai');
+    const role = isRIT ? 'User' : 'Guest';
+    const status = isRIT ? 'Pending' : 'Approved';
+
     const [result] = await pool.execute(
       `INSERT INTO users (
         name, email, password, department, year, 
         gfg_profile, leetcode_profile, github_profile, 
         skills, about, resume_url, role, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'User', 'Pending')`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         name, email, hashedPassword, department, year, 
         gfg_profile, leetcode_profile, github_profile, 
-        skills, about, resume_url
+        skills, about, resume_url, role, status
       ]
     );
 
+    const message = isRIT 
+      ? 'Application submitted successfully. Waiting for admin approval.' 
+      : 'Guest account created successfully! You can now login.';
+
     res.status(201).json({
-      message: 'Application submitted successfully. Waiting for admin approval.',
-      id: result.insertId
+      message,
+      id: result.insertId,
+      role
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

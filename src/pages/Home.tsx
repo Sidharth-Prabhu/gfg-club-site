@@ -424,7 +424,7 @@ const Home = () => {
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                 className="absolute -bottom-10 -left-10 bg-white text-accent p-4 rounded-2xl font-black shadow-xl hidden md:block uppercase text-xs tracking-widest"
               >
-                Join Now 🚀
+                Sign Up 🚀
               </motion.div>
             </div>
           </div>
