@@ -1,6 +1,7 @@
 import express from 'express';
 import { 
   getDiscussions, 
+  getDiscussionById,
   createDiscussion, 
   updateDiscussion,
   deleteDiscussion, 
@@ -11,6 +12,7 @@ import {
   deleteComment,
   reactToComment
 } from '../controllers/discussionController.js';
+
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -20,6 +22,7 @@ router.route('/')
   .post(protect, createDiscussion);
 
 router.route('/:id')
+  .get(getDiscussionById)
   .put(protect, updateDiscussion)
   .delete(protect, deleteDiscussion);
 

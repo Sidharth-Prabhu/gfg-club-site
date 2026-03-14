@@ -69,18 +69,18 @@ const Home = () => {
         >
           <motion.div 
             variants={itemVariants}
-            className="inline-flex items-center gap-2 bg-accent/10 text-accent px-5 py-2 rounded-full text-sm font-bold border border-accent/20 shadow-sm uppercase tracking-widest"
+            className="inline-flex items-center gap-3 bg-accent/10 text-accent px-6 py-2 rounded-full text-sm font-bold border border-accent/20 shadow-sm uppercase tracking-widest"
           >
-            <Sparkles size={16} className="animate-spin-slow" />
-            <span>Official GeeksforGeeks Campus Body</span>
+            <img src="/src/assets/gfg-rit.png" alt="Logo" className="h-6 w-auto" />
+            <span>Official Campus Body of RITChennai</span>
           </motion.div>
           
           <motion.h1 
             variants={itemVariants}
             className="text-6xl md:text-8xl font-black tracking-tight leading-[1.1] text-text uppercase"
           >
-            Master the Art of <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-green-500 to-accent bg-[length:200%_auto] animate-gradient">Problem Solving</span>
+            Think in Logic. <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-green-500 to-accent bg-[length:200%_auto] animate-gradient">Build with Code.</span>
           </motion.h1>
           
           <motion.p 

@@ -1,5 +1,25 @@
 import pool from '../config/db.js';
 
+export const getDiscussionById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const sql = `
+      SELECT d.*, u.name as author_name, u.role as author_role,
+      (SELECT COUNT(*) FROM post_reactions WHERE post_id = d.id) as reaction_count,
+      (SELECT COUNT(*) FROM post_comments WHERE post_id = d.id) as comment_count,
+      (SELECT GROUP_CONCAT(tag) FROM post_tags WHERE post_id = d.id) as tags
+      FROM discussions d 
+      JOIN users u ON d.author_id = u.id 
+      WHERE d.id = ?
+    `;
+    const [rows] = await pool.execute(sql, [id]);
+    if (rows.length === 0) return res.status(404).json({ message: 'Post not found' });
+    res.json(rows[0]);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const getDiscussions = async (req, res) => {
   const { search, tag } = req.query;
   try {

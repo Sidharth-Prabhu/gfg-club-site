@@ -30,14 +30,12 @@ const Navbar = () => {
   return (
     <nav className="bg-card border-b border-border sticky top-0 z-50 px-4 py-3 shadow-sm transition-colors duration-300">
       <div className="container mx-auto flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-accent group">
-          <motion.span 
-            whileHover={{ scale: 1.05 }}
-            className="bg-accent text-white p-1 rounded"
-          >
-            GfG
-          </motion.span>
-          <span className="text-text group-hover:text-accent transition-colors">Club</span>
+        <Link to="/" className="flex items-center group">
+          <img 
+            src={theme === 'dark' ? "/src/assets/GfG_darkmode.png" : "/src/assets/GfG_lightmode.png"} 
+            alt="GfG RIT Logo" 
+            className="h-8 md:h-10 w-auto object-contain transition-transform group-hover:scale-105" 
+          />
         </Link>
 
         {/* Desktop Nav */}

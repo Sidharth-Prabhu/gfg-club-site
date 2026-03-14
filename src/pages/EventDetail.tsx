@@ -242,10 +242,10 @@ const EventDetail = () => {
             <div className="space-y-8">
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }} className="bg-card border border-border p-10 rounded-[3rem] shadow-xl sticky top-8">
                     <div className="space-y-8">
-                        <div className="text-center space-y-2">
-                            <ShieldCheck size={48} className="text-accent mx-auto" />
+                        <div className="text-center space-y-4">
+                            <img src="/src/assets/gfg-rit.png" alt="GFG RIT" className="h-12 w-auto mx-auto" />
                             <h4 className="text-xl font-black text-text uppercase tracking-widest">Authority Node</h4>
-                            <p className="text-text/40 font-bold uppercase text-[10px] tracking-[0.2em]">{event.organizer || 'GFG Club'}</p>
+                            <p className="text-text/40 font-bold uppercase text-[10px] tracking-[0.2em]">{event.organizer || 'Campus Body'}</p>
                         </div>
 
                         {teamStatus?.registered ? (

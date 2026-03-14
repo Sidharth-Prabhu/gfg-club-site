@@ -38,7 +38,7 @@ const Login = () => {
       
       <div className="text-center mb-10 space-y-2">
         <div className="inline-flex items-center justify-center p-3 bg-accent/10 rounded-2xl text-accent mb-4">
-            <Sparkles size={28} />
+            <img src="/src/assets/gfg-rit.png" alt="Logo" className="h-10 w-auto" />
         </div>
         <h2 className="text-4xl font-black text-text uppercase tracking-tighter">Welcome <span className="text-accent">Back</span></h2>
         <p className="text-text/40 font-black text-[10px] uppercase tracking-[0.3em]">Authorize your core identity</p>

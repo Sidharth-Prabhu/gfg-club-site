@@ -11,6 +11,7 @@ import Leaderboard from './pages/Leaderboard';
 import PracticeHub from './pages/PracticeHub';
 import Dashboard from './pages/Dashboard';
 import Community from './pages/Community';
+import PostDetail from './pages/PostDetail';
 import Projects from './pages/Projects';
 import Blog from './pages/Blog';
 import Resources from './pages/Resources';
@@ -45,6 +46,7 @@ function App() {
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/practice" element={<PracticeHub />} />
             <Route path="/community" element={<Community />} />
+            <Route path="/community/:postId" element={<PostDetail />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/resources" element={<Resources />} />

@@ -132,7 +132,7 @@ const Dashboard = () => {
           <p className="text-text/40 font-black text-xs tracking-[0.3em] uppercase flex items-center gap-2"><Sparkles size={14} className="text-accent" /> Control Center & Core Identity</p>
         </div>
         <div className="flex flex-wrap gap-4 w-full lg:w-auto">
-          <Link to="/community" className="flex-1 lg:flex-none bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-3 transition shadow-xl shadow-blue-500/20 text-xs uppercase tracking-widest active:scale-95">
+          <Link to="/community?new=true" className="flex-1 lg:flex-none bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-3 transition shadow-xl shadow-blue-500/20 text-xs uppercase tracking-widest active:scale-95">
             <Plus size={20} /> New Discussion
           </Link>
           <button onClick={() => handleSync(false)} disabled={syncing} className="flex-1 lg:flex-none bg-accent hover:bg-gfg-green-hover text-white px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-3 transition shadow-xl shadow-accent/20 text-xs uppercase tracking-widest active:scale-95 disabled:opacity-50">

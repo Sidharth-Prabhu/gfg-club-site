@@ -2,17 +2,22 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Github, Linkedin, Instagram, Twitter, Mail, MapPin, Phone } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTheme } from '../context/ThemeContext';
 
 const Footer = () => {
+  const { theme } = useTheme();
   return (
     <footer className="bg-card border-t border-border py-16 mt-auto transition-colors duration-300">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand Section */}
           <div className="space-y-6">
-            <Link to="/" className="flex items-center gap-2 text-3xl font-bold text-accent">
-              <span className="bg-accent text-white p-1 rounded">GfG</span>
-              <span className="text-text">Club</span>
+            <Link to="/" className="flex items-center group">
+              <img 
+                src={theme === 'dark' ? "/src/assets/GfG_darkmode.png" : "/src/assets/GfG_lightmode.png"} 
+                alt="GfG RIT Logo" 
+                className="h-12 w-auto object-contain transition-transform group-hover:scale-105" 
+              />
             </Link>
             <p className="text-text/60 leading-relaxed max-w-xs">
               Empowering students to master data structures, algorithms, and development. Join the largest coding community on campus.

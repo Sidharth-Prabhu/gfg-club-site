@@ -44,10 +44,10 @@ const Register = () => {
       
       <div className="text-center mb-10 space-y-2">
         <div className="inline-flex items-center justify-center p-3 bg-accent/10 rounded-2xl text-accent mb-4">
-            <Zap size={28} className="fill-accent" />
+            <img src="/src/assets/gfg-rit.png" alt="Logo" className="h-10 w-auto" />
         </div>
-        <h2 className="text-4xl font-black text-text uppercase tracking-tighter">Join the <span className="text-accent">Club</span></h2>
-        <p className="text-text/40 font-black text-[10px] uppercase tracking-[0.3em]">Initialize your coding identity</p>
+        <h2 className="text-4xl font-black text-text uppercase tracking-tighter">Initialize <span className="text-accent">Identity</span></h2>
+        <p className="text-text/40 font-black text-[10px] uppercase tracking-[0.3em]">Deploy your coding persona</p>
       </div>
 
       {error && (
