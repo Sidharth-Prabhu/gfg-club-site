@@ -102,6 +102,19 @@ const migrate = async () => {
       console.log('Added is_leader to event_registrations');
     }
 
+    // 5. Create user_activity table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS user_activity (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        activity_date DATE NOT NULL,
+        problems_solved INT DEFAULT 0,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY user_date (user_id, activity_date)
+      )
+    `);
+    console.log('Ensured user_activity table exists');
+
     console.log('Migration completed successfully!');
   } catch (error) {
     console.error('Migration failed:', error);

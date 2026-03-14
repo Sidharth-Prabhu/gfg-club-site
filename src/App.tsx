@@ -13,6 +13,7 @@ import Dashboard from './pages/Dashboard';
 import Community from './pages/Community';
 import PostDetail from './pages/PostDetail';
 import Projects from './pages/Projects';
+import ProjectDetail from './pages/ProjectDetail';
 import Blog from './pages/Blog';
 import Resources from './pages/Resources';
 
@@ -48,6 +49,7 @@ function App() {
             <Route path="/community" element={<Community />} />
             <Route path="/community/:postId" element={<PostDetail />} />
             <Route path="/projects" element={<Projects />} />
+            <Route path="/projects/:id" element={<ProjectDetail />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/resources" element={<Resources />} />
             

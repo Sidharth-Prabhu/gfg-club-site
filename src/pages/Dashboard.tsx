@@ -27,42 +27,62 @@ const Dashboard = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   const [editFormData, setEditFormData] = useState({
-    name: '', department: '', gfg_profile: '', leetcode_profile: '', github_profile: ''
+    name: '', email: '', department: '', year: '', gfg_profile: '', leetcode_profile: '', codeforces_profile: '', github_profile: ''
   });
 
   const canModerate = user?.role === 'Admin' || user?.role === 'Core';
 
   const fetchData = async () => {
+    setLoading(true);
     try {
+      const safeGet = async (url) => {
+        try {
+          return await api.get(url);
+        } catch (e) {
+          console.error(`Failed to fetch ${url}:`, e);
+          return null;
+        }
+      };
+
       const [profileRes, activityRes, projectsRes, discussionsRes, invRes, regRes] = await Promise.all([
-        api.get('/users/profile'),
-        api.get('/stats/user-activity'),
-        api.get('/projects/my-projects'),
-        api.get('/discussions'),
-        api.get('/events/invitations'),
-        api.get('/events/my-registrations')
+        safeGet('/users/profile'),
+        safeGet('/stats/user-activity'),
+        safeGet('/projects/my-projects'),
+        safeGet('/discussions'),
+        safeGet('/events/invitations'),
+        safeGet('/events/my-registrations')
       ]);
-      setProfile(profileRes.data);
-      setActivityData(activityRes.data);
-      setMyProjects(projectsRes.data);
-      setMyDiscussions(discussionsRes.data.filter(d => d.author_id === profileRes.data.id));
-      setInvitations(invRes.data);
-      setRegistrations(regRes.data);
+
+      if (profileRes) setProfile(profileRes.data);
+      if (activityRes) setActivityData(activityRes.data);
+      if (projectsRes) setMyProjects(projectsRes.data);
+      
+      if (discussionsRes && Array.isArray(discussionsRes.data) && profileRes) {
+        setMyDiscussions(discussionsRes.data.filter(d => d.author_id === profileRes.data.id));
+      }
+      
+      if (invRes) setInvitations(invRes.data);
+      if (regRes) setRegistrations(regRes.data);
       
       if (canModerate) {
-          const { data: pending } = await api.get('/projects?status=Pending');
-          setPendingProjects(pending);
+          const pendingRes = await safeGet('/projects?status=Pending');
+          if (pendingRes) setPendingProjects(pendingRes.data);
       }
 
-      setEditFormData({
-        name: profileRes.data.name || '',
-        department: profileRes.data.department || '',
-        gfg_profile: profileRes.data.gfg_profile || '',
-        leetcode_profile: profileRes.data.leetcode_profile || '',
-        github_profile: profileRes.data.github_profile || ''
-      });
+      if (profileRes) {
+        setEditFormData({
+          name: profileRes.data.name || '',
+          email: profileRes.data.email || '',
+          department: profileRes.data.department || '',
+          year: profileRes.data.year || '',
+          gfg_profile: profileRes.data.gfg_profile || '',
+          leetcode_profile: profileRes.data.leetcode_profile || '',
+          codeforces_profile: profileRes.data.codeforces_profile || '',
+          github_profile: profileRes.data.github_profile || ''
+        });
+      }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('Fatal error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }
@@ -111,6 +131,15 @@ const Dashboard = () => {
               fetchData();
           } catch (error) { alert('Termination failed'); }
       }
+  };
+
+  const handleDeleteProjectFromDashboard = async (id) => {
+    if (window.confirm('Terminate this project build from registry?')) {
+        try {
+            await api.delete(`/projects/${id}`);
+            fetchData();
+        } catch (error) { alert('Termination failed'); }
+    }
   };
 
   const getStatusStyle = (status) => {
@@ -240,6 +269,10 @@ const Dashboard = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
+                                    <div className="flex gap-2">
+                                        <Link to={`/projects/${proj.id}?edit=true`} className="p-3 rounded-xl bg-blue-500/5 text-blue-400 border border-blue-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Edit3 size={18}/></Link>
+                                        <button onClick={() => handleDeleteProjectFromDashboard(proj.id)} className="p-3 rounded-xl bg-red-500/5 text-red-500 border border-red-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Trash2 size={18}/></button>
+                                    </div>
                                     <div className={`px-5 py-2 rounded-xl text-[10px] font-black border uppercase tracking-[0.2em] shadow-sm ${getStatusStyle(proj.status)}`}>{proj.status}</div>
                                 </div>
                             </div>

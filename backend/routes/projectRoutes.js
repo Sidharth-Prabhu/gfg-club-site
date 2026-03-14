@@ -1,6 +1,7 @@
 import express from 'express';
 import { 
   getProjects, 
+  getProjectById,
   createProject, 
   updateProject,
   deleteProject, 
@@ -16,12 +17,14 @@ router.route('/')
   .get(optionalProtect, getProjects)
   .post(protect, createProject);
 
+router.get('/my-projects', protect, getUserProjects);
+router.post('/vote', protect, voteProject);
+
 router.route('/:id')
+  .get(getProjectById)
   .put(protect, updateProject)
   .delete(protect, deleteProject);
 
 router.put('/:id/status', protect, updateProjectStatus);
-router.post('/vote', protect, voteProject);
-router.get('/my-projects', protect, getUserProjects);
 
 export default router;

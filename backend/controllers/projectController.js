@@ -1,5 +1,24 @@
 import pool from '../config/db.js';
 
+export const getProjectById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const sql = `
+      SELECT p.*, u.name as creator_name, 
+      (SELECT COALESCE(SUM(vote_type), 0) FROM project_votes WHERE project_id = p.id) as vote_score,
+      (SELECT GROUP_CONCAT(file_url) FROM project_files WHERE project_id = p.id) as files
+      FROM projects p 
+      JOIN users u ON p.created_by = u.id
+      WHERE p.id = ?
+    `;
+    const [rows] = await pool.execute(sql, [id]);
+    if (rows.length === 0) return res.status(404).json({ message: 'Project not found' });
+    res.json(rows[0]);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const getProjects = async (req, res) => {
   const { category, status } = req.query;
   const userRole = req.user?.role;
@@ -77,7 +96,7 @@ export const updateProject = async (req, res) => {
         const [rows] = await pool.execute('SELECT created_by, status FROM projects WHERE id = ?', [projectId]);
         if (rows.length === 0) return res.status(404).json({ message: 'Project not found' });
 
-        if (rows[0].created_by !== userId && req.user.role !== 'Admin') {
+        if (rows[0].created_by !== userId && req.user.role !== 'Admin' && req.user.role !== 'Core') {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
