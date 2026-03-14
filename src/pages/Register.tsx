@@ -4,7 +4,7 @@ import api from '../services/api';
 import { 
   User, Mail, Lock, Book, Calendar, Zap, Github, 
   Globe, Code2, FileText, Send, CheckCircle2, ChevronRight, 
-  ChevronLeft, Sparkles, Hash, Terminal
+  ChevronLeft, Sparkles, Hash, Terminal, Plus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

@@ -42,7 +42,7 @@ const migrate = async () => {
         console.log('Added skills to users');
     }
     if (!userColNames.includes('resume_url')) {
-        await connection.execute("ALTER TABLE users ADD COLUMN resume_url VARCHAR(255)");
+        await connection.execute("ALTER TABLE users ADD COLUMN resume_url LONGTEXT");
         console.log('Added resume_url to users');
     }
     if (!userColNames.includes('about')) {

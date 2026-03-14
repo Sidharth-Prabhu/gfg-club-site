@@ -5,7 +5,7 @@ import StatsCard from '../components/StatsCard';
 import { 
   User, Code, Trophy, Star, Settings, ExternalLink, 
   Github, Link as LinkIcon, Zap, Terminal, RefreshCw, X, Save,
-  ShieldAlert, Shield, BookOpen, FileText, Monitor, ChevronRight, MessageSquare, Plus, ArrowLeft, Hash, Sparkles, TrendingUp, UserPlus, Check, Trash2, Calendar, Edit3, Globe
+  ShieldAlert, Shield, BookOpen, Book, FileText, Monitor, ChevronRight, MessageSquare, Plus, ArrowLeft, Hash, Sparkles, TrendingUp, UserPlus, Check, Trash2, Calendar, Edit3, Globe, Mail, Code2
 } from 'lucide-react';
 import { CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,7 +14,7 @@ import 'react-quill-new/dist/quill.snow.css';
 import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, login } = useAuth();
   const [profile, setProfile] = useState(null);
   const [activityData, setActivityData] = useState([]);
   const [myProjects, setMyProjects] = useState([]);
@@ -22,6 +22,7 @@ const Dashboard = () => {
   const [pendingProjects, setPendingProjects] = useState([]);
   const [groupRequests, setGroupRequests] = useState([]);
   const [userApplicants, setUserApplicants] = useState([]);
+  const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [invitations, setInvitations] = useState([]);
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -54,14 +55,30 @@ const Dashboard = () => {
         safeGet('/events/invitations'),
         safeGet('/events/my-registrations'),
         safeGet('/groups/pending-requests'),
-        safeGet('/users/applicants')
+        api.get('/users/applicants').catch(e => e.response?.status === 403 ? { is403: true } : null)
       ]);
 
-      if (profileRes) setProfile(profileRes.data);
+      if (profileRes) {
+        setProfile(profileRes.data);
+        if (user && (user.role !== profileRes.data.role || user.status !== profileRes.data.status)) {
+            login({ role: profileRes.data.role, status: profileRes.data.status });
+        }
+      }
       if (activityRes) setActivityData(activityRes.data);
       if (projectsRes) setMyProjects(projectsRes.data);
       if (groupReqRes) setGroupRequests(groupReqRes.data);
-      if (applicantsRes) setUserApplicants(applicantsRes.data);
+      
+      if (user?.role === 'Admin') {
+          if (applicantsRes?.is403) {
+              setUserApplicants({ error: 'REAUTH_REQUIRED' });
+          } else if (applicantsRes?.data) {
+              setUserApplicants(applicantsRes.data);
+          } else {
+              setUserApplicants([]);
+          }
+      } else {
+          setUserApplicants([]);
+      }
       
       if (discussionsRes && Array.isArray(discussionsRes.data) && profileRes) {
         setMyDiscussions(discussionsRes.data.filter(d => d.author_id === profileRes.data.id));
@@ -99,7 +116,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchData();
-  }, [user?.role]);
+  }, [user]);
 
   const handleRespondInv = async (regId, response) => {
       try {
@@ -196,7 +213,10 @@ const Dashboard = () => {
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 border-b border-border pb-10">
         <div className="space-y-2">
           <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase italic">Terminal <span className="text-accent">Node</span>: {profile?.name}</h1>
-          <p className="text-text/40 font-black text-xs tracking-[0.3em] uppercase flex items-center gap-2"><Sparkles size={14} className="text-accent" /> Control Center & Core Identity</p>
+          <div className="flex items-center gap-3">
+            <p className="text-text/40 font-black text-xs tracking-[0.3em] uppercase flex items-center gap-2"><Sparkles size={14} className="text-accent" /> Control Center & Core Identity</p>
+            {profile && <span className="bg-accent/10 text-accent text-[8px] font-black px-2 py-0.5 rounded border border-accent/20 uppercase tracking-widest">{profile.role} Authority</span>}
+          </div>
         </div>
         <div className="flex flex-wrap gap-4 w-full lg:w-auto">
           <Link to="/community?new=true" className="flex-1 lg:flex-none bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-3 transition shadow-xl shadow-blue-500/20 text-xs uppercase tracking-widest active:scale-95">
@@ -219,21 +239,23 @@ const Dashboard = () => {
                       <div className="p-3 bg-blue-500/10 rounded-xl text-blue-500 border border-blue-500/20"><UserPlus size={24} /></div>
                       <h2 className="text-2xl font-black text-text uppercase tracking-tight italic">Pending Transmissions</h2>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {invitations.map(inv => (
-                          <div key={inv.reg_id} className="bg-card border border-border p-6 rounded-2xl space-y-4 shadow-sm hover:border-blue-500/50 transition-colors">
-                              <div>
-                                  <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Team Invitation</p>
-                                  <h4 className="font-black text-text uppercase italic">{inv.team_name}</h4>
-                                  <p className="text-[9px] font-bold text-text/40 uppercase tracking-widest mt-1">For: {inv.event_title}</p>
-                                  <p className="text-[9px] font-bold text-text/40 uppercase tracking-widest">By: {inv.inviter_name}</p>
-                              </div>
-                              <div className="flex gap-3">
-                                  <button onClick={() => handleRespondInv(inv.reg_id, 'Accepted')} className="flex-1 bg-accent/10 hover:bg-accent text-accent hover:text-white border border-accent/20 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"><Check size={14} className="inline mr-1" /> Accept</button>
-                                  <button onClick={() => handleRespondInv(inv.reg_id, 'Declined')} className="flex-1 bg-red-500/5 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/10 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"><Trash2 size={14} className="inline mr-1" /> Decline</button>
-                              </div>
-                          </div>
-                      ))}
+                  <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {invitations.map(inv => (
+                            <div key={inv.reg_id} className="bg-card border border-border p-6 rounded-2xl space-y-4 shadow-sm hover:border-blue-500/50 transition-colors">
+                                <div>
+                                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Team Invitation</p>
+                                    <h4 className="font-black text-text uppercase italic">{inv.team_name}</h4>
+                                    <p className="text-[9px] font-bold text-text/40 uppercase tracking-widest mt-1">For: {inv.event_title}</p>
+                                    <p className="text-[9px] font-bold text-text/40 uppercase tracking-widest">By: {inv.inviter_name}</p>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button onClick={() => handleRespondInv(inv.reg_id, 'Accepted')} className="flex-1 bg-accent/10 hover:bg-accent text-accent hover:text-white border border-accent/20 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"><Check size={14} className="inline mr-1" /> Accept</button>
+                                    <button onClick={() => handleRespondInv(inv.reg_id, 'Declined')} className="flex-1 bg-red-500/5 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/10 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"><Trash2 size={14} className="inline mr-1" /> Decline</button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                   </div>
               </motion.div>
           )}
@@ -246,125 +268,96 @@ const Dashboard = () => {
                   <Shield size={28} className="text-blue-500" />
                   <h3 className="text-3xl font-black text-text uppercase italic tracking-tight">Group Ingress Requests</h3>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {groupRequests.map((req) => (
-                      <div key={req.id} className="bg-card border border-border p-8 rounded-[2rem] flex flex-col justify-between gap-8 shadow-lg hover:border-blue-500/30 transition-all">
-                          <div className="flex items-center gap-5">
-                              <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 font-black border border-blue-500/20 text-xl shadow-inner">
-                                  {req.user_name[0]}
-                              </div>
-                              <div className="space-y-1">
-                                  <h4 className="text-xl font-black text-text uppercase italic tracking-tight">{req.user_name}</h4>
-                                  <p className="text-[10px] text-text/40 font-black uppercase tracking-widest leading-loose">Requests access to <br/><span className="text-blue-400">{req.group_title}</span></p>
-                              </div>
-                          </div>
-                          <div className="flex gap-4">
-                              <button 
-                                  onClick={() => handleRespondGroupRequest(req.id, 'Accepted')}
-                                  className="flex-grow bg-blue-500 hover:bg-blue-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 active:scale-95"
-                              >
-                                  <Check size={16} /> Grant Entry
-                              </button>
-                              <button 
-                                  onClick={() => handleRespondGroupRequest(req.id, 'Declined')}
-                                  className="bg-card border border-border hover:bg-red-500 hover:text-white px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition active:scale-95"
-                              >
-                                  Deny
-                              </button>
-                          </div>
-                      </div>
-                  ))}
+              <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {groupRequests.map((req) => (
+                        <div key={req.id} className="bg-card border border-border p-8 rounded-[2rem] flex flex-col justify-between gap-8 shadow-lg hover:border-blue-500/30 transition-all">
+                            <div className="flex items-center gap-5">
+                                <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 font-black border border-blue-500/20 text-xl shadow-inner">
+                                    {req.user_name[0]}
+                                </div>
+                                <div className="space-y-1">
+                                    <h4 className="text-xl font-black text-text uppercase italic tracking-tight">{req.user_name}</h4>
+                                    <p className="text-[10px] text-text/40 font-black uppercase tracking-widest leading-loose">Requests access to <br/><span className="text-blue-400">{req.group_title}</span></p>
+                                </div>
+                            </div>
+                            <div className="flex gap-4">
+                                <button 
+                                    onClick={() => handleRespondGroupRequest(req.id, 'Accepted')}
+                                    className="flex-grow bg-blue-500 hover:bg-blue-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 active:scale-95"
+                                >
+                                    <Check size={16} /> Grant Entry
+                                </button>
+                                <button 
+                                    onClick={() => handleRespondGroupRequest(req.id, 'Declined')}
+                                    className="bg-card border border-border hover:bg-red-500 hover:text-white px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition active:scale-95"
+                                >
+                                    Deny
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
               </div>
           </motion.div>
       )}
 
       {/* User Ingress Applications */}
-      {user?.role === 'Admin' && userApplicants.length > 0 && (
+      {user?.role === 'Admin' && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 bg-accent/5 border border-accent/20 p-10 rounded-[3rem] shadow-xl shadow-accent/5 mb-12">
-              <div className="flex items-center gap-4">
-                  <UserPlus size={28} className="text-accent" />
-                  <h3 className="text-3xl font-black text-text uppercase italic tracking-tight">Pending Core Applications</h3>
+              <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                      <UserPlus size={28} className="text-accent" />
+                      <h3 className="text-3xl font-black text-text uppercase italic tracking-tight">Pending Core Applications</h3>
+                  </div>
+                  <span className="bg-accent/10 text-accent px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">{userApplicants.length || 0} Awaiting</span>
               </div>
-              <div className="grid grid-cols-1 gap-8">
-                  {userApplicants.map((app) => (
-                      <div key={app.id} className="bg-card border border-border p-10 rounded-[3rem] space-y-8 shadow-lg hover:border-accent/30 transition-all group">
-                          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-                              <div className="flex items-center gap-6">
-                                  <div className="w-20 h-20 rounded-[2rem] bg-accent/10 flex items-center justify-center text-accent font-black border border-accent/20 text-3xl shadow-inner group-hover:scale-110 transition-transform">
-                                      {app.name[0]}
-                                  </div>
-                                  <div className="space-y-2">
-                                      <h4 className="text-3xl font-black text-text uppercase italic tracking-tighter">{app.name}</h4>
-                                      <div className="flex flex-wrap gap-4 items-center">
-                                          <span className="text-[10px] font-black text-text/40 uppercase tracking-widest bg-background px-3 py-1 rounded-full border border-border flex items-center gap-2">
-                                              <Mail size={12} className="text-accent" /> {app.email}
-                                          </span>
-                                          <span className="text-[10px] font-black text-text/40 uppercase tracking-widest bg-background px-3 py-1 rounded-full border border-border flex items-center gap-2">
-                                              <Book size={12} className="text-accent" /> {app.department}
-                                          </span>
-                                          <span className="text-[10px] font-black text-text/40 uppercase tracking-widest bg-background px-3 py-1 rounded-full border border-border flex items-center gap-2">
-                                              <Calendar size={12} className="text-accent" /> Year {app.year}
-                                          </span>
-                                      </div>
-                                  </div>
-                              </div>
-                              <div className="flex gap-4 w-full md:w-auto">
-                                  <button 
-                                      onClick={() => handleModerateApplicant(app.id, 'approve')}
-                                      className="flex-grow md:flex-none bg-accent hover:bg-gfg-green-hover text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition shadow-xl shadow-accent/20 flex items-center justify-center gap-3 active:scale-95"
-                                  >
-                                      <Check size={18} /> Authorize Ingress
-                                  </button>
-                                  <button 
-                                      onClick={() => handleModerateApplicant(app.id, 'reject')}
-                                      className="bg-card border border-border hover:bg-red-500 hover:text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition active:scale-95"
-                                  >
-                                      Decline
-                                  </button>
-                              </div>
-                          </div>
+              
+              {userApplicants.error === 'REAUTH_REQUIRED' ? (
+                <div className="py-10 text-center bg-red-500/5 rounded-[2.5rem] border border-red-500/20 space-y-4">
+                    <p className="text-red-500 font-black tracking-widest uppercase text-sm italic">Authority Synchronization Required</p>
+                    <p className="text-text/40 text-[10px] font-bold uppercase tracking-widest px-10">Your current session token is stale. Please logout and re-authorize to access this sector.</p>
+                </div>
+              ) : userApplicants.length > 0 ? (
+                <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {userApplicants.map((app) => (
+                            <div 
+                                key={app.id} 
+                                onClick={() => setSelectedApplicant(app)}
+                                className="bg-card border border-border p-8 rounded-[2.5rem] space-y-6 shadow-sm hover:border-accent/30 transition-all group cursor-pointer relative overflow-hidden"
+                            >
+                                <div className="flex items-center gap-5">
+                                    <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center text-accent font-black border border-accent/20 text-xl shadow-inner group-hover:scale-110 transition-transform overflow-hidden">
+                                        {app.profile_pic ? <img src={app.profile_pic} className="w-full h-full object-cover" alt="" /> : app.name[0]}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <h4 className="font-black text-text uppercase italic tracking-tighter truncate">{app.name}</h4>
+                                        <p className="text-[10px] font-black text-text/30 uppercase tracking-widest">{app.department} • Year {app.year}</p>
+                                    </div>
+                                </div>
+                                
+                                <p className="text-[11px] text-text/50 leading-relaxed font-medium italic line-clamp-2">
+                                    {app.about}
+                                </p>
 
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 pt-8 border-t border-border/50">
-                              <div className="space-y-6">
-                                  <div className="space-y-2">
-                                      <p className="text-[10px] font-black text-text/30 uppercase tracking-[0.3em]">Technical Persona</p>
-                                      <p className="text-text/60 leading-relaxed font-medium italic">{app.about}</p>
-                                  </div>
-                                  <div className="space-y-3">
-                                      <p className="text-[10px] font-black text-text/30 uppercase tracking-[0.3em]">Skill Matrix</p>
-                                      <div className="flex flex-wrap gap-2">
-                                          {app.skills?.split(',').map((s, i) => (
-                                              <span key={i} className="text-[9px] font-black text-accent bg-accent/5 px-3 py-1 rounded-lg border border-accent/10 uppercase tracking-widest">{s.trim()}</span>
-                                          ))}
-                                      </div>
-                                  </div>
-                              </div>
-                              <div className="space-y-6">
-                                  <div className="space-y-4">
-                                      <p className="text-[10px] font-black text-text/30 uppercase tracking-[0.3em]">External Nodes</p>
-                                      <div className="flex flex-wrap gap-3">
-                                          {app.github_profile && <a href={app.github_profile} target="_blank" className="p-3 bg-background border border-border rounded-xl text-text/40 hover:text-text transition-colors"><Github size={20} /></a>}
-                                          {app.leetcode_profile && <a href={app.leetcode_profile} target="_blank" className="p-3 bg-background border border-border rounded-xl text-text/40 hover:text-orange-500 transition-colors"><Code2 size={20} /></a>}
-                                          {app.gfg_profile && <a href={app.gfg_profile} target="_blank" className="p-3 bg-background border border-border rounded-xl text-text/40 hover:text-accent transition-colors"><Globe size={20} /></a>}
-                                      </div>
-                                  </div>
-                                  {app.resume_url && (
-                                      <a 
-                                          href={app.resume_url} 
-                                          download={`${app.name}_Resume.pdf`}
-                                          className="inline-flex items-center gap-3 bg-blue-500/10 text-blue-500 border border-blue-500/20 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-lg shadow-blue-500/5"
-                                      >
-                                          <FileText size={18} /> Review Technical Dossier (PDF)
-                                      </a>
-                                  )}
-                              </div>
-                          </div>
-                      </div>
-                  ))}
-              </div>
+                                <div className="flex justify-between items-center pt-4 border-t border-border/50">
+                                    <span className="text-[9px] font-black text-accent uppercase tracking-widest">Review Dossier</span>
+                                    <ChevronRight size={14} className="text-accent group-hover:translate-x-1 transition-transform" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+              ) : (
+                <div className="py-20 text-center bg-background/30 rounded-[2.5rem] border-2 border-dashed border-border">
+                    <p className="text-text/30 font-black tracking-widest uppercase text-sm italic">Queue is clear. No pending ingress applications.</p>
+                </div>
+              )}
           </motion.div>
       )}
 
+      {/* Stats and main sections */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         <StatsCard title="Problems Solved" value={profile?.problems_solved || 0} icon={Code} color="bg-accent" />
         <StatsCard title="GFG Core Score" value={profile?.gfg_score || 0} icon={Star} color="bg-yellow-500" />
@@ -381,35 +374,37 @@ const Dashboard = () => {
                     <Calendar size={28} className="text-accent" />
                     <h2 className="text-3xl font-black text-text uppercase tracking-tighter italic">Active Missions</h2>
                 </div>
-                {registrations.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-6">
-                        {registrations.map(reg => (
-                            <Link key={reg.reg_id} to={`/events/${reg.event_id}`} className="flex items-center justify-between p-8 bg-background/50 border border-border rounded-[2rem] hover:border-accent transition-all group shadow-inner">
-                                <div className="flex items-center gap-6">
-                                    <div className="w-16 h-16 rounded-2xl overflow-hidden border border-border group-hover:border-accent transition-colors">
-                                        {reg.poster ? <img src={reg.poster} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-accent/5 flex items-center justify-center text-accent/20"><Calendar /></div>}
-                                    </div>
-                                    <div>
-                                        <h4 className="font-black text-text text-xl group-hover:text-accent transition-colors uppercase italic tracking-tight">{reg.title}</h4>
-                                        <div className="flex gap-3 mt-2">
-                                            <span className="text-[10px] font-black text-text/40 uppercase tracking-widest">{reg.team_name ? `Team: ${reg.team_name}` : 'Individual Entry'}</span>
-                                            {reg.is_leader && <span className="bg-accent/10 text-accent text-[8px] font-black px-2 py-0.5 rounded border border-accent/20 uppercase tracking-widest">Leader</span>}
+                <div className="max-h-[500px] overflow-y-auto pr-4 custom-scrollbar">
+                    {registrations.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-6">
+                            {registrations.map(reg => (
+                                <Link key={reg.reg_id} to={`/events/${reg.event_id}`} className="flex items-center justify-between p-8 bg-background/50 border border-border rounded-[2rem] hover:border-accent transition-all group shadow-inner">
+                                    <div className="flex items-center gap-6">
+                                        <div className="w-16 h-16 rounded-2xl overflow-hidden border border-border group-hover:border-accent transition-colors">
+                                            {reg.poster ? <img src={reg.poster} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-accent/5 flex items-center justify-center text-accent/20"><Calendar /></div>}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-black text-text text-xl group-hover:text-accent transition-colors uppercase italic tracking-tight">{reg.title}</h4>
+                                            <div className="flex gap-3 mt-2">
+                                                <span className="text-[10px] font-black text-text/40 uppercase tracking-widest">{reg.team_name ? `Team: ${reg.team_name}` : 'Individual Entry'}</span>
+                                                {reg.is_leader && <span className="bg-accent/10 text-accent text-[8px] font-black px-2 py-0.5 rounded border border-accent/20 uppercase tracking-widest">Leader</span>}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black border uppercase tracking-widest ${reg.status === 'Accepted' ? 'bg-accent/10 text-accent border-accent/20' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'}`}>{reg.status}</span>
-                                    <ChevronRight size={20} className="text-text/20 group-hover:text-accent group-hover:translate-x-1 transition-all" />
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="py-20 text-center bg-background/30 rounded-[2.5rem] border-2 border-dashed border-border">
-                        <p className="text-text/30 font-black tracking-widest uppercase text-sm">No Missions Authorized.</p>
-                        <Link to="/events" className="text-accent font-black text-xs uppercase tracking-widest mt-4 inline-block hover:underline">Browse Event Matrix</Link>
-                    </div>
-                )}
+                                    <div className="flex items-center gap-4">
+                                        <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black border uppercase tracking-widest ${reg.status === 'Accepted' ? 'bg-accent/10 text-accent border-accent/20' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'}`}>{reg.status}</span>
+                                        <ChevronRight size={20} className="text-text/20 group-hover:text-accent group-hover:translate-x-1 transition-all" />
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="py-20 text-center bg-background/30 rounded-[2.5rem] border-2 border-dashed border-border">
+                            <p className="text-text/30 font-black tracking-widest uppercase text-sm">No Missions Authorized.</p>
+                            <Link to="/events" className="text-accent font-black text-xs uppercase tracking-widest mt-4 inline-block hover:underline">Browse Event Matrix</Link>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* PROJECT REGISTRY */}
@@ -421,30 +416,32 @@ const Dashboard = () => {
                     </div>
                     <Link to="/projects" className="bg-accent/10 text-accent px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-accent/20 hover:bg-accent hover:text-white transition-all">Submit Build</Link>
                 </div>
-                {myProjects.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-5">
-                        {myProjects.map(proj => (
-                            <div key={proj.id} className="flex items-center justify-between p-8 bg-background/50 border border-border rounded-[2rem] hover:border-accent transition-all group shadow-inner">
-                                <div className="flex items-center gap-6">
-                                    <div className="p-4 bg-accent/5 rounded-2xl text-accent border border-accent/10 shadow-sm transition-all group-hover:bg-accent group-hover:text-white"><Monitor size={28} /></div>
-                                    <div>
-                                        <h4 className="font-black text-text text-xl group-hover:text-accent transition-colors uppercase italic tracking-tight">{proj.title}</h4>
-                                        <p className="text-[10px] text-text/40 font-black uppercase tracking-widest mt-2">{proj.category} • {new Date(proj.created_at).toLocaleDateString()}</p>
+                <div className="max-h-[500px] overflow-y-auto pr-4 custom-scrollbar">
+                    {myProjects.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-5">
+                            {myProjects.map(proj => (
+                                <div key={proj.id} className="flex items-center justify-between p-8 bg-background/50 border border-border rounded-[2rem] hover:border-accent transition-all group shadow-inner">
+                                    <div className="flex items-center gap-6">
+                                        <div className="p-4 bg-accent/5 rounded-2xl text-accent border border-accent/10 shadow-sm transition-all group-hover:bg-accent group-hover:text-white"><Monitor size={28} /></div>
+                                        <div>
+                                            <h4 className="font-black text-text text-xl group-hover:text-accent transition-colors uppercase italic tracking-tight">{proj.title}</h4>
+                                            <p className="text-[10px] text-text/40 font-black uppercase tracking-widest mt-2">{proj.category} • {new Date(proj.created_at).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex gap-2">
+                                            <Link to={`/projects/${proj.id}?edit=true`} className="p-3 rounded-xl bg-blue-500/5 text-blue-400 border border-blue-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Edit3 size={18}/></Link>
+                                            <button onClick={() => handleDeleteProjectFromDashboard(proj.id)} className="p-3 rounded-xl bg-red-500/5 text-red-500 border border-red-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Trash2 size={18}/></button>
+                                        </div>
+                                        <div className={`px-5 py-2 rounded-xl text-[10px] font-black border uppercase tracking-[0.2em] shadow-sm ${getStatusStyle(proj.status)}`}>{proj.status}</div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    <div className="flex gap-2">
-                                        <Link to={`/projects/${proj.id}?edit=true`} className="p-3 rounded-xl bg-blue-500/5 text-blue-400 border border-blue-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Edit3 size={18}/></Link>
-                                        <button onClick={() => handleDeleteProjectFromDashboard(proj.id)} className="p-3 rounded-xl bg-red-500/5 text-red-500 border border-red-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Trash2 size={18}/></button>
-                                    </div>
-                                    <div className={`px-5 py-2 rounded-xl text-[10px] font-black border uppercase tracking-[0.2em] shadow-sm ${getStatusStyle(proj.status)}`}>{proj.status}</div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="py-20 text-center bg-background/30 rounded-[2.5rem] border-2 border-dashed border-border"><p className="text-text/30 font-black tracking-widest uppercase text-sm">No Build Data found.</p></div>
-                )}
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="py-20 text-center bg-background/30 rounded-[2.5rem] border-2 border-dashed border-border"><p className="text-text/30 font-black tracking-widest uppercase text-sm">No Build Data found.</p></div>
+                    )}
+                </div>
             </div>
 
             {/* COMMUNITY TRANSMISSIONS */}
@@ -453,28 +450,30 @@ const Dashboard = () => {
                     <MessageSquare size={28} className="text-blue-500" />
                     <h2 className="text-3xl font-black text-text uppercase tracking-tighter italic">Transmissions</h2>
                 </div>
-                {myDiscussions.length > 0 ? (
-                    <div className="space-y-5">
-                        {myDiscussions.map(post => (
-                            <div key={post.id} className="flex items-center justify-between p-8 bg-background/50 border border-border rounded-[2rem] hover:border-blue-500 transition-all group shadow-inner">
-                                <div className="flex items-center gap-6">
-                                    <div className="p-4 bg-blue-500/5 rounded-2xl text-blue-400 border border-blue-500/10 shadow-sm group-hover:bg-blue-500 group-hover:text-white transition-all"><MessageSquare size={28} /></div>
-                                    <div>
-                                        <h4 className="font-black text-text text-xl group-hover:text-blue-400 transition-colors uppercase italic tracking-tight">{post.title}</h4>
-                                        <p className="text-[10px] text-text/40 font-black uppercase tracking-widest mt-2">{new Date(post.created_at).toLocaleDateString()} • {post.comment_count} Transmission Signals</p>
+                <div className="max-h-[500px] overflow-y-auto pr-4 custom-scrollbar">
+                    {myDiscussions.length > 0 ? (
+                        <div className="space-y-5">
+                            {myDiscussions.map(post => (
+                                <div key={post.id} className="flex items-center justify-between p-8 bg-background/50 border border-border rounded-[2rem] hover:border-blue-500 transition-all group shadow-inner">
+                                    <div className="flex items-center gap-6">
+                                        <div className="p-4 bg-blue-500/5 rounded-2xl text-blue-400 border border-blue-500/10 shadow-sm group-hover:bg-blue-500 group-hover:text-white transition-all"><MessageSquare size={28} /></div>
+                                        <div>
+                                            <h4 className="font-black text-text text-xl group-hover:text-blue-400 transition-colors uppercase italic tracking-tight">{post.title}</h4>
+                                            <p className="text-[10px] text-text/40 font-black uppercase tracking-widest mt-2">{new Date(post.created_at).toLocaleDateString()} • {post.comment_count} Transmission Signals</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Link to={`/community/${post.id}?edit=true`} className="p-3 rounded-xl bg-blue-500/5 text-blue-400 border border-blue-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Edit3 size={18}/></Link>
+                                        <button onClick={() => handleDeletePost(post.id)} className="p-3 rounded-xl bg-red-500/5 text-red-500 border border-red-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Trash2 size={18}/></button>
+                                        <ChevronRight size={24} className="text-text/20 group-hover:text-blue-400 transition-all group-hover:translate-x-2" />
                                     </div>
                                 </div>
-                                <div className="flex gap-2">
-                                    <Link to={`/community/${post.id}?edit=true`} className="p-3 rounded-xl bg-blue-500/5 text-blue-400 border border-blue-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Edit3 size={18}/></Link>
-                                    <button onClick={() => handleDeletePost(post.id)} className="p-3 rounded-xl bg-red-500/5 text-red-500 border border-red-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Trash2 size={18}/></button>
-                                    <ChevronRight size={24} className="text-text/20 group-hover:text-blue-400 transition-all group-hover:translate-x-2" />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="py-20 text-center bg-background/30 rounded-[2.5rem] border-2 border-dashed border-border"><p className="text-text/30 font-black tracking-widest uppercase text-sm">No active transmissions.</p></div>
-                )}
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="py-20 text-center bg-background/30 rounded-[2.5rem] border-2 border-dashed border-border"><p className="text-text/30 font-black tracking-widest uppercase text-sm">No active transmissions.</p></div>
+                    )}
+                </div>
             </div>
         </div>
 
@@ -521,11 +520,132 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Applicant Detail Modal */}
+      <AnimatePresence>
+        {selectedApplicant && (
+            <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl overflow-y-auto">
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-card border border-border rounded-[3.5rem] w-full max-w-4xl my-auto shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                    <div className="p-8 md:p-12 border-b border-border flex justify-between items-center bg-background/50">
+                        <div className="flex items-center gap-6">
+                            <div className="w-20 h-20 rounded-[2rem] bg-accent/10 flex items-center justify-center text-accent font-black border border-accent/20 text-3xl shadow-inner overflow-hidden">
+                                {selectedApplicant.profile_pic ? <img src={selectedApplicant.profile_pic} className="w-full h-full object-cover" alt="" /> : selectedApplicant.name[0]}
+                            </div>
+                            <div>
+                                <h2 className="text-3xl md:text-4xl font-black text-text uppercase tracking-tighter italic">Core Ingress <span className="text-accent">Dossier</span></h2>
+                                <p className="text-[10px] font-black text-text/40 uppercase tracking-widest">Candidate ID: #{selectedApplicant.id} • Status: Pending Verification</p>
+                            </div>
+                        </div>
+                        <button onClick={() => setSelectedApplicant(null)} className="text-text/40 hover:text-red-500 p-2 rounded-full transition-all active:scale-90"><X size={32} /></button>
+                    </div>
+                    
+                    <div className="p-8 md:p-12 space-y-12 overflow-y-auto custom-scrollbar flex-grow">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                            <div className="space-y-10">
+                                <div className="space-y-4">
+                                    <h4 className="text-[10px] font-black text-accent uppercase tracking-[0.3em] flex items-center gap-2">
+                                        <User size={14}/> Identity Data
+                                    </h4>
+                                    <div className="bg-background/50 border border-border p-6 rounded-2xl space-y-4 shadow-inner">
+                                        <div className="flex justify-between">
+                                            <span className="text-[9px] font-bold text-text/30 uppercase tracking-widest">Real Name</span>
+                                            <span className="text-xs font-black text-text uppercase">{selectedApplicant.name}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-[9px] font-bold text-text/30 uppercase tracking-widest">Matrix Link</span>
+                                            <span className="text-xs font-black text-text">{selectedApplicant.email}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-[9px] font-bold text-text/30 uppercase tracking-widest">Sector Node</span>
+                                            <span className="text-xs font-black text-text uppercase">{selectedApplicant.department} • Year {selectedApplicant.year}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h4 className="text-[10px] font-black text-accent uppercase tracking-[0.3em] flex items-center gap-2">
+                                        <Zap size={14}/> Technical Persona
+                                    </h4>
+                                    <p className="text-sm text-text/60 font-medium leading-relaxed italic border-l-2 border-accent/20 pl-6">
+                                        {selectedApplicant.about}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-10">
+                                <div className="space-y-4">
+                                    <h4 className="text-[10px] font-black text-accent uppercase tracking-[0.3em] flex items-center gap-2">
+                                        <Code2 size={14}/> Skill Matrix
+                                    </h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {selectedApplicant.skills?.split(',').map((s, i) => (
+                                            <span key={i} className="text-[9px] font-black text-accent bg-accent/5 px-4 py-2 rounded-xl border border-accent/10 uppercase tracking-widest">{s.trim()}</span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h4 className="text-[10px] font-black text-accent uppercase tracking-[0.3em] flex items-center gap-2">
+                                        <Globe size={14}/> External Nodes
+                                    </h4>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        {selectedApplicant.github_profile && (
+                                            <a href={selectedApplicant.github_profile} target="_blank" className="flex flex-col items-center gap-2 p-4 bg-background border border-border rounded-2xl hover:border-text transition-all group/node">
+                                                <Github size={20} className="text-text/40 group-hover/node:text-text transition-colors" />
+                                                <span className="text-[8px] font-black uppercase tracking-widest">GitHub</span>
+                                            </a>
+                                        )}
+                                        {selectedApplicant.leetcode_profile && (
+                                            <a href={selectedApplicant.leetcode_profile} target="_blank" className="flex flex-col items-center gap-2 p-4 bg-background border border-border rounded-2xl hover:border-orange-500 transition-all group/node">
+                                                <Terminal size={20} className="text-text/40 group-hover/node:text-orange-500 transition-colors" />
+                                                <span className="text-[8px] font-black uppercase tracking-widest">LeetCode</span>
+                                            </a>
+                                        )}
+                                        {selectedApplicant.gfg_profile && (
+                                            <a href={selectedApplicant.gfg_profile} target="_blank" className="flex flex-col items-center gap-2 p-4 bg-background border border-border rounded-2xl hover:border-accent transition-all group/node">
+                                                <Globe size={20} className="text-text/40 group-hover/node:text-accent transition-colors" />
+                                                <span className="text-[8px] font-black uppercase tracking-widest">GfG</span>
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {selectedApplicant.resume_url && (
+                                    <a 
+                                        href={selectedApplicant.resume_url} 
+                                        download={`${selectedApplicant.name}_Dossier.pdf`}
+                                        className="w-full flex items-center justify-center gap-3 bg-blue-500/10 text-blue-500 border border-blue-500/20 py-6 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-xl shadow-blue-500/5"
+                                    >
+                                        <FileText size={20} /> Download Technical Dossier
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="p-8 md:p-12 bg-background/50 border-t border-border flex gap-6 sticky bottom-0">
+                        <button 
+                            onClick={() => { handleModerateApplicant(selectedApplicant.id, 'approve'); setSelectedApplicant(null); }}
+                            className="flex-grow bg-accent hover:bg-gfg-green-hover text-white py-6 rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] transition shadow-2xl shadow-accent/20 flex items-center justify-center gap-3 active:scale-[0.98]"
+                        >
+                            <Check size={20} /> Authorize Ingress
+                        </button>
+                        <button 
+                            onClick={() => { handleModerateApplicant(selectedApplicant.id, 'reject'); setSelectedApplicant(null); }}
+                            className="flex-grow bg-card border border-border hover:bg-red-500 hover:text-white py-6 rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] transition active:scale-95"
+                        >
+                            Decline Application
+                        </button>
+                    </div>
+                </motion.div>
+            </div>
+        )}
+      </AnimatePresence>
+
       {/* Config Modal */}
       <AnimatePresence>
         {isEditModalOpen && (
           <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl overflow-y-auto">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-card border border-border rounded-[3.5rem] w-full max-w-3xl my-auto shadow-2xl overflow-hidden">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-card border border-border rounded-[3.5rem] w-full max-w-4xl my-auto shadow-2xl overflow-hidden">
               <div className="p-10 border-b border-border flex justify-between items-center bg-background/50">
                 <div className="flex items-center gap-4">
                     <div className="p-3 bg-accent/10 rounded-xl text-accent"><Settings size={24} /></div>

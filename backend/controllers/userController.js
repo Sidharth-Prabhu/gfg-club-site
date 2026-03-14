@@ -80,7 +80,8 @@ export const getUserProfileById = async (req, res) => {
 };
 
 export const getApplicants = async (req, res) => {
-  if (req.user.role !== 'Admin') return res.status(403).json({ message: 'Admin access required' });
+  const userRole = String(req.user.role).trim();
+  if (userRole !== 'Admin') return res.status(403).json({ message: 'Admin access required' });
   try {
     const [rows] = await pool.execute(
       'SELECT id, name, email, department, year, gfg_profile, leetcode_profile, github_profile, skills, about, resume_url, created_at, profile_pic FROM users WHERE status = "Pending" ORDER BY created_at DESC'

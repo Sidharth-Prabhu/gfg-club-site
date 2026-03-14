@@ -139,46 +139,6 @@ const Home = () => {
         </motion.div>
       </section>
 
-      {/* Learning Tracks */}
-      <section className="container mx-auto px-4 py-10 relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-[80px] -z-10"></div>
-        
-        <div className="text-center space-y-4 mb-16">
-          <h2 className="text-accent font-black uppercase tracking-[0.3em] text-sm">Learning Path</h2>
-          <h3 className="text-4xl md:text-5xl font-black text-text uppercase">Choose Your Track</h3>
-          <p className="text-text/60 max-w-2xl mx-auto font-medium">Structured curricula designed by industry experts to take you from beginner to pro.</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {[
-            { title: 'DSA Mastery', icon: BookOpen, desc: 'Master complex data structures and algorithms with curated practice sets.', color: 'text-blue-500', bg: 'bg-blue-500/10' },
-            { title: 'Competitive Coding', icon: Trophy, desc: 'Level up your ranking in international coding contests and hackathons.', color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
-            { title: 'Full Stack Dev', icon: Code, desc: 'Build scalable applications using modern frameworks and technologies.', color: 'text-accent', bg: 'bg-accent/10' },
-            { title: 'Interview Bootcamp', icon: Target, desc: 'Crush technical interviews at top-tier product companies like MAANG.', color: 'text-purple-500', bg: 'bg-purple-500/10' }
-          ].map((track, i) => (
-            <motion.div 
-              key={i} 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              whileHover={{ y: -10, boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }}
-              className="bg-card p-10 rounded-[2.5rem] border border-border group cursor-pointer relative overflow-hidden shadow-sm"
-            >
-              <div className={`absolute top-0 right-0 w-32 h-32 ${track.bg} -mr-16 -mt-16 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity`}></div>
-              <div className={`${track.bg} ${track.color} w-16 h-16 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500`}>
-                <track.icon size={32} />
-              </div>
-              <h3 className="text-2xl font-bold mb-4 text-text uppercase">{track.title}</h3>
-              <p className="text-text/60 leading-relaxed mb-6 font-medium">{track.desc}</p>
-              <div className="flex items-center gap-2 text-accent font-bold group-hover:gap-3 transition-all uppercase text-xs tracking-widest">
-                Start Learning <ChevronRight size={18} />
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
       {/* About Section */}
       <section className="container mx-auto px-4 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
@@ -285,6 +245,46 @@ const Home = () => {
               ))}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Learning Tracks */}
+      <section className="container mx-auto px-4 py-10 relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-[80px] -z-10"></div>
+        
+        <div className="text-center space-y-4 mb-16">
+          <h2 className="text-accent font-black uppercase tracking-[0.3em] text-sm">Learning Path</h2>
+          <h3 className="text-4xl md:text-5xl font-black text-text uppercase">Choose Your Track</h3>
+          <p className="text-text/60 max-w-2xl mx-auto font-medium">Structured curricula designed by industry experts to take you from beginner to pro.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {[
+            { title: 'DSA Mastery', icon: BookOpen, desc: 'Master complex data structures and algorithms with curated practice sets.', color: 'text-blue-500', bg: 'bg-blue-500/10' },
+            { title: 'Competitive Coding', icon: Trophy, desc: 'Level up your ranking in international coding contests and hackathons.', color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
+            { title: 'Full Stack Dev', icon: Code, desc: 'Build scalable applications using modern frameworks and technologies.', color: 'text-accent', bg: 'bg-accent/10' },
+            { title: 'Interview Bootcamp', icon: Target, desc: 'Crush technical interviews at top-tier product companies like MAANG.', color: 'text-purple-500', bg: 'bg-purple-500/10' }
+          ].map((track, i) => (
+            <motion.div 
+              key={i} 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              whileHover={{ y: -10, boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }}
+              className="bg-card p-10 rounded-[2.5rem] border border-border group cursor-pointer relative overflow-hidden shadow-sm"
+            >
+              <div className={`absolute top-0 right-0 w-32 h-32 ${track.bg} -mr-16 -mt-16 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity`}></div>
+              <div className={`${track.bg} ${track.color} w-16 h-16 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500`}>
+                <track.icon size={32} />
+              </div>
+              <h3 className="text-2xl font-bold mb-4 text-text uppercase">{track.title}</h3>
+              <p className="text-text/60 leading-relaxed mb-6 font-medium">{track.desc}</p>
+              <div className="flex items-center gap-2 text-accent font-bold group-hover:gap-3 transition-all uppercase text-xs tracking-widest">
+                Start Learning <ChevronRight size={18} />
+              </div>
+            </motion.div>
+          ))}
         </div>
       </section>
 
