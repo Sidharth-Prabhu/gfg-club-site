@@ -11,7 +11,7 @@ import { protect, isApproved } from '../middleware/authMiddleware.js';
 const router = express.Router();
 
 router.route('/')
-  .get(protect, isApproved, getResources)
+  .get(protect, getResources)
   .post(protect, isApproved, createResource);
 
 router.get('/search-gfg', protect, isApproved, searchGfgResources);

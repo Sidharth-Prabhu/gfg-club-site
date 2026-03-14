@@ -31,14 +31,14 @@ const Resources = () => {
   const categories = ['All', 'DSA Articles', 'Interview Preparation', 'Competitive Programming', 'Workshop Notes', 'System Design'];
   const gfgCategories = ['CPU Synchronization', 'DBMS Transaction', 'React Lifecycle', 'System Design', 'ML Algorithms', 'Distributed Systems'];
   
-  const canManage = user?.role === 'Admin' || user?.role === 'Core';
+  const canManage = user?.role === 'Admin';
   const isApproved = user?.status === 'Approved';
 
   useEffect(() => {
-    if (!user || !isApproved) {
-        navigate('/dashboard');
+    if (!user) {
+        navigate('/login');
     }
-  }, [user, isApproved, navigate]);
+  }, [user, navigate]);
 
   const fetchArchive = async () => {
     setLoading(true);
@@ -126,7 +126,17 @@ const Resources = () => {
 
       {activeTab === 'gfg' ? (
         <div className="space-y-12">
-            {!selectedArticle ? (
+            {!isApproved ? (
+                <div className="py-40 text-center bg-accent/5 rounded-[4rem] border border-accent/20 space-y-6">
+                    <div className="p-8 bg-card border border-border rounded-[2.5rem] shadow-xl inline-block">
+                        <ShieldCheck size={64} className="text-accent opacity-20" />
+                    </div>
+                    <div className="space-y-2">
+                        <h3 className="text-3xl font-black text-text uppercase italic tracking-tighter">Authority Required</h3>
+                        <p className="text-text/40 text-sm font-medium uppercase tracking-widest max-w-md mx-auto italic px-10">Direct GfG Synapse queries are restricted to Approved Core Agents only. Synchronize your status to access this sector.</p>
+                    </div>
+                </div>
+            ) : !selectedArticle ? (
                 <>
                     <div className="flex flex-col md:flex-row gap-6">
                         <div className="relative flex-grow group">

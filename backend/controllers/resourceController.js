@@ -164,8 +164,8 @@ export const getResources = async (req, res) => {
 };
 
 export const createResource = async (req, res) => {
-  if (req.user.role !== 'Admin' && req.user.role !== 'Core') {
-    return res.status(403).json({ message: 'Not authorized' });
+  if (req.user.role !== 'Admin') {
+    return res.status(403).json({ message: 'Only Admins can deploy global nodes' });
   }
   const { title, description, link, category } = req.body;
   try {
@@ -180,8 +180,8 @@ export const createResource = async (req, res) => {
 };
 
 export const deleteResource = async (req, res) => {
-  if (req.user.role !== 'Admin' && req.user.role !== 'Core') {
-    return res.status(403).json({ message: 'Not authorized' });
+  if (req.user.role !== 'Admin') {
+    return res.status(403).json({ message: 'Only Admins can terminate global nodes' });
   }
   try {
     await pool.execute('DELETE FROM resources WHERE id = ?', [req.params.id]);
