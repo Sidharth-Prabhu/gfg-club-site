@@ -41,6 +41,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.dark .ql-editor *, .dark .ql-editor span {
+  background-color: transparent !important;
+  color: var(--color-text) !important;
+}
+
 @layer base {
   * {
     @apply border-border;

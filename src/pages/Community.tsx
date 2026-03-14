@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { 
-  MessageSquare, Search, Plus, X, Save, Hash
+  MessageSquare, Search, Plus, X, Save, Hash, Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
@@ -50,6 +50,17 @@ const Community = () => {
 
   const handleOpenPost = (post) => {
     navigate(`/community/${post.id}`);
+  };
+
+  const handleDeletePost = async (e, postId) => {
+    e.stopPropagation();
+    if (!window.confirm('Terminate this transmission?')) return;
+    try {
+      await api.delete(`/discussions/${postId}`);
+      fetchPosts();
+    } catch (error) {
+      alert('Deletion failed');
+    }
   };
 
   const handleCreatePost = async (e) => {
@@ -151,10 +162,20 @@ const Community = () => {
                 </div>
               </div>
               <div className="flex-grow min-w-0 space-y-4">
-                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-text/40">
-                    <span className="text-accent">{post.author_name}</span>
-                    <span className="w-1 h-1 bg-text/20 rounded-full"></span>
-                    <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-text/40">
+                      <span className="text-accent">{post.author_name}</span>
+                      <span className="w-1 h-1 bg-text/20 rounded-full"></span>
+                      <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                  </div>
+                  {(user?.id === post.author_id || user?.role === 'Admin' || user?.role === 'Core') && (
+                    <button 
+                      onClick={(e) => handleDeletePost(e, post.id)}
+                      className="text-text/20 hover:text-red-500 transition-colors p-2"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </div>
                 <h2 className="text-2xl md:text-3xl font-black text-text group-hover:text-accent transition-colors leading-tight tracking-tight uppercase break-words">{post.title}</h2>
                 <div className="text-text/60 text-sm line-clamp-3 leading-relaxed font-medium break-words overflow-hidden" dangerouslySetInnerHTML={{ __html: post.content }} />
@@ -228,6 +249,7 @@ const Community = () => {
         .ql-toolbar.ql-snow { border: none !important; border-bottom: 1px solid var(--color-border) !important; background: var(--color-background); }
         .ql-container.ql-snow { border: none !important; }
         .ql-editor { font-family: inherit; font-size: 1.1rem; }
+        .dark .ql-editor *, .dark .ql-editor span { background-color: transparent !important; color: var(--color-text) !important; }
       `}</style>
     </div>
   );

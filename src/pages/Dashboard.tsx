@@ -268,6 +268,7 @@ const Dashboard = () => {
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
+                                    <Link to={`/community/${post.id}?edit=true`} className="p-3 rounded-xl bg-blue-500/5 text-blue-400 border border-blue-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Edit3 size={18}/></Link>
                                     <button onClick={() => handleDeletePost(post.id)} className="p-3 rounded-xl bg-red-500/5 text-red-500 border border-red-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Trash2 size={18}/></button>
                                     <ChevronRight size={24} className="text-text/20 group-hover:text-blue-400 transition-all group-hover:translate-x-2" />
                                 </div>
