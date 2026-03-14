@@ -1,0 +1,250 @@
+# SQL Queries for GeeksforGeeks Club Site
+
+## 1. Schema Definition (Tables & Database Setup)
+
+CREATE DATABASE IF NOT EXISTS gfg_club;
+USE gfg_club;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('User', 'Core', 'Admin') DEFAULT 'User',
+    department VARCHAR(255),
+    year INT,
+    gfg_profile VARCHAR(255),
+    leetcode_profile VARCHAR(255),
+    codeforces_profile VARCHAR(255),
+    github_profile VARCHAR(255),
+    gfg_score INT DEFAULT 0,
+    gfg_solved INT DEFAULT 0,
+    problems_solved INT DEFAULT 0,
+    streak INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS events (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    poster VARCHAR(255),
+    date DATETIME,
+    location VARCHAR(255),
+    organizer VARCHAR(255),
+    is_open BOOLEAN DEFAULT TRUE,
+    participation_type ENUM('individual', 'team', 'both') DEFAULT 'individual',
+    max_team_size INT DEFAULT 1,
+    rules TEXT,
+    requirements TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS teams (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    leader_id INT NOT NULL,
+    event_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (leader_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS event_registrations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    event_id INT NOT NULL,
+    team_id INT DEFAULT NULL,
+    status ENUM('Pending', 'Accepted', 'Declined') DEFAULT 'Accepted',
+    is_leader BOOLEAN DEFAULT FALSE,
+    registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+    FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS user_activity (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    activity_date DATE NOT NULL,
+    problems_solved INT DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY user_date (user_id, activity_date)
+);
+
+CREATE TABLE IF NOT EXISTS community_groups (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    logo VARCHAR(255),
+    created_by INT NOT NULL,
+    max_members INT DEFAULT 100,
+    allow_guests BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS group_members (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    group_id INT NOT NULL,
+    user_id INT NOT NULL,
+    status ENUM('Pending', 'Accepted', 'Declined') DEFAULT 'Pending',
+    role ENUM('Member', 'Moderator', 'Admin') DEFAULT 'Member',
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (group_id) REFERENCES community_groups(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY user_group (user_id, group_id)
+);
+
+## 2. Database Migrations (ALTER Statements)
+
+ALTER TABLE users ADD COLUMN role ENUM('User', 'Core', 'Admin') DEFAULT 'User';
+ALTER TABLE users ADD COLUMN gfg_score INT DEFAULT 0;
+ALTER TABLE users ADD COLUMN gfg_solved INT DEFAULT 0;
+ALTER TABLE users ADD COLUMN streak INT DEFAULT 0;
+ALTER TABLE users ADD COLUMN skills TEXT;
+ALTER TABLE users ADD COLUMN resume_url LONGTEXT;
+ALTER TABLE users ADD COLUMN about TEXT;
+ALTER TABLE users ADD COLUMN status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending';
+ALTER TABLE users ADD COLUMN profile_pic LONGTEXT;
+
+ALTER TABLE events ADD COLUMN participation_type ENUM('individual', 'team', 'both') DEFAULT 'individual';
+ALTER TABLE events ADD COLUMN max_team_size INT DEFAULT 1;
+ALTER TABLE events ADD COLUMN rules TEXT;
+ALTER TABLE events ADD COLUMN requirements TEXT;
+ALTER TABLE events ADD COLUMN organizer VARCHAR(255);
+ALTER TABLE events ADD COLUMN is_open BOOLEAN DEFAULT TRUE;
+
+ALTER TABLE event_registrations ADD COLUMN team_id INT DEFAULT NULL;
+ALTER TABLE event_registrations ADD FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE SET NULL;
+ALTER TABLE event_registrations ADD COLUMN status ENUM('Pending', 'Accepted', 'Declined') DEFAULT 'Accepted';
+ALTER TABLE event_registrations ADD COLUMN is_leader BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE discussions ADD COLUMN group_id INT DEFAULT NULL;
+ALTER TABLE discussions ADD FOREIGN KEY (group_id) REFERENCES community_groups(id) ON DELETE CASCADE;
+
+## 3. Application Controllers Queries
+
+### Authentication & Users
+1. SELECT * FROM users WHERE email = ?
+2. INSERT INTO users (name, email, password, department, year, gfg_profile, leetcode_profile, github_profile, skills, about, resume_url, role, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'User', 'Pending')
+3. SELECT last_login, streak FROM users WHERE id = ?
+4. UPDATE users SET last_login = ?, streak = 1 WHERE id = ?
+5. UPDATE users SET last_login = ?, streak = streak + 1 WHERE id = ?
+6. SELECT id, name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile, problems_solved, gfg_solved, gfg_score, leetcode_solved, github_repos, weekly_points, streak, role, last_login, created_at, skills, about, resume_url, status, profile_pic FROM users WHERE id = ?
+7. SELECT id, name, email, department, year, gfg_profile, leetcode_profile, github_profile, problems_solved, gfg_solved, gfg_score, leetcode_solved, github_repos, streak, role, created_at, skills, about, profile_pic, (SELECT COUNT(*) FROM discussions WHERE author_id = users.id) as discussion_count, (SELECT COUNT(*) FROM projects WHERE created_by = users.id AND status = 'Approved') as project_count FROM users WHERE id = ? AND status = 'Approved'
+8. SELECT id, name, email, department, year, gfg_profile, leetcode_profile, github_profile, skills, about, resume_url, created_at, profile_pic FROM users WHERE status = "Pending" ORDER BY created_at DESC
+9. UPDATE users SET status = "Approved" WHERE id = ?
+10. UPDATE users SET status = "Rejected" WHERE id = ?
+11. UPDATE users SET name = ?, email = ?, department = ?, year = ?, gfg_profile = ?, leetcode_profile = ?, codeforces_profile = ?, github_profile = ?, skills = ?, about = ?, profile_pic = ? WHERE id = ?
+12. SELECT gfg_profile, leetcode_profile, github_profile FROM users WHERE id = ?
+13. UPDATE users SET gfg_solved = ?, gfg_score = ?, leetcode_solved = ?, github_repos = ?, problems_solved = ?, last_synced = CURRENT_TIMESTAMP WHERE id = ?
+14. SELECT COUNT(*) as total FROM users
+15. SELECT SUM(problems_solved) as total FROM users
+16. SELECT COUNT(*) as total FROM users WHERE problems_solved > 0
+
+### Blogs
+17. SELECT b.*, u.name as author_name, u.profile_pic as author_pic FROM blogs b JOIN users u ON b.author_id = u.id ORDER BY b.created_at DESC
+18. SELECT b.*, u.name as author_name, u.profile_pic as author_pic FROM blogs b JOIN users u ON b.author_id = u.id WHERE b.id = ?
+19. INSERT INTO blogs (title, content, tags, author_id) VALUES (?, ?, ?, ?)
+20. SELECT author_id FROM blogs WHERE id = ?
+21. UPDATE blogs SET title = ?, content = ?, tags = ? WHERE id = ?
+22. DELETE FROM blogs WHERE id = ?
+
+### Discussions & Comments
+23. SELECT d.*, u.name as author_name, u.role as author_role, u.profile_pic as author_pic, (SELECT COUNT(*) FROM post_reactions WHERE post_id = d.id) as reaction_count, (SELECT COUNT(*) FROM post_comments WHERE post_id = d.id) as comment_count, (SELECT GROUP_CONCAT(tag) FROM post_tags WHERE post_id = d.id) as tags FROM discussions d JOIN users u ON d.author_id = u.id WHERE d.id = ?
+24. SELECT d.*, u.name as author_name, u.role as author_role, u.profile_pic as author_pic, (SELECT COUNT(*) FROM post_reactions WHERE post_id = d.id) as reaction_count, (SELECT COUNT(*) FROM post_comments WHERE post_id = d.id) as comment_count, (SELECT GROUP_CONCAT(tag) FROM post_tags WHERE post_id = d.id) as tags FROM discussions d JOIN users u ON d.author_id = u.id WHERE 1=1
+25. INSERT INTO discussions (title, content, author_id, group_id) VALUES (?, ?, ?, ?)
+26. SELECT author_id FROM discussions WHERE id = ?
+27. UPDATE discussions SET title = ?, content = ? WHERE id = ?
+28. DELETE FROM discussions WHERE id = ?
+29. SELECT * FROM post_reactions WHERE user_id = ? AND post_id = ?
+30. DELETE FROM post_reactions WHERE user_id = ? AND post_id = ?
+31. INSERT INTO post_reactions (user_id, post_id, reaction_type) VALUES (?, ?, "like")
+32. SELECT c.*, u.name as author_name, u.role as author_role, u.profile_pic as author_pic, (SELECT COUNT(*) FROM comment_reactions WHERE comment_id = c.id) as reaction_count FROM post_comments c JOIN users u ON c.user_id = u.id WHERE c.post_id = ? ORDER BY c.created_at ASC
+33. INSERT INTO post_comments (user_id, post_id, content, parent_id) VALUES (?, ?, ?, ?)
+34. SELECT user_id FROM post_comments WHERE id = ?
+35. UPDATE post_comments SET content = ? WHERE id = ?
+36. DELETE FROM post_comments WHERE id = ?
+37. SELECT * FROM comment_reactions WHERE user_id = ? AND comment_id = ?
+38. DELETE FROM comment_reactions WHERE user_id = ? AND comment_id = ?
+39. INSERT INTO comment_reactions (user_id, comment_id) VALUES (?, ?)
+40. INSERT INTO post_tags (post_id, tag) VALUES (?, ?)
+41. DELETE FROM post_tags WHERE post_id = ?
+
+### Events & Registrations
+42. SELECT * FROM events ORDER BY date DESC
+43. SELECT * FROM events WHERE id = ?
+44. INSERT INTO events (title, description, poster, date, location, organizer, is_open, participation_type, max_team_size, rules, requirements) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+45. UPDATE events SET title = ?, description = ?, poster = ?, date = ?, location = ?, organizer = ?, is_open = ?, participation_type = ?, max_team_size = ?, rules = ?, requirements = ? WHERE id = ?
+46. DELETE FROM events WHERE id = ?
+47. SELECT * FROM event_registrations WHERE user_id = ? AND event_id = ?
+48. INSERT INTO event_registrations (user_id, event_id, status) VALUES (?, ?, ?)
+49. INSERT INTO teams (name, leader_id, event_id) VALUES (?, ?, ?)
+50. INSERT INTO event_registrations (user_id, event_id, team_id, status, is_leader) VALUES (?, ?, ?, ?, ?)
+51. SELECT id FROM users WHERE email = ?
+52. INSERT INTO event_registrations (user_id, event_id, team_id, status) VALUES (?, ?, ?, ?)
+53. SELECT er.id as reg_id, e.id as event_id, e.title, e.date, e.location, e.poster, er.status, er.is_leader, t.name as team_name, t.id as team_id, e.participation_type, e.max_team_size FROM event_registrations er JOIN events e ON er.event_id = e.id LEFT JOIN teams t ON er.team_id = t.id WHERE er.user_id = ? AND er.status != 'Declined' ORDER BY e.date ASC
+54. SELECT er.id as reg_id, e.title as event_title, t.name as team_name, u.name as inviter_name, e.id as event_id FROM event_registrations er JOIN events e ON er.event_id = e.id JOIN teams t ON er.team_id = t.id JOIN users u ON t.leader_id = u.id WHERE er.user_id = ? AND er.status = 'Pending'
+55. SELECT * FROM event_registrations WHERE id = ? AND user_id = ?
+56. UPDATE event_registrations SET status = ? WHERE id = ?
+57. DELETE FROM event_registrations WHERE id = ?
+58. DELETE FROM teams WHERE id = ?
+59. SELECT * FROM teams WHERE id = ? AND leader_id = ?
+60. UPDATE teams SET name = ? WHERE id = ?
+61. SELECT max_team_size FROM events WHERE id = ?
+62. SELECT COUNT(*) as count FROM event_registrations WHERE team_id = ?
+63. DELETE FROM event_registrations WHERE team_id = ? AND user_id = ?
+64. SELECT u.name, u.email, u.gfg_score, u.gfg_solved, u.problems_solved, u.id as user_id, er.status, er.is_leader, t.name as team_name FROM event_registrations er JOIN users u ON er.user_id = u.id LEFT JOIN teams t ON er.team_id = t.id WHERE er.event_id = ?
+65. SELECT team_id, is_leader FROM event_registrations WHERE user_id = ? AND event_id = ?
+66. SELECT name FROM teams WHERE id = ?
+67. SELECT u.id as user_id, u.name, u.email, er.status, er.is_leader FROM event_registrations er JOIN users u ON er.user_id = u.id WHERE er.team_id = ?
+
+### Community Groups
+68. SELECT g.*, u.name as creator_name, (SELECT COUNT(*) FROM group_members WHERE group_id = g.id AND status = 'Accepted') as member_count, (SELECT status FROM group_members WHERE group_id = g.id AND user_id = ?) as user_status FROM community_groups g JOIN users u ON g.created_by = u.id ORDER BY g.created_at DESC
+69. SELECT g.*, u.name as creator_name, (SELECT COUNT(*) FROM group_members WHERE group_id = g.id AND status = 'Accepted') as member_count, (SELECT status FROM group_members WHERE group_id = g.id AND user_id = ?) as user_status, (SELECT role FROM group_members WHERE group_id = g.id AND user_id = ?) as user_role FROM community_groups g JOIN users u ON g.created_by = u.id WHERE g.id = ?
+70. INSERT INTO community_groups (title, description, logo, created_by, max_members, allow_guests) VALUES (?, ?, ?, ?, ?, ?)
+71. INSERT INTO group_members (group_id, user_id, status, role) VALUES (?, ?, "Accepted", "Admin")
+72. SELECT max_members, (SELECT COUNT(*) FROM group_members WHERE group_id = ? AND status = "Accepted") as current_members FROM community_groups WHERE id = ?
+73. INSERT INTO group_members (group_id, user_id, status) VALUES (?, ?, "Pending")
+74. SELECT m.*, u.name as user_name, g.title as group_title FROM group_members m JOIN users u ON m.user_id = u.id JOIN community_groups g ON m.group_id = g.id WHERE g.created_by = ? AND m.status = 'Pending'
+75. SELECT m.* FROM group_members m JOIN community_groups g ON m.group_id = g.id WHERE m.id = ? AND g.created_by = ?
+76. UPDATE group_members SET status = "Accepted" WHERE id = ?
+77. SELECT m.*, u.name as user_name, u.profile_pic as user_pic FROM group_members m JOIN users u ON m.user_id = u.id WHERE m.group_id = ? AND m.status = "Accepted"
+78. SELECT * FROM group_members WHERE group_id = ? AND user_id = ? AND status = "Accepted"
+
+### Leaderboard & Problems
+79. SELECT id, name, department, year, gfg_score, gfg_solved, problems_solved, weekly_points, streak, role, profile_pic FROM users WHERE gfg_score > 0 AND status = "Approved" ORDER BY gfg_score DESC LIMIT 50
+80. SELECT id, name, department, year, gfg_score, weekly_points, streak, role, profile_pic FROM users WHERE weekly_points > 0 AND status = "Approved" ORDER BY weekly_points DESC LIMIT 50
+81. SELECT COUNT(*) as count FROM problems
+82. INSERT IGNORE INTO problems (title, difficulty, topic, link) VALUES (?, ?, ?, ?)
+83. SELECT * FROM problems ORDER BY RAND() LIMIT 50
+84. INSERT INTO problems (title, difficulty, topic, link) VALUES (?, ?, ?, ?)
+85. INSERT IGNORE INTO solved_problems (user_id, problem_slug) VALUES (?, ?)
+
+### Projects
+86. SELECT p.*, u.name as creator_name, (SELECT COALESCE(SUM(vote_type), 0) FROM project_votes WHERE project_id = p.id) as vote_score, (SELECT GROUP_CONCAT(file_url) FROM project_files WHERE project_id = p.id) as files FROM projects p JOIN users u ON p.created_by = u.id WHERE p.id = ?
+87. SELECT p.*, u.name as creator_name, (SELECT COALESCE(SUM(vote_type), 0) FROM project_votes WHERE project_id = p.id) as vote_score, (SELECT GROUP_CONCAT(file_url) FROM project_files WHERE project_id = p.id) as files FROM projects p JOIN users u ON p.created_by = u.id
+88. INSERT INTO projects (title, description, github_link, demo_link, tech_stack, category, created_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, "Pending")
+89. INSERT INTO project_files (project_id, file_name, file_url, file_type) VALUES (?, ?, ?, ?)
+90. SELECT created_by, status FROM projects WHERE id = ?
+91. UPDATE projects SET title = ?, description = ?, github_link = ?, demo_link = ?, tech_stack = ?, category = ?, status = ? WHERE id = ?
+92. SELECT created_by FROM projects WHERE id = ?
+93. DELETE FROM projects WHERE id = ?
+94. UPDATE projects SET status = ? WHERE id = ?
+95. SELECT * FROM project_votes WHERE user_id = ? AND project_id = ?
+96. DELETE FROM project_votes WHERE id = ?
+97. UPDATE project_votes SET vote_type = ? WHERE id = ?
+98. INSERT INTO project_votes (user_id, project_id, vote_type) VALUES (?, ?, ?)
+99. SELECT p.*, (SELECT COALESCE(SUM(vote_type), 0) FROM project_votes WHERE project_id = p.id) as vote_score FROM projects p WHERE p.created_by = ? ORDER BY p.created_at DESC
+
+### Resources
+100. SELECT * FROM resources ORDER BY created_at DESC
+101. INSERT INTO resources (title, description, link, category) VALUES (?, ?, ?, ?)
+102. DELETE FROM resources WHERE id = ?
+
+### Activity Tracking
+103. SELECT DATE_FORMAT(activity_date, "%a") as name, problems_solved as solved FROM user_activity WHERE user_id = ? AND activity_date >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) ORDER BY activity_date ASC
+104. SELECT * FROM user_activity WHERE user_id = ? AND activity_date = CURDATE()
+105. UPDATE user_activity SET problems_solved = ? WHERE id = ?
+106. INSERT INTO user_activity (user_id, activity_date, problems_solved) VALUES (?, CURDATE(), ?)
