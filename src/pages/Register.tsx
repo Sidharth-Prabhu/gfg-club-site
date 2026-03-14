@@ -104,87 +104,87 @@ const Register = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
       <motion.div 
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="max-w-4xl mx-auto bg-card rounded-[3.5rem] border border-border shadow-2xl relative overflow-hidden flex flex-col md:flex-row"
+        className="bg-card rounded-3xl border border-border shadow-xl relative overflow-hidden flex flex-col md:flex-row"
       >
         {/* Sidebar Info */}
-        <div className="md:w-1/3 bg-accent p-12 text-white flex flex-col justify-between relative overflow-hidden">
+        <div className="md:w-1/3 bg-accent p-8 text-white flex flex-col justify-between relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='3' cy='3' r='3' fill='%23ffffff'/%3E%3C/svg%3E")` }}></div>
-            <div className="relative z-10 space-y-8">
-                <div className="bg-white/20 w-16 h-16 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/30 shadow-lg">
-                    <Terminal size={32} />
+            <div className="relative z-10 space-y-6">
+                <div className="bg-white/20 w-12 h-12 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/30 shadow-lg">
+                    <Terminal size={24} />
                 </div>
-                <div className="space-y-4">
-                    <h2 className="text-3xl font-black uppercase tracking-tighter leading-none italic">Apply for <br/>Core Ingress</h2>
-                    <p className="text-white/70 text-sm font-medium italic">Join the elite community of developers at RITChennai. Your application represents your technical potential.</p>
+                <div className="space-y-3">
+                    <h2 className="text-2xl font-black uppercase tracking-tighter leading-none italic">Apply for <br/>Core Ingress</h2>
+                    <p className="text-white/70 text-xs font-medium italic leading-relaxed">Join the elite community. Your application represents your technical potential.</p>
                 </div>
                 
-                <div className="space-y-6 pt-10">
+                <div className="space-y-4 pt-6">
                     {[
                         { s: 1, label: 'Institutional Data', icon: Book },
                         { s: 2, label: 'Technical Nodes', icon: Github },
                         { s: 3, label: 'Persona Profile', icon: FileText }
                     ].map((item) => (
-                        <div key={item.s} className={`flex items-center gap-4 transition-all duration-500 ${step >= item.s ? 'opacity-100 translate-x-2' : 'opacity-40'}`}>
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs border ${step >= item.s ? 'bg-white text-accent border-white' : 'border-white/30'}`}>
-                                {step > item.s ? <CheckCircle2 size={16} /> : item.s}
+                        <div key={item.s} className={`flex items-center gap-3 transition-all duration-500 ${step >= item.s ? 'opacity-100 translate-x-1' : 'opacity-40'}`}>
+                            <div className={`w-6 h-6 rounded-md flex items-center justify-center font-black text-[10px] border ${step >= item.s ? 'bg-white text-accent border-white' : 'border-white/30'}`}>
+                                {step > item.s ? <CheckCircle2 size={12} /> : item.s}
                             </div>
-                            <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
+                            <span className="text-[8px] font-black uppercase tracking-widest">{item.label}</span>
                         </div>
                     ))}
                 </div>
             </div>
-            <div className="relative z-10 pt-12">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 italic">GeeksforGeeks RITChennai Node</p>
+            <div className="relative z-10 pt-8">
+                <p className="text-[8px] font-black uppercase tracking-widest opacity-40 italic">GfG RITChennai Node</p>
             </div>
         </div>
 
         {/* Form Area */}
-        <div className="flex-grow p-8 md:p-16 space-y-10">
+        <div className="flex-grow p-6 md:p-10 space-y-8">
           <div className="flex justify-between items-center">
-            <h3 className="text-2xl font-black text-text uppercase tracking-widest">Section 0{step}</h3>
-            {error && <span className="text-red-500 text-[10px] font-black uppercase animate-pulse">{error}</span>}
+            <h3 className="text-lg font-black text-text uppercase tracking-widest">Section 0{step}</h3>
+            {error && <span className="text-red-500 text-[8px] font-black uppercase animate-pulse">{error}</span>}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <AnimatePresence mode="wait">
               {step === 1 && (
                 <motion.div 
                   key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                  className="space-y-6"
+                  className="space-y-4"
                 >
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Real Name (Agent ID)</label>
+                  <div className="space-y-1.5">
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Real Name (Agent ID)</label>
                     <div className="relative group">
-                      <User className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={20} />
-                      <input required type="text" className="w-full bg-background border-2 border-border rounded-2xl py-5 pl-14 pr-6 focus:border-accent outline-none text-text font-bold transition shadow-inner italic" placeholder="e.g. Alan Turing" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={16} />
+                      <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner italic" placeholder="Alan Turing" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Matrix Link (Email)</label>
+                  <div className="space-y-1.5">
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Matrix Link (Email)</label>
                     <div className="relative group">
-                      <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={20} />
-                      <input required type="email" className="w-full bg-background border-2 border-border rounded-2xl py-5 pl-14 pr-6 focus:border-accent outline-none text-text font-bold transition shadow-inner" placeholder="agent@ritchennai.edu.in" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={16} />
+                      <input required type="email" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner" placeholder="agent@ritchennai.edu.in" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Department Node</label>
-                      <input required type="text" className="w-full bg-background border-2 border-border rounded-2xl py-5 px-8 focus:border-accent outline-none text-text font-bold transition shadow-inner italic" placeholder="e.g. CSE" value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Department Node</label>
+                      <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3.5 px-5 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner italic" placeholder="CSE" value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} />
                     </div>
-                    <div className="space-y-2">
-                      <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Deployment Year</label>
-                      <input required type="number" className="w-full bg-background border-2 border-border rounded-2xl py-5 px-8 focus:border-accent outline-none text-text font-bold transition shadow-inner" placeholder="e.g. 3" value={formData.year} onChange={(e) => setFormData({ ...formData, year: e.target.value })} />
+                    <div className="space-y-1.5">
+                      <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Deployment Year</label>
+                      <input required type="number" className="w-full bg-background border-2 border-border rounded-xl py-3.5 px-5 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner" placeholder="3" value={formData.year} onChange={(e) => setFormData({ ...formData, year: e.target.value })} />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Access Key (Password)</label>
+                  <div className="space-y-1.5">
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Access Key (Password)</label>
                     <div className="relative group">
-                      <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={20} />
-                      <input required type="password" className="w-full bg-background border-2 border-border rounded-2xl py-5 pl-14 pr-6 focus:border-accent outline-none text-text font-bold transition shadow-inner" placeholder="••••••••" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={16} />
+                      <input required type="password" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner" placeholder="••••••••" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
                     </div>
                   </div>
                 </motion.div>
@@ -193,27 +193,27 @@ const Register = () => {
               {step === 2 && (
                 <motion.div 
                   key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                  className="space-y-6"
+                  className="space-y-4"
                 >
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2 text-accent flex items-center gap-2"><Sparkles size={12}/> GeeksforGeeks Node URL</label>
+                  <div className="space-y-1.5">
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2 text-accent flex items-center gap-1.5"><Sparkles size={10}/> GeeksforGeeks URL</label>
                     <div className="relative group">
-                      <Globe className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={20} />
-                      <input required type="url" className="w-full bg-background border-2 border-border rounded-2xl py-5 pl-14 pr-6 focus:border-accent outline-none text-text font-bold transition shadow-inner" placeholder="https://www.geeksforgeeks.org/user/..." value={formData.gfg_profile} onChange={(e) => setFormData({ ...formData, gfg_profile: e.target.value })} />
+                      <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={16} />
+                      <input required type="url" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner" placeholder="https://www.geeksforgeeks.org/user/..." value={formData.gfg_profile} onChange={(e) => setFormData({ ...formData, gfg_profile: e.target.value })} />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2 text-orange-500 flex items-center gap-2"><Code2 size={12}/> LeetCode Hub URL</label>
+                  <div className="space-y-1.5">
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2 text-orange-500 flex items-center gap-1.5"><Code2 size={10}/> LeetCode Hub URL</label>
                     <div className="relative group">
-                      <Code2 className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-orange-500 transition-colors" size={20} />
-                      <input required type="url" className="w-full bg-background border-2 border-border rounded-2xl py-5 pl-14 pr-6 focus:border-orange-500 outline-none text-text font-bold transition shadow-inner" placeholder="https://leetcode.com/..." value={formData.leetcode_profile} onChange={(e) => setFormData({ ...formData, leetcode_profile: e.target.value })} />
+                      <Code2 className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-orange-500 transition-colors" size={16} />
+                      <input required type="url" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-orange-500 outline-none text-text text-sm font-bold transition shadow-inner" placeholder="https://leetcode.com/..." value={formData.leetcode_profile} onChange={(e) => setFormData({ ...formData, leetcode_profile: e.target.value })} />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2 text-text flex items-center gap-2"><Github size={12}/> GitHub Repository Node</label>
+                  <div className="space-y-1.5">
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2 text-text flex items-center gap-1.5"><Github size={10}/> GitHub Repository</label>
                     <div className="relative group">
-                      <Github className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-text transition-colors" size={20} />
-                      <input required type="url" className="w-full bg-background border-2 border-border rounded-2xl py-5 pl-14 pr-6 focus:border-text outline-none text-text font-bold transition shadow-inner" placeholder="https://github.com/..." value={formData.github_profile} onChange={(e) => setFormData({ ...formData, github_profile: e.target.value })} />
+                      <Github className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-text transition-colors" size={16} />
+                      <input required type="url" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-text outline-none text-text text-sm font-bold transition shadow-inner" placeholder="https://github.com/..." value={formData.github_profile} onChange={(e) => setFormData({ ...formData, github_profile: e.target.value })} />
                     </div>
                   </div>
                 </motion.div>
@@ -222,71 +222,71 @@ const Register = () => {
               {step === 3 && (
                 <motion.div 
                   key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                  className="space-y-6"
+                  className="space-y-4"
                 >
                   {!isGuest ? (
                     <>
-                      <div className="space-y-2">
-                        <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Technological Skills (CSV)</label>
+                      <div className="space-y-1.5">
+                        <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Technological Skills (CSV)</label>
                         <div className="relative group">
-                          <Hash className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={20} />
-                          <input required type="text" className="w-full bg-background border-2 border-border rounded-2xl py-5 pl-14 pr-6 focus:border-accent outline-none text-text font-bold transition shadow-inner italic" placeholder="React, Node.js, Python, C++" value={formData.skills} onChange={(e) => setFormData({ ...formData, skills: e.target.value })} />
+                          <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={16} />
+                          <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner italic" placeholder="React, Node.js, Python" value={formData.skills} onChange={(e) => setFormData({ ...formData, skills: e.target.value })} />
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">About Your Persona</label>
-                        <textarea required rows={4} className="w-full bg-background border-2 border-border rounded-2xl py-5 px-8 focus:border-accent outline-none text-text font-medium text-lg transition shadow-inner resize-none italic" placeholder="Briefly define your technical focus and goals..." value={formData.about} onChange={(e) => setFormData({ ...formData, about: e.target.value })} />
+                      <div className="space-y-1.5">
+                        <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">About Your Persona</label>
+                        <textarea required rows={3} className="w-full bg-background border-2 border-border rounded-xl py-3.5 px-5 focus:border-accent outline-none text-text text-sm font-medium transition shadow-inner resize-none italic" placeholder="Define your technical focus..." value={formData.about} onChange={(e) => setFormData({ ...formData, about: e.target.value })} />
                       </div>
-                      <div className="space-y-2">
-                        <label className="block text-[10px] font-black text-text/40 uppercase tracking-widest ml-2">Technical Dossier (Resume PDF)</label>
+                      <div className="space-y-1.5">
+                        <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Resume PDF</label>
                         <div className="relative">
                             <input required type="file" accept="application/pdf" className="hidden" id="resume-upload" onChange={handleFileChange} />
-                            <label htmlFor="resume-upload" className="w-full flex items-center justify-between bg-background border-2 border-dashed border-border hover:border-accent rounded-2xl p-6 cursor-pointer transition-all group">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 bg-accent/5 rounded-xl text-accent group-hover:bg-accent group-hover:text-white transition-all"><FileText size={24} /></div>
+                            <label htmlFor="resume-upload" className="w-full flex items-center justify-between bg-background border-2 border-dashed border-border hover:border-accent rounded-xl p-4 cursor-pointer transition-all group">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-accent/5 rounded-lg text-accent group-hover:bg-accent group-hover:text-white transition-all"><FileText size={18} /></div>
                                     <div className="text-left">
-                                        <p className="text-sm font-black text-text uppercase tracking-widest">{resumeName || 'Select PDF Dossier'}</p>
-                                        <p className="text-[9px] font-bold text-text/30 uppercase tracking-[0.2em] mt-1">Maximum Size: 2MB | Format: PDF Only</p>
+                                        <p className="text-xs font-black text-text uppercase tracking-widest">{resumeName || 'Select PDF Dossier'}</p>
+                                        <p className="text-[7px] font-bold text-text/30 uppercase tracking-widest mt-0.5">Max 2MB | PDF Only</p>
                                     </div>
                                 </div>
-                                <Plus size={20} className="text-text/20 group-hover:text-accent" />
+                                <Plus size={16} className="text-text/20 group-hover:text-accent" />
                             </label>
                         </div>
                       </div>
                     </>
                   ) : (
-                    <div className="py-10 text-center space-y-4">
-                      <div className="w-20 h-20 bg-accent/10 rounded-3xl flex items-center justify-center mx-auto text-accent">
-                        <Sparkles size={40} />
+                    <div className="py-8 text-center space-y-3">
+                      <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto text-accent shadow-inner">
+                        <Sparkles size={32} />
                       </div>
-                      <h4 className="text-xl font-black text-text uppercase tracking-widest">Guest Access Ready</h4>
-                      <p className="text-text/50 text-sm font-medium italic">Guest accounts do not require technical dossiers or skill profiles. You're all set to join the community!</p>
+                      <h4 className="text-lg font-black text-text uppercase tracking-widest italic">Guest Ready</h4>
+                      <p className="text-text/50 text-xs font-medium italic">Guest accounts do not require extra technical profile data.</p>
                     </div>
                   )}
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <div className="flex gap-4 pt-6">
+            <div className="flex gap-3 pt-4">
               {step > 1 && (
-                <button type="button" onClick={() => setStep(step - 1)} className="flex-grow bg-card border border-border hover:bg-background text-text/60 font-black py-6 rounded-2xl flex items-center justify-center gap-3 transition uppercase tracking-widest text-xs shadow-sm">
-                  <ChevronLeft size={20} /> Back
+                <button type="button" onClick={() => setStep(step - 1)} className="flex-grow bg-card border border-border hover:bg-background text-text/60 font-black py-3.5 rounded-xl flex items-center justify-center gap-2 transition uppercase tracking-widest text-[10px] shadow-sm">
+                  <ChevronLeft size={16} /> Back
                 </button>
               )}
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-[2] bg-accent hover:bg-gfg-green-hover text-white font-black py-6 rounded-2xl flex items-center justify-center gap-3 transition shadow-xl shadow-accent/20 uppercase tracking-widest text-xs active:scale-[0.98] disabled:opacity-50"
+                className="flex-[2] bg-accent hover:bg-gfg-green-hover text-white font-black py-3.5 rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-accent/10 uppercase tracking-widest text-[10px] active:scale-[0.98] disabled:opacity-50"
               >
-                {loading ? 'Transmitting...' : step === 3 ? <><Send size={20} /> Submit Application</> : <><ChevronRight size={20} /> Continue Transition</>}
+                {loading ? 'Transmitting...' : step === 3 ? <><Send size={16} /> Submit</> : <><ChevronRight size={16} /> Continue</>}
               </button>
             </div>
           </form>
 
-          <div className="pt-8 border-t border-border/50 text-center">
-            <p className="text-text/40 font-bold text-[10px] uppercase tracking-widest italic">
-              Already a verified agent?{' '}
-              <Link to="/login" className="text-accent hover:underline font-black ml-1">Authenticate Identity</Link>
+          <div className="pt-6 border-t border-border/50 text-center">
+            <p className="text-text/40 font-bold text-[8px] uppercase tracking-widest italic">
+              Verified agent?{' '}
+              <Link to="/login" className="text-accent hover:underline font-black ml-1">Authenticate</Link>
             </p>
           </div>
         </div>

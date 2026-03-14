@@ -36,33 +36,33 @@ const PracticeHub = () => {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-12 pb-20">
+    <div className="container mx-auto px-4 py-6 space-y-8 pb-16 max-w-6xl">
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8"
+        className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6"
       >
-        <div className="space-y-2">
-          <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase italic">Practice <span className="text-accent">Hub</span></h1>
-          <p className="text-text/60 text-lg font-medium">Curated algorithmic challenges to sharpen your technical edge.</p>
+        <div className="space-y-1">
+          <h1 className="text-3xl md:text-4xl font-black text-text tracking-tighter uppercase italic">Practice <span className="text-accent">Hub</span></h1>
+          <p className="text-text/60 text-sm font-medium">Curated challenges to sharpen your edge.</p>
         </div>
         
-        <div className="flex flex-wrap gap-4 w-full lg:w-auto items-center">
+        <div className="flex flex-wrap gap-3 w-full lg:w-auto items-center">
           <button 
             onClick={() => fetchProblems(true)}
             disabled={loading}
-            className="bg-card border border-border hover:border-accent text-text/80 hover:text-accent px-6 py-3 rounded-2xl flex items-center gap-3 transition-all shadow-sm font-black uppercase text-xs tracking-widest disabled:opacity-50 active:scale-95 group"
+            className="bg-card border border-border hover:border-accent text-text/80 hover:text-accent px-4 py-2 rounded-xl flex items-center gap-2 transition-all shadow-sm font-black uppercase text-[10px] tracking-widest disabled:opacity-50 active:scale-95 group"
           >
-            <RefreshCw size={18} className={`${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
-            New Challenges
+            <RefreshCw size={14} className={`${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+            Refresh
           </button>
 
-          <div className="bg-card border border-border rounded-2xl p-1 flex items-center shadow-sm">
-            <div className="px-4 text-text/30 border-r border-border/50 mr-1"><Code2 size={20} /></div>
+          <div className="bg-card border border-border rounded-xl p-0.5 flex items-center shadow-sm">
+            <div className="px-3 text-text/30 border-r border-border/50 mr-1"><Code2 size={16} /></div>
             <select 
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="bg-transparent text-text text-xs font-black uppercase tracking-widest py-3 pr-6 pl-2 focus:outline-none cursor-pointer appearance-none"
+              className="bg-transparent text-text text-[10px] font-black uppercase tracking-widest py-2 pr-5 pl-1 focus:outline-none cursor-pointer appearance-none"
             >
               {languages.map(lang => (
                 <option key={lang.value} value={lang.value} className="bg-card text-text font-sans normal-case">{lang.name}</option>
@@ -70,12 +70,12 @@ const PracticeHub = () => {
             </select>
           </div>
 
-          <div className="bg-card border border-border rounded-2xl p-1.5 flex shadow-sm">
+          <div className="bg-card border border-border rounded-xl p-1 flex shadow-sm">
             {['All', 'Easy', 'Medium', 'Hard'].map((d) => (
               <button
                 key={d}
                 onClick={() => setDifficulty(d)}
-                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${difficulty === d ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'text-text/40 hover:text-accent hover:bg-accent/5'}`}
+                className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${difficulty === d ? 'bg-accent text-white shadow-md' : 'text-text/40 hover:text-accent hover:bg-accent/5'}`}
               >
                 {d}
               </button>
@@ -85,9 +85,9 @@ const PracticeHub = () => {
       </motion.div>
 
       {loading ? (
-        <div className="py-40 text-center space-y-4">
-          <div className="w-16 h-16 bg-accent/10 border-2 border-accent/20 border-t-accent rounded-full animate-spin mx-auto"></div>
-          <p className="text-accent font-black tracking-widest uppercase text-sm animate-pulse">Syncing Problem Matrix...</p>
+        <div className="py-32 text-center space-y-4">
+          <div className="w-12 h-12 bg-accent/10 border-2 border-accent/20 border-t-accent rounded-full animate-spin mx-auto"></div>
+          <p className="text-accent font-black tracking-[0.3em] uppercase text-xs animate-pulse">Syncing Matrix...</p>
         </div>
       ) : (
         <motion.div 
@@ -97,7 +97,7 @@ const PracticeHub = () => {
             hidden: { opacity: 0 },
             visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
           }}
-          className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-10"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-8"
         >
           {problems.length > 0 ? (
             problems.map((problem) => (
@@ -112,9 +112,9 @@ const PracticeHub = () => {
               </motion.div>
             ))
           ) : (
-            <div className="col-span-full py-40 bg-card rounded-[3rem] border-2 border-dashed border-border text-center text-text/30 shadow-inner">
-              <Filter size={80} className="mx-auto mb-6 opacity-5" />
-              <p className="text-2xl font-black uppercase tracking-widest">No Matches Found</p>
+            <div className="col-span-full py-32 bg-card rounded-3xl border-2 border-dashed border-border text-center text-text/30 shadow-inner">
+              <Filter size={64} className="mx-auto mb-4 opacity-5" />
+              <p className="text-xl font-black uppercase tracking-widest">No Matches Found</p>
             </div>
           )}
         </motion.div>

@@ -106,28 +106,28 @@ const Blog = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl space-y-12 pb-20">
+    <div className="container mx-auto px-4 py-6 max-w-6xl space-y-8 pb-16">
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-border pb-12"
+        className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-border pb-6"
       >
-        <div className="space-y-2">
-          <h1 className="text-5xl font-black text-text tracking-tighter uppercase italic">Club <span className="text-accent">Insights</span></h1>
-          <p className="text-text/60 text-lg font-medium italic">Deep dives into tech, algorithms, and campus activities.</p>
+        <div className="space-y-1">
+          <h1 className="text-3xl md:text-4xl font-black text-text tracking-tighter uppercase italic">Club <span className="text-accent">Insights</span></h1>
+          <p className="text-text/60 text-sm font-medium italic">Deep dives into tech and campus activities.</p>
         </div>
         {canPost && (
           <button 
             onClick={handleOpenCreate}
-            className="bg-accent hover:bg-gfg-green-hover text-white px-10 py-5 rounded-2xl font-black flex items-center gap-3 transition shadow-xl shadow-accent/20 text-lg uppercase tracking-widest active:scale-95"
+            className="bg-accent hover:bg-gfg-green-hover text-white px-6 py-2.5 rounded-xl font-black flex items-center gap-2 transition shadow-lg shadow-accent/10 text-[10px] uppercase tracking-widest active:scale-95"
           >
-            <Plus size={24} /> Write Entry
+            <Plus size={16} /> Write Entry
           </button>
         )}
       </motion.div>
 
       {loading ? (
-        <div className="py-32 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xl italic">Accessing Knowledge Archives...</div>
+        <div className="py-24 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xs italic">Accessing Archives...</div>
       ) : blogs.length > 0 ? (
         <motion.div 
             initial="hidden"
@@ -136,7 +136,7 @@ const Blog = () => {
                 hidden: { opacity: 0 },
                 visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
             }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-10"
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
           {blogs.map(blog => (
             <motion.div 
@@ -144,59 +144,59 @@ const Blog = () => {
                   hidden: { opacity: 0, y: 20 },
                   visible: { opacity: 1, y: 0 }
               }}
-              whileHover={{ y: -8, borderColor: 'var(--color-accent)' }}
+              whileHover={{ y: -4, borderColor: 'var(--color-accent)' }}
               key={blog.id} 
               onClick={() => navigate(`/blog/${blog.id}`)}
-              className="bg-card border border-border rounded-[2.5rem] p-10 flex flex-col transition-all cursor-pointer group shadow-sm hover:shadow-2xl"
+              className="bg-card border border-border rounded-3xl p-6 flex flex-col transition-all cursor-pointer group shadow-sm hover:shadow-xl"
             >
-              <div className="space-y-8 flex-grow">
+              <div className="space-y-6 flex-grow">
                 <div className="flex justify-between items-start">
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                         {blog.tags?.split(',').map((tag, i) => (
-                            <span key={i} className="text-[10px] font-black text-accent bg-accent/5 px-3 py-1 rounded-lg border border-accent/10 uppercase tracking-widest italic">#{tag.trim()}</span>
+                            <span key={i} className="text-[8px] font-black text-accent bg-accent/5 px-2 py-0.5 rounded-lg border border-accent/10 uppercase tracking-widest italic">#{tag.trim()}</span>
                         ))}
                     </div>
                     {canPost && (
-                        <div className="flex gap-2">
+                        <div className="flex gap-1.5">
                             {(user?.id === blog.author_id || user?.role === 'Admin') && (
-                                <button onClick={(e) => handleOpenEdit(e, blog)} className="p-2.5 bg-background border border-border rounded-xl text-text/40 hover:text-accent opacity-0 group-hover:opacity-100 transition-all shadow-sm active:scale-90">
-                                    <Edit size={16} />
+                                <button onClick={(e) => handleOpenEdit(e, blog)} className="p-1.5 bg-background border border-border rounded-lg text-text/40 hover:text-accent opacity-0 group-hover:opacity-100 transition-all shadow-sm active:scale-90">
+                                    <Edit size={14} />
                                 </button>
                             )}
-                            <button onClick={(e) => handleDelete(e, blog.id)} className="p-2.5 bg-background border border-border rounded-xl text-text/40 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all shadow-sm active:scale-90">
-                                <Trash2 size={16} />
+                            <button onClick={(e) => handleDelete(e, blog.id)} className="p-1.5 bg-background border border-border rounded-lg text-text/40 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all shadow-sm active:scale-90">
+                                <Trash2 size={14} />
                             </button>
                         </div>
                     )}
                 </div>
-                <div className="space-y-4">
-                    <h2 className="text-3xl font-black text-text group-hover:text-accent transition-colors leading-tight tracking-tight uppercase italic">{blog.title}</h2>
-                    <p className="text-text/60 line-clamp-3 leading-relaxed font-medium italic">
+                <div className="space-y-3">
+                    <h2 className="text-xl md:text-2xl font-black text-text group-hover:text-accent transition-colors leading-tight tracking-tight uppercase italic">{blog.title}</h2>
+                    <p className="text-text/60 text-xs line-clamp-2 leading-relaxed font-medium italic">
                         {stripHtml(blog.content)}
                     </p>
                 </div>
               </div>
-              <div className="mt-12 pt-8 border-t border-border/50 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Link to={`/profile/${blog.author_id}`} onClick={(e) => e.stopPropagation()} className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-base font-black text-accent border border-accent/20 shadow-inner overflow-hidden hover:bg-accent hover:text-white transition-all">
+              <div className="mt-8 pt-6 border-t border-border/50 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <Link to={`/profile/${blog.author_id}`} onClick={(e) => e.stopPropagation()} className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-sm font-black text-accent border border-accent/20 shadow-inner overflow-hidden hover:bg-accent hover:text-white transition-all">
                         {blog.author_pic ? <img src={blog.author_pic} className="w-full h-full object-cover" /> : blog.author_name[0]}
                     </Link>
                     <div>
-                        <Link to={`/profile/${blog.author_id}`} onClick={(e) => e.stopPropagation()} className="font-black text-text uppercase tracking-widest text-xs hover:text-accent transition-colors">{blog.author_name}</Link>
-                        <p className="text-[10px] text-text/30 font-bold uppercase tracking-widest mt-0.5">{new Date(blog.created_at).toLocaleDateString()}</p>
+                        <Link to={`/profile/${blog.author_id}`} onClick={(e) => e.stopPropagation()} className="font-black text-text uppercase tracking-widest text-[10px] hover:text-accent transition-colors">{blog.author_name}</Link>
+                        <p className="text-[8px] text-text/30 font-bold uppercase tracking-widest mt-0.5">{new Date(blog.created_at).toLocaleDateString()}</p>
                     </div>
                 </div>
-                <div className="text-accent font-black text-[10px] uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0 flex items-center gap-2">
-                    Read Insight <ChevronRight size={14} />
+                <div className="text-accent font-black text-[8px] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0 flex items-center gap-1.5">
+                    Read <ChevronRight size={12} />
                 </div>
               </div>
             </motion.div>
           ))}
         </motion.div>
       ) : (
-        <div className="py-40 text-center text-text/30 bg-card rounded-[3rem] border border-border border-dashed shadow-inner flex flex-col items-center justify-center space-y-6">
-          <BookOpen size={80} className="opacity-10" />
-          <p className="text-2xl font-black uppercase tracking-widest italic">No entries found.</p>
+        <div className="py-32 text-center text-text/30 bg-card rounded-3xl border border-border border-dashed shadow-inner flex flex-col items-center justify-center space-y-4">
+          <BookOpen size={64} className="opacity-10" />
+          <p className="text-xl font-black uppercase tracking-widest italic">No entries.</p>
         </div>
       )}
 

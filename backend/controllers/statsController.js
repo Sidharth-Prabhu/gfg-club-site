@@ -18,22 +18,17 @@ export const getCampusStats = async (req, res) => {
 };
 
 export const getUserActivity = async (req, res) => {
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   try {
     const userId = req.user.id;
-    // Get last 7 days of activity
+    // Get last 365 days of activity
     const [rows] = await pool.execute(
-      'SELECT DATE_FORMAT(activity_date, "%a") as name, problems_solved as solved FROM user_activity WHERE user_id = ? AND activity_date >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) ORDER BY activity_date ASC',
+      'SELECT DATE_FORMAT(activity_date, "%Y-%m-%d") as date, problems_solved as count FROM user_activity WHERE user_id = ? AND activity_date >= DATE_SUB(CURDATE(), INTERVAL 364 DAY) ORDER BY activity_date ASC',
       [userId]
     );
     
-    if (rows.length === 0) {
-      return res.json(days.map(d => ({ name: d, solved: 0 })));
-    }
-
     res.json(rows);
   } catch (error) {
-    console.error('Error fetching user activity (table might be missing):', error.message);
-    res.json(days.map(d => ({ name: d, solved: 0 })));
+    console.error('Error fetching user activity:', error.message);
+    res.json([]);
   }
 };

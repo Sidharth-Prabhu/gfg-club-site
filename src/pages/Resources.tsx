@@ -107,44 +107,44 @@ const Resources = () => {
   if (!user || !isApproved) return null;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-12 pb-20">
+    <div className="container mx-auto px-4 py-6 max-w-7xl space-y-8 pb-16">
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 border-b border-border pb-10"
+        className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-border pb-6"
       >
-        <div className="space-y-2">
-          <h1 className="text-4xl md:text-6xl font-black text-text tracking-tighter uppercase italic">Neural <span className="text-accent">Archives</span></h1>
-          <p className="text-text/40 font-black text-xs tracking-[0.3em] uppercase flex items-center gap-2 italic"><Zap size={14} className="text-accent" /> High-Fidelity Technical Intelligence</p>
+        <div className="space-y-1">
+          <h1 className="text-3xl md:text-4xl font-black text-text tracking-tighter uppercase italic">Neural <span className="text-accent">Archives</span></h1>
+          <p className="text-text/40 font-black text-[10px] tracking-[0.2em] uppercase flex items-center gap-2 italic"><Zap size={12} className="text-accent" /> High-Fidelity Intelligence</p>
         </div>
         
-        <div className="flex bg-card border border-border p-1.5 rounded-2xl shadow-inner">
-            <button onClick={() => setActiveTab('gfg')} className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'gfg' ? 'bg-accent text-white shadow-lg' : 'text-text/40 hover:text-text'}`}>GfG Synapse</button>
-            <button onClick={() => setActiveTab('archive')} className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'archive' ? 'bg-accent text-white shadow-lg' : 'text-text/40 hover:text-text'}`}>Global Nodes</button>
+        <div className="flex bg-card border border-border p-1 rounded-xl shadow-inner">
+            <button onClick={() => setActiveTab('gfg')} className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'gfg' ? 'bg-accent text-white shadow-md' : 'text-text/40 hover:text-text'}`}>GfG Synapse</button>
+            <button onClick={() => setActiveTab('archive')} className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'archive' ? 'bg-accent text-white shadow-md' : 'text-text/40 hover:text-text'}`}>Global Nodes</button>
         </div>
       </motion.div>
 
       {activeTab === 'gfg' ? (
-        <div className="space-y-12">
+        <div className="space-y-8">
             {!isApproved ? (
-                <div className="py-40 text-center bg-accent/5 rounded-[4rem] border border-accent/20 space-y-6">
-                    <div className="p-8 bg-card border border-border rounded-[2.5rem] shadow-xl inline-block">
-                        <ShieldCheck size={64} className="text-accent opacity-20" />
+                <div className="py-24 text-center bg-accent/5 rounded-3xl border border-accent/20 space-y-4">
+                    <div className="p-6 bg-card border border-border rounded-2xl shadow-lg inline-block">
+                        <Bookmark size={48} className="text-accent opacity-20" />
                     </div>
-                    <div className="space-y-2">
-                        <h3 className="text-3xl font-black text-text uppercase italic tracking-tighter">Authority Required</h3>
-                        <p className="text-text/40 text-sm font-medium uppercase tracking-widest max-w-md mx-auto italic px-10">Direct GfG Synapse queries are restricted to Approved Core Agents only. Synchronize your status to access this sector.</p>
+                    <div className="space-y-1">
+                        <h3 className="text-2xl font-black text-text uppercase italic tracking-tighter">Authority Required</h3>
+                        <p className="text-text/40 text-xs font-medium uppercase tracking-widest max-w-md mx-auto italic px-8">Queries restricted to Approved Core Agents. Synchronize status to access.</p>
                     </div>
                 </div>
             ) : !selectedArticle ? (
                 <>
-                    <div className="flex flex-col md:flex-row gap-6">
+                    <div className="flex flex-col md:flex-row gap-4">
                         <div className="relative flex-grow group">
-                            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={24} />
+                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" size={20} />
                             <input 
                                 type="text" 
                                 placeholder="Query GfG Mainframe..." 
-                                className="w-full bg-card border-2 border-border rounded-3xl py-6 pl-16 pr-8 focus:border-accent outline-none transition shadow-xl text-text font-black text-xl italic"
+                                className="w-full bg-card border-2 border-border rounded-2xl py-4 pl-14 pr-6 focus:border-accent outline-none transition shadow-lg text-text font-black text-lg italic"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleGfgSearch(searchQuery)}
@@ -152,12 +152,12 @@ const Resources = () => {
                         </div>
                     </div>
 
-                    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                         {gfgCategories.map(cat => (
                             <button 
                                 key={cat}
                                 onClick={() => handleGfgSearch(cat)}
-                                className="px-8 py-4 bg-card border border-border rounded-2xl text-[10px] font-black uppercase tracking-widest text-text/40 hover:border-accent hover:text-accent transition-all whitespace-nowrap shadow-sm active:scale-95"
+                                className="px-5 py-2.5 bg-card border border-border rounded-xl text-[9px] font-black uppercase tracking-widest text-text/40 hover:border-accent hover:text-accent transition-all whitespace-nowrap shadow-sm active:scale-95"
                             >
                                 # {cat}
                             </button>
@@ -165,70 +165,70 @@ const Resources = () => {
                     </div>
 
                     {loading ? (
-                        <div className="py-40 text-center space-y-6">
-                            <Loader2 size={64} className="mx-auto text-accent animate-spin opacity-20" />
-                            <p className="text-accent font-black tracking-[0.3em] uppercase italic animate-pulse">Establishing Neural Link...</p>
+                        <div className="py-24 text-center space-y-4">
+                            <Loader2 size={48} className="mx-auto text-accent animate-spin opacity-20" />
+                            <p className="text-accent font-black tracking-[0.3em] uppercase italic text-xs animate-pulse">Establishing Link...</p>
                         </div>
                     ) : searchResults.length > 0 ? (
-                        <motion.div initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <motion.div initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {searchResults.map((res, i) => (
                                 <motion.div 
                                     variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
                                     key={i}
                                     onClick={() => handleFetchArticle(res.link)}
-                                    className="bg-card border border-border p-8 rounded-[2.5rem] hover:border-accent transition-all cursor-pointer group shadow-sm flex flex-col justify-between gap-6"
+                                    className="bg-card border border-border p-6 rounded-3xl hover:border-accent transition-all cursor-pointer group shadow-sm flex flex-col justify-between gap-4"
                                 >
-                                    <div className="space-y-4">
+                                    <div className="space-y-3">
                                         <div className="flex justify-between items-start">
-                                            <div className="p-3 bg-accent/5 rounded-xl text-accent border border-accent/10"><Terminal size={20}/></div>
-                                            <div className="text-[8px] font-black text-text/20 uppercase tracking-[0.3em]">Synapse #{i+1}</div>
+                                            <div className="p-2.5 bg-accent/5 rounded-xl text-accent border border-accent/10"><Terminal size={18}/></div>
+                                            <div className="text-[7px] font-black text-text/20 uppercase tracking-widest">Synapse #{i+1}</div>
                                         </div>
-                                        <h3 className="text-2xl font-black text-text leading-tight group-hover:text-accent transition-colors uppercase italic">{res.title}</h3>
-                                        <p className="text-text/40 text-sm font-medium line-clamp-2 italic">{res.snippet}</p>
+                                        <h3 className="text-xl font-black text-text leading-tight group-hover:text-accent transition-colors uppercase italic">{res.title}</h3>
+                                        <p className="text-text/40 text-xs font-medium line-clamp-2 italic">{res.snippet}</p>
                                     </div>
-                                    <div className="flex items-center gap-2 text-[10px] font-black text-accent uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
-                                        Load Neural Data <ArrowRight size={14} />
+                                    <div className="flex items-center gap-1.5 text-[9px] font-black text-accent uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0">
+                                        Load Neural Data <ArrowRight size={12} />
                                     </div>
                                 </motion.div>
                             ))}
                         </motion.div>
                     ) : (
-                        <div className="py-40 text-center bg-card/20 rounded-[4rem] border-2 border-dashed border-border flex flex-col items-center justify-center space-y-6">
-                            <div className="p-8 bg-background border border-border rounded-[2.5rem] shadow-inner">
-                                <Cpu size={80} className="text-text/10" />
+                        <div className="py-24 text-center bg-card/20 rounded-3xl border-2 border-dashed border-border flex flex-col items-center justify-center space-y-4">
+                            <div className="p-6 bg-background border border-border rounded-2xl shadow-inner">
+                                <Cpu size={64} className="text-text/10" />
                             </div>
-                            <p className="text-2xl font-black text-text/20 uppercase tracking-[0.2em] italic">Archive Sector Offline</p>
+                            <p className="text-xl font-black text-text/20 uppercase tracking-widest italic">Sector Offline</p>
                         </div>
                     )}
                 </>
             ) : (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
                     <button 
                         onClick={() => setSelectedArticle(null)} 
-                        className="flex items-center gap-3 text-text/60 bg-card hover:bg-background px-8 py-4 rounded-2xl border border-border transition-all font-black uppercase text-xs tracking-widest active:scale-95 shadow-sm"
+                        className="flex items-center gap-2 text-text/60 bg-card hover:bg-background px-5 py-2.5 rounded-xl border border-border transition-all font-black uppercase text-[10px] tracking-widest active:scale-95 shadow-sm"
                     >
-                        <ArrowLeft size={18} /> Terminate Link
+                        <ArrowLeft size={16} /> Terminate Link
                     </button>
 
-                    <div className="bg-card border border-border rounded-[3rem] p-10 md:p-20 shadow-2xl space-y-12 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-[100px] -mr-48 -mt-48"></div>
-                        <div className="space-y-6 relative z-10">
-                            <div className="flex items-center gap-4">
-                                <span className="bg-accent/10 text-accent text-[10px] font-black px-5 py-2 rounded-full border border-accent/20 tracking-widest uppercase backdrop-blur-md italic">Neural Stream</span>
-                                <span className="text-[10px] font-black text-text/20 uppercase tracking-widest">Source: GeeksforGeeks Mainframe</span>
+                    <div className="bg-card border border-border rounded-3xl p-8 md:p-12 shadow-2xl space-y-8 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-[80px] -mr-32 -mt-32"></div>
+                        <div className="space-y-4 relative z-10">
+                            <div className="flex items-center gap-3">
+                                <span className="bg-accent/10 text-accent text-[8px] font-black px-3 py-1 rounded-full border border-accent/20 tracking-widest uppercase backdrop-blur-md italic">Neural Stream</span>
+                                <span className="text-[8px] font-black text-text/20 uppercase tracking-widest italic">Source: Mainframe</span>
                             </div>
-                            <h2 className="text-4xl md:text-7xl font-black text-text leading-tight tracking-tighter uppercase italic">{selectedArticle.title}</h2>
+                            <h2 className="text-3xl md:text-5xl font-black text-text leading-tight tracking-tighter uppercase italic">{selectedArticle.title}</h2>
                         </div>
 
                         {articleLoading ? (
-                            <div className="py-40 text-center space-y-6">
-                                <Loader2 size={64} className="mx-auto text-accent animate-spin opacity-20" />
-                                <p className="text-accent font-black tracking-[0.3em] uppercase italic">Decrypting Intelligence Data...</p>
+                            <div className="py-24 text-center space-y-4">
+                                <Loader2 size={48} className="mx-auto text-accent animate-spin opacity-20" />
+                                <p className="text-accent font-black tracking-[0.3em] uppercase italic text-xs">Decrypting...</p>
                             </div>
                         ) : (
                             <motion.div 
                                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                                className="prose prose-accent dark:prose-invert max-w-none text-text/80 text-xl leading-[1.8] font-medium ql-editor !p-0 italic relative z-10" 
+                                className="prose prose-accent dark:prose-invert max-w-none text-text/80 text-lg leading-[1.7] font-medium ql-editor !p-0 italic relative z-10" 
                                 dangerouslySetInnerHTML={{ __html: selectedArticle.content }} 
                             />
                         )}
@@ -237,14 +237,14 @@ const Resources = () => {
             )}
         </div>
       ) : (
-        <div className="space-y-12">
-            <div className="flex flex-col md:flex-row justify-between items-end gap-6">
-                <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide flex-grow">
+        <div className="space-y-8">
+            <div className="flex flex-col md:flex-row justify-between items-end gap-4">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide flex-grow">
                     {categories.map(cat => (
                         <button 
                             key={cat}
                             onClick={() => setArchiveCategory(cat)}
-                            className={`px-8 py-4 rounded-2xl text-[10px] font-black border transition-all uppercase tracking-widest whitespace-nowrap shadow-sm ${archiveCategory === cat ? 'bg-accent border-accent text-white shadow-lg' : 'bg-card border-border text-text/40 hover:border-accent/40 hover:text-accent'}`}
+                            className={`px-5 py-2.5 rounded-xl text-[9px] font-black border transition-all uppercase tracking-widest whitespace-nowrap shadow-sm ${archiveCategory === cat ? 'bg-accent border-accent text-white shadow-md' : 'bg-card border-border text-text/40 hover:border-accent/40 hover:text-accent'}`}
                         >
                             {cat}
                         </button>
@@ -253,46 +253,46 @@ const Resources = () => {
                 {canManage && (
                     <button 
                         onClick={() => setIsModalOpen(true)}
-                        className="bg-accent hover:bg-gfg-green-hover text-white px-10 py-5 rounded-[1.5rem] font-black flex items-center gap-3 transition shadow-xl shadow-accent/20 text-xs uppercase tracking-widest active:scale-95"
+                        className="bg-accent hover:bg-gfg-green-hover text-white px-6 py-2.5 rounded-xl font-black flex items-center gap-2 transition shadow-lg shadow-accent/10 text-[10px] uppercase tracking-widest active:scale-95"
                     >
-                        <Plus size={24} /> Deploy Node
+                        <Plus size={18} /> Deploy Node
                     </button>
                 )}
             </div>
 
             {loading ? (
-                <div className="py-40 text-center text-accent font-black tracking-widest uppercase animate-pulse">Accessing Archives...</div>
+                <div className="py-24 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xs">Accessing Archives...</div>
             ) : resources.length > 0 ? (
-                <motion.div initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <motion.div initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {resources.map(res => (
-                        <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }} whileHover={{ y: -8, borderColor: 'var(--color-accent)' }} key={res.id} className="bg-card border border-border rounded-[2.5rem] p-10 transition-all flex flex-col group shadow-sm hover:shadow-2xl" >
-                            <div className="flex justify-between items-start mb-10">
-                                <div className="p-5 rounded-2xl bg-accent/5 text-accent border border-accent/10 group-hover:bg-accent group-hover:text-white transition-all duration-500 shadow-inner">
-                                    <Bookmark size={28} />
+                        <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }} whileHover={{ y: -4, borderColor: 'var(--color-accent)' }} key={res.id} className="bg-card border border-border rounded-3xl p-6 transition-all flex flex-col group shadow-sm hover:shadow-xl" >
+                            <div className="flex justify-between items-start mb-6">
+                                <div className="p-3 rounded-xl bg-accent/5 text-accent border border-accent/10 group-hover:bg-accent group-hover:text-white transition-all duration-500 shadow-inner">
+                                    <Bookmark size={20} />
                                 </div>
                                 {canManage && (
-                                    <button onClick={() => handleDelete(res.id)} className="p-3 bg-background border border-border rounded-xl text-text/40 hover:text-red-500 transition-colors shadow-sm active:scale-90">
-                                        <Trash2 size={20} />
+                                    <button onClick={() => handleDelete(res.id)} className="p-2 bg-background border border-border rounded-lg text-text/40 hover:text-red-500 transition-colors shadow-sm active:scale-90">
+                                        <Trash2 size={16} />
                                     </button>
                                 )}
                             </div>
-                            <div className="flex-grow space-y-4 mb-12">
-                                <div className="text-[9px] font-black text-accent uppercase tracking-[0.3em] italic">{res.category}</div>
-                                <h3 className="text-3xl font-black text-text leading-tight group-hover:text-accent transition-colors tracking-tighter uppercase italic">{res.title}</h3>
-                                <p className="text-text/50 text-sm leading-relaxed font-medium line-clamp-3 italic">{res.description}</p>
+                            <div className="flex-grow space-y-2 mb-8">
+                                <div className="text-[7px] font-black text-accent uppercase tracking-[0.2em] italic">{res.category}</div>
+                                <h3 className="text-xl font-black text-text leading-tight group-hover:text-accent transition-colors tracking-tight uppercase italic">{res.title}</h3>
+                                <p className="text-text/50 text-xs leading-relaxed font-medium line-clamp-3 italic">{res.description}</p>
                             </div>
-                            <a href={res.link} target="_blank" rel="noopener noreferrer" className="w-full py-6 bg-background border border-border rounded-[1.5rem] flex items-center justify-center gap-4 text-text/60 font-black text-xs uppercase tracking-[0.2em] hover:border-accent hover:text-accent transition-all shadow-inner group/link active:scale-[0.98]">
-                                Sync Neural Node <ExternalLink size={18} className="group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
+                            <a href={res.link} target="_blank" rel="noopener noreferrer" className="w-full py-3.5 bg-background border border-border rounded-xl flex items-center justify-center gap-3 text-text/60 font-black text-[10px] uppercase tracking-widest hover:border-accent hover:text-accent transition-all shadow-inner group/link active:scale-[0.98]">
+                                Sync Neural Node <ExternalLink size={14} className="group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
                             </a>
                         </motion.div>
                     ))}
                 </motion.div>
             ) : (
-                <div className="py-40 text-center text-text/30 bg-card rounded-[4rem] border border-border border-dashed shadow-inner flex flex-col items-center justify-center space-y-6">
-                    <div className="p-10 bg-background border border-border rounded-[3rem] shadow-inner">
-                        <Link2 size={80} className="opacity-10" />
+                <div className="py-24 text-center text-text/30 bg-card rounded-3xl border border-border border-dashed shadow-inner flex flex-col items-center justify-center space-y-4">
+                    <div className="p-6 bg-background border border-border rounded-2xl shadow-inner">
+                        <Link2 size={64} className="opacity-10" />
                     </div>
-                    <p className="text-2xl font-black uppercase tracking-[0.2em] italic">No Global Nodes Found</p>
+                    <p className="text-xl font-black uppercase tracking-widest italic">No Global Nodes</p>
                 </div>
             )}
         </div>

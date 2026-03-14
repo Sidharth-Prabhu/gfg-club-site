@@ -29,55 +29,55 @@ const Navbar = () => {
   ].filter(link => !link.restricted || (user && user.role !== 'Guest'));
 
   return (
-    <nav className="bg-card border-b border-border sticky top-0 z-50 px-4 py-3 shadow-sm transition-colors duration-300">
+    <nav className="bg-card border-b border-border sticky top-0 z-50 px-4 py-2 shadow-sm transition-colors duration-300">
       <div className="container mx-auto flex justify-between items-center">
         <Link to="/" className="flex items-center group">
           <img 
             src={theme === 'dark' ? "/src/assets/GfG_darkmode.png" : "/src/assets/GfG_lightmode.png"} 
             alt="GfG RIT Logo" 
-            className="h-8 md:h-10 w-auto object-contain transition-transform group-hover:scale-105" 
+            className="h-7 md:h-8 w-auto object-contain transition-transform group-hover:scale-105" 
           />
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden lg:flex items-center gap-6 text-text/80 font-medium">
+        <div className="hidden lg:flex items-center gap-5 text-text/80 font-medium text-sm">
           {navLinks.map((link) => (
             <Link key={link.to} to={link.to} className="hover:text-accent flex items-center gap-1 transition-colors">
-              <link.icon size={18} /> {link.label}
+              <link.icon size={16} /> {link.label}
             </Link>
           ))}
         </div>
 
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button 
             onClick={toggleTheme} 
-            className="p-2 rounded-full hover:bg-background transition-colors text-text"
+            className="p-1.5 rounded-full hover:bg-background transition-colors text-text"
             aria-label="Toggle Theme"
           >
-            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
 
-          <div className="hidden sm:flex items-center gap-4 border-l border-border pl-4">
+          <div className="hidden sm:flex items-center gap-3 border-l border-border pl-3">
             {user ? (
               <>
-                <Link to="/dashboard" className="text-text hover:text-accent flex items-center gap-2 transition-colors">
-                  <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center overflow-hidden border border-accent/20">
+                <Link to="/dashboard" className="text-text hover:text-accent flex items-center gap-2 transition-colors text-sm">
+                  <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center overflow-hidden border border-accent/20">
                     {user.profile_pic ? (
                         <img src={user.profile_pic} className="w-full h-full object-cover" alt="" />
                     ) : (
-                        <LayoutDashboard size={18} />
+                        <LayoutDashboard size={14} />
                     )}
                   </div>
                   <span className="hidden xl:inline">Dashboard</span>
                 </Link>
                 <button onClick={handleLogout} className="text-text hover:text-red-500 transition-colors">
-                  <LogOut size={20} />
+                  <LogOut size={18} />
                 </button>
               </>
             ) : (
               <>
-                <Link to="/login" className="text-text hover:text-accent font-medium">Login</Link>
-                <Link to="/register" className="bg-accent hover:bg-gfg-green-hover text-white px-5 py-2 rounded-lg font-bold transition-all shadow-md hover:shadow-lg">Sign Up</Link>
+                <Link to="/login" className="text-text hover:text-accent font-medium text-sm">Login</Link>
+                <Link to="/register" className="bg-accent hover:bg-gfg-green-hover text-white px-4 py-1.5 rounded-lg font-bold transition-all shadow-md hover:shadow-lg text-sm">Sign Up</Link>
               </>
             )}
           </div>

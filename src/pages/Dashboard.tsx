@@ -5,9 +5,8 @@ import StatsCard from '../components/StatsCard';
 import { 
   User, Code, Trophy, Star, Settings, ExternalLink, 
   Github, Link as LinkIcon, Zap, Terminal, RefreshCw, X, Save,
-  ShieldAlert, Shield, BookOpen, Book, FileText, Monitor, ChevronRight, MessageSquare, Plus, ArrowLeft, Hash, Sparkles, TrendingUp, UserPlus, Check, Trash2, Calendar, Edit3, Globe, Mail, Code2
+  ShieldAlert, Shield, BookOpen, Book, FileText, Monitor, ChevronRight, MessageSquare, Plus, ArrowLeft, Hash, Sparkles, TrendingUp, UserPlus, Check, Trash2, Calendar, Edit3, Globe, Mail, Code2, AlignLeft, Users
 } from 'lucide-react';
-import { CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -23,6 +22,7 @@ const Dashboard = () => {
   const [groupRequests, setGroupRequests] = useState([]);
   const [userApplicants, setUserApplicants] = useState([]);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
   const [invitations, setInvitations] = useState([]);
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -157,6 +157,15 @@ const Dashboard = () => {
     }
   };
 
+  const handleModerateProject = async (projectId, status) => {
+    try {
+        await api.put(`/projects/${projectId}/status`, { status });
+        fetchData();
+    } catch (error) {
+        alert(`${status} failed`);
+    }
+  };
+
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
@@ -205,83 +214,109 @@ const Dashboard = () => {
       }
   };
 
+  const contributionData = useMemo(() => {
+    const days = 365;
+    const data = [];
+    const today = new Date();
+    
+    // Fill with empty days first
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const activity = activityData.find(a => a.date === dateStr);
+      data.push({
+        date: dateStr,
+        count: activity ? activity.count : 0
+      });
+    }
+    return data;
+  }, [activityData]);
+
+  const getColorLevel = (count) => {
+    if (count === 0) return 'bg-border/30';
+    if (count <= 2) return 'bg-accent/20';
+    if (count <= 5) return 'bg-accent/40';
+    if (count <= 10) return 'bg-accent/70';
+    return 'bg-accent';
+  };
+
   const isGuest = user?.role === 'Guest';
 
   if (loading) return <div className="text-center py-40 text-accent font-black tracking-[0.3em] uppercase animate-pulse text-xl italic">Synchronizing Terminal...</div>;
 
   if (isGuest) {
     return (
-      <div className="container mx-auto px-4 py-8 space-y-12 max-w-7xl pb-20">
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 border-b border-border pb-10">
-          <div className="space-y-2">
-            <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase italic">Guest <span className="text-accent">Console</span>: {profile?.name}</h1>
-            <p className="text-text/40 font-black text-xs tracking-[0.3em] uppercase flex items-center gap-2"><Globe size={14} className="text-blue-500" /> Public Node Access - Event Participation Track</p>
+      <div className="container mx-auto px-4 py-6 space-y-8 max-w-7xl pb-16">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 border-b border-border pb-6">
+          <div className="space-y-1">
+            <h1 className="text-3xl md:text-4xl font-black text-text tracking-tighter uppercase italic">Guest <span className="text-accent">Console</span>: {profile?.name}</h1>
+            <p className="text-text/40 font-black text-[10px] tracking-[0.2em] uppercase flex items-center gap-2"><Globe size={12} className="text-blue-500" /> Public Node Access - Event Participation Track</p>
           </div>
-          <button onClick={() => setIsEditModalOpen(true)} className="bg-card border border-border px-8 py-4 rounded-2xl font-black flex items-center gap-3 hover:border-accent transition text-text/60 hover:text-accent text-xs uppercase tracking-widest shadow-sm active:scale-95">
-            <Settings size={20} /> Identity Config
+          <button onClick={() => setIsEditModalOpen(true)} className="bg-card border border-border px-5 py-2.5 rounded-xl font-black flex items-center gap-2 hover:border-accent transition text-text/60 hover:text-accent text-[10px] uppercase tracking-widest shadow-sm active:scale-95">
+            <Settings size={16} /> Identity Config
           </button>
         </motion.div>
 
         {/* Invitations Queue - CRITICAL FOR GUESTS */}
         <AnimatePresence>
             {invitations.length > 0 ? (
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-blue-500/5 border border-blue-500/20 p-8 rounded-[2.5rem] shadow-xl space-y-6">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-blue-500/10 rounded-xl text-blue-500 border border-blue-500/20"><UserPlus size={24} /></div>
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-blue-500/5 border border-blue-500/20 p-6 rounded-3xl shadow-xl space-y-6">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-blue-500/10 rounded-xl text-blue-500 border border-blue-500/20"><UserPlus size={20} /></div>
                         <h2 className="text-2xl font-black text-text uppercase tracking-tight italic">Team Requests</h2>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {invitations.map(inv => (
-                            <div key={inv.reg_id} className="bg-card border border-border p-6 rounded-2xl space-y-4 shadow-sm hover:border-blue-500/50 transition-colors">
+                            <div key={inv.reg_id} className="bg-card border border-border p-5 rounded-2xl space-y-4 shadow-sm hover:border-blue-500/50 transition-colors">
                                 <div>
-                                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Invitation Received</p>
-                                    <h4 className="font-black text-text uppercase italic">{inv.team_name}</h4>
-                                    <p className="text-[9px] font-bold text-text/40 uppercase tracking-widest mt-1">Event: {inv.event_title}</p>
-                                    <p className="text-[9px] font-bold text-text/40 uppercase tracking-widest">Inviter: {inv.inviter_name}</p>
+                                    <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-1">Invitation Received</p>
+                                    <h4 className="font-black text-text text-lg uppercase italic">{inv.team_name}</h4>
+                                    <p className="text-[8px] font-bold text-text/40 uppercase tracking-widest mt-1">Event: {inv.event_title}</p>
+                                    <p className="text-[8px] font-bold text-text/40 uppercase tracking-widest">Inviter: {inv.inviter_name}</p>
                                 </div>
-                                <div className="flex gap-3">
-                                    <button onClick={() => handleRespondInv(inv.reg_id, 'Accepted')} className="flex-1 bg-accent/10 hover:bg-accent text-accent hover:text-white border border-accent/20 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">Accept</button>
-                                    <button onClick={() => handleRespondInv(inv.reg_id, 'Declined')} className="flex-1 bg-red-500/5 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/10 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">Decline</button>
+                                <div className="flex gap-2">
+                                    <button onClick={() => handleRespondInv(inv.reg_id, 'Accepted')} className="flex-1 bg-accent/10 hover:bg-accent text-accent hover:text-white border border-accent/20 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">Accept</button>
+                                    <button onClick={() => handleRespondInv(inv.reg_id, 'Declined')} className="flex-1 bg-red-500/5 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/10 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">Decline</button>
                                 </div>
                             </div>
                         ))}
                     </div>
                 </motion.div>
             ) : (
-                <div className="py-20 text-center bg-card rounded-[3rem] border border-border border-dashed">
-                    <UserPlus size={48} className="mx-auto mb-4 opacity-10" />
-                    <p className="text-text/30 font-black tracking-widest uppercase text-sm italic">No pending team transmissions.</p>
+                <div className="py-12 text-center bg-card rounded-3xl border border-border border-dashed">
+                    <UserPlus size={32} className="mx-auto mb-3 opacity-10" />
+                    <p className="text-text/30 font-black tracking-widest uppercase text-xs italic">No pending team transmissions.</p>
                 </div>
             )}
         </AnimatePresence>
 
         {/* Missions Section */}
-        <div className="bg-card border border-border p-10 rounded-[3rem] shadow-sm">
-            <div className="flex items-center gap-4 mb-10">
-                <Calendar size={28} className="text-accent" />
-                <h2 className="text-3xl font-black text-text uppercase tracking-tighter italic">Participating In</h2>
+        <div className="bg-card border border-border p-6 rounded-3xl shadow-sm">
+            <div className="flex items-center gap-3 mb-6">
+                <Calendar size={20} className="text-accent" />
+                <h2 className="text-2xl font-black text-text uppercase tracking-tighter italic">Participating In</h2>
             </div>
             {registrations.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {registrations.map(reg => (
-                        <Link key={reg.reg_id} to={`/events/${reg.event_id}`} className="flex items-center justify-between p-8 bg-background/50 border border-border rounded-[2rem] hover:border-accent transition-all group">
-                            <div className="flex items-center gap-6">
-                                <div className="w-16 h-16 rounded-2xl overflow-hidden border border-border group-hover:border-accent transition-colors">
-                                    {reg.poster ? <img src={reg.poster} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-accent/5 flex items-center justify-center text-accent/20"><Calendar /></div>}
+                        <Link key={reg.reg_id} to={`/events/${reg.event_id}`} className="flex items-center justify-between p-5 bg-background/50 border border-border rounded-2xl hover:border-accent transition-all group">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl overflow-hidden border border-border group-hover:border-accent transition-colors">
+                                    {reg.poster ? <img src={reg.poster} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-accent/5 flex items-center justify-center text-accent/20"><Calendar size={16}/></div>}
                                 </div>
                                 <div>
-                                    <h4 className="font-black text-text text-xl group-hover:text-accent transition-colors uppercase italic tracking-tight">{reg.title}</h4>
-                                    <p className="text-[10px] font-black text-text/40 uppercase tracking-widest mt-2">{reg.team_name ? `Team: ${reg.team_name}` : 'Individual'}</p>
+                                    <h4 className="font-black text-text text-lg group-hover:text-accent transition-colors uppercase italic tracking-tight">{reg.title}</h4>
+                                    <p className="text-[9px] font-black text-text/40 uppercase tracking-widest mt-1">{reg.team_name ? `Team: ${reg.team_name}` : 'Individual'}</p>
                                 </div>
                             </div>
-                            <ChevronRight size={20} className="text-text/20 group-hover:text-accent transition-all" />
+                            <ChevronRight size={18} className="text-text/20 group-hover:text-accent transition-all" />
                         </Link>
                     ))}
                 </div>
             ) : (
-                <div className="py-20 text-center bg-background/30 rounded-[2.5rem] border-2 border-dashed border-border">
-                    <p className="text-text/30 font-black tracking-widest uppercase text-sm">Join an event to start your journey.</p>
-                    <Link to="/events" className="text-accent font-black text-xs uppercase tracking-widest mt-4 inline-block hover:underline">Browse Event Matrix</Link>
+                <div className="py-12 text-center bg-background/30 rounded-2xl border-2 border-dashed border-border">
+                    <p className="text-text/30 font-black tracking-widest uppercase text-xs italic">Join an event to start your journey.</p>
                 </div>
             )}
         </div>
@@ -289,7 +324,7 @@ const Dashboard = () => {
         {/* Config Modal Still Available */}
         <AnimatePresence>
             {isEditModalOpen && (
-              /* Config Modal JSX remains same and is already handled */
+              /* Config Modal JSX handled at bottom */
               null 
             )}
         </AnimatePresence>
@@ -298,50 +333,49 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-12 max-w-7xl pb-20">
+    <div className="container mx-auto px-4 py-6 space-y-8 max-w-7xl pb-16">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 border-b border-border pb-10">
-        <div className="space-y-2">
-          <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase italic">Terminal <span className="text-accent">Node</span>: {profile?.name}</h1>
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 border-b border-border pb-6">
+        <div className="space-y-1">
+          <h1 className="text-2xl md:text-3xl font-black text-text tracking-tighter uppercase italic">Terminal <span className="text-accent">Node</span>: {profile?.name}</h1>
           <div className="flex items-center gap-3">
-            <p className="text-text/40 font-black text-xs tracking-[0.3em] uppercase flex items-center gap-2"><Sparkles size={14} className="text-accent" /> Control Center & Core Identity</p>
-            {profile && <span className="bg-accent/10 text-accent text-[8px] font-black px-2 py-0.5 rounded border border-accent/20 uppercase tracking-widest">{profile.role} Authority</span>}
+            <p className="text-text/40 font-black text-[9px] tracking-[0.2em] uppercase flex items-center gap-1.5"><Sparkles size={12} className="text-accent" /> Control Center & Core Identity</p>
+            {profile && <span className="bg-accent/10 text-accent text-[7px] font-black px-1.5 py-0.5 rounded border border-accent/20 uppercase tracking-widest">{profile.role}</span>}
           </div>
         </div>
-        <div className="flex flex-wrap gap-4 w-full lg:w-auto">
-          <Link to="/community?new=true" className="flex-1 lg:flex-none bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-3 transition shadow-xl shadow-blue-500/20 text-xs uppercase tracking-widest active:scale-95">
-            <Plus size={20} /> New Discussion
+        <div className="flex flex-wrap gap-3 w-full lg:w-auto">
+          <Link to="/community?new=true" className="flex-1 lg:flex-none bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-black flex items-center justify-center gap-2 transition shadow-lg shadow-blue-500/10 text-[9px] uppercase tracking-widest active:scale-95">
+            <Plus size={14} /> Discussion
           </Link>
-          <button onClick={() => handleSync(false)} disabled={syncing} className="flex-1 lg:flex-none bg-accent hover:bg-gfg-green-hover text-white px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-3 transition shadow-xl shadow-accent/20 text-xs uppercase tracking-widest active:scale-95 disabled:opacity-50">
-            <RefreshCw size={20} className={syncing ? 'animate-spin' : ''} /> Sync Matrix
+          <button onClick={() => handleSync(false)} disabled={syncing} className="flex-1 lg:flex-none bg-accent hover:bg-gfg-green-hover text-white px-4 py-2 rounded-xl font-black flex items-center justify-center gap-2 transition shadow-lg shadow-accent/10 text-[9px] uppercase tracking-widest active:scale-95 disabled:opacity-50">
+            <RefreshCw size={14} className={syncing ? 'animate-spin' : ''} /> Sync
           </button>
-          <button onClick={() => setIsEditModalOpen(true)} className="flex-1 lg:flex-none bg-card border border-border px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-3 hover:border-accent transition text-text/60 hover:text-accent text-xs uppercase tracking-widest shadow-sm active:scale-95">
-            <Settings size={20} /> Config
+          <button onClick={() => setIsEditModalOpen(true)} className="flex-1 lg:flex-none bg-card border border-border px-4 py-2 rounded-xl font-black flex items-center justify-center gap-2 hover:border-accent transition text-text/60 hover:text-accent text-[9px] uppercase tracking-widest shadow-sm active:scale-95">
+            <Settings size={14} /> Config
           </button>
         </div>
       </motion.div>
 
-      {/* Invitations Queue */}
+      {/* Invitations Queue - Transmissions for user */}
       <AnimatePresence>
           {invitations.length > 0 && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-blue-500/5 border border-blue-500/20 p-8 rounded-[2.5rem] shadow-xl space-y-6 overflow-hidden">
-                  <div className="flex items-center gap-4">
-                      <div className="p-3 bg-blue-500/10 rounded-xl text-blue-500 border border-blue-500/20"><UserPlus size={24} /></div>
-                      <h2 className="text-2xl font-black text-text uppercase tracking-tight italic">Pending Transmissions</h2>
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-blue-500/5 border border-blue-500/20 p-6 rounded-3xl shadow-xl space-y-4 overflow-hidden">
+                  <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500 border border-blue-500/20"><UserPlus size={18} /></div>
+                      <h2 className="text-xl font-black text-text uppercase tracking-tight italic">Pending Transmissions</h2>
                   </div>
                   <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {invitations.map(inv => (
-                            <div key={inv.reg_id} className="bg-card border border-border p-6 rounded-2xl space-y-4 shadow-sm hover:border-blue-500/50 transition-colors">
+                            <div key={inv.reg_id} className="bg-card border border-border p-4 rounded-xl space-y-3 shadow-sm hover:border-blue-500/50 transition-colors">
                                 <div>
-                                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Team Invitation</p>
-                                    <h4 className="font-black text-text uppercase italic">{inv.team_name}</h4>
-                                    <p className="text-[9px] font-bold text-text/40 uppercase tracking-widest mt-1">For: {inv.event_title}</p>
-                                    <p className="text-[9px] font-bold text-text/40 uppercase tracking-widest">By: {inv.inviter_name}</p>
+                                    <p className="text-[8px] font-black text-blue-500 uppercase tracking-widest mb-0.5">Team Invitation</p>
+                                    <h4 className="text-sm font-black text-text uppercase italic">{inv.team_name}</h4>
+                                    <p className="text-[8px] font-bold text-text/40 uppercase tracking-widest">For: {inv.event_title}</p>
                                 </div>
-                                <div className="flex gap-3">
-                                    <button onClick={() => handleRespondInv(inv.reg_id, 'Accepted')} className="flex-1 bg-accent/10 hover:bg-accent text-accent hover:text-white border border-accent/20 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"><Check size={14} className="inline mr-1" /> Accept</button>
-                                    <button onClick={() => handleRespondInv(inv.reg_id, 'Declined')} className="flex-1 bg-red-500/5 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/10 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"><Trash2 size={14} className="inline mr-1" /> Decline</button>
+                                <div className="flex gap-2">
+                                    <button onClick={() => handleRespondInv(inv.reg_id, 'Accepted')} className="flex-1 bg-accent/10 hover:bg-accent text-accent hover:text-white border border-accent/20 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">Accept</button>
+                                    <button onClick={() => handleRespondInv(inv.reg_id, 'Declined')} className="flex-1 bg-red-500/5 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/10 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">Decline</button>
                                 </div>
                             </div>
                         ))}
@@ -351,260 +385,283 @@ const Dashboard = () => {
           )}
       </AnimatePresence>
 
-      {/* Group Join Requests */}
-      {groupRequests.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 bg-blue-500/5 border border-blue-500/20 p-10 rounded-[3rem] shadow-xl shadow-blue-500/5 mb-12">
-              <div className="flex items-center gap-4">
-                  <Shield size={28} className="text-blue-500" />
-                  <h3 className="text-3xl font-black text-text uppercase italic tracking-tight">Group Ingress Requests</h3>
-              </div>
-              <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {groupRequests.map((req) => (
-                        <div key={req.id} className="bg-card border border-border p-8 rounded-[2rem] flex flex-col justify-between gap-8 shadow-lg hover:border-blue-500/30 transition-all">
-                            <div className="flex items-center gap-5">
-                                <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 font-black border border-blue-500/20 text-xl shadow-inner">
-                                    {req.user_name[0]}
-                                </div>
-                                <div className="space-y-1">
-                                    <h4 className="text-xl font-black text-text uppercase italic tracking-tight">{req.user_name}</h4>
-                                    <p className="text-[10px] text-text/40 font-black uppercase tracking-widest leading-loose">Requests access to <br/><span className="text-blue-400">{req.group_title}</span></p>
-                                </div>
-                            </div>
-                            <div className="flex gap-4">
-                                <button 
-                                    onClick={() => handleRespondGroupRequest(req.id, 'Accepted')}
-                                    className="flex-grow bg-blue-500 hover:bg-blue-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 active:scale-95"
-                                >
-                                    <Check size={16} /> Grant Entry
-                                </button>
-                                <button 
-                                    onClick={() => handleRespondGroupRequest(req.id, 'Declined')}
-                                    className="bg-card border border-border hover:bg-red-500 hover:text-white px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition active:scale-95"
-                                >
-                                    Deny
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-              </div>
-          </motion.div>
-      )}
-
-      {/* User Ingress Applications */}
-      {user?.role === 'Admin' && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 bg-accent/5 border border-accent/20 p-10 rounded-[3rem] shadow-xl shadow-accent/5 mb-12">
-              <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                      <UserPlus size={28} className="text-accent" />
-                      <h3 className="text-3xl font-black text-text uppercase italic tracking-tight">Pending Core Applications</h3>
+      {/* Management Sector - Consolidated Moderation List for Admin/Core */}
+      {canModerate && (groupRequests.length > 0 || pendingProjects.length > 0 || (user?.role === 'Admin' && userApplicants.length > 0)) && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 bg-card border border-border p-6 rounded-3xl shadow-sm">
+              <div className="flex items-center justify-between border-b border-border pb-4">
+                  <div className="flex items-center gap-3">
+                      <ShieldAlert size={20} className="text-accent" />
+                      <h3 className="text-xl font-black text-text uppercase italic tracking-tight">Management Sector</h3>
                   </div>
-                  <span className="bg-accent/10 text-accent px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">{userApplicants.length || 0} Awaiting</span>
+                  <span className="text-[8px] font-black text-text/30 uppercase tracking-widest bg-background px-2 py-1 rounded-md border border-border">
+                    Pending Actions: {groupRequests.length + pendingProjects.length + (user?.role === 'Admin' ? userApplicants.length : 0)}
+                  </span>
               </div>
-              
-              {userApplicants.error === 'REAUTH_REQUIRED' ? (
-                <div className="py-10 text-center bg-red-500/5 rounded-[2.5rem] border border-red-500/20 space-y-4">
-                    <p className="text-red-500 font-black tracking-widest uppercase text-sm italic">Authority Synchronization Required</p>
-                    <p className="text-text/40 text-[10px] font-bold uppercase tracking-widest px-10">Your current session token is stale. Please logout and re-authorize to access this sector.</p>
-                </div>
-              ) : userApplicants.length > 0 ? (
-                <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {userApplicants.map((app) => (
-                            <div 
-                                key={app.id} 
-                                onClick={() => setSelectedApplicant(app)}
-                                className="bg-card border border-border p-8 rounded-[2.5rem] space-y-6 shadow-sm hover:border-accent/30 transition-all group cursor-pointer relative overflow-hidden"
-                            >
-                                <div className="flex items-center gap-5">
-                                    <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center text-accent font-black border border-accent/20 text-xl shadow-inner group-hover:scale-110 transition-transform overflow-hidden">
-                                        {app.profile_pic ? <img src={app.profile_pic} className="w-full h-full object-cover" alt="" /> : app.name[0]}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <h4 className="font-black text-text uppercase italic tracking-tighter truncate">{app.name}</h4>
-                                        <p className="text-[10px] font-black text-text/30 uppercase tracking-widest">{app.department} • Year {app.year}</p>
-                                    </div>
-                                </div>
-                                
-                                <p className="text-[11px] text-text/50 leading-relaxed font-medium italic line-clamp-2">
-                                    {app.about}
-                                </p>
 
-                                <div className="flex justify-between items-center pt-4 border-t border-border/50">
-                                    <span className="text-[9px] font-black text-accent uppercase tracking-widest">Review Dossier</span>
-                                    <ChevronRight size={14} className="text-accent group-hover:translate-x-1 transition-transform" />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-              ) : (
-                <div className="py-20 text-center bg-background/30 rounded-[2.5rem] border-2 border-dashed border-border">
-                    <p className="text-text/30 font-black tracking-widest uppercase text-sm italic">Queue is clear. No pending ingress applications.</p>
-                </div>
-              )}
+              <div className="space-y-2">
+                  {/* Group Access Requests */}
+                  {groupRequests.map((req) => (
+                      <div key={`group-${req.id}`} className="flex items-center justify-between p-3 bg-blue-500/5 border border-blue-500/10 rounded-xl hover:border-blue-500/30 transition-all group">
+                          <div className="flex items-center gap-4">
+                              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500"><Users size={16} /></div>
+                              <div>
+                                  <div className="flex items-center gap-2">
+                                      <span className="text-[7px] font-black text-blue-500 uppercase tracking-widest bg-blue-500/10 px-1.5 py-0.5 rounded">Access Request</span>
+                                      <h4 className="text-sm font-black text-text uppercase italic">{req.user_name}</h4>
+                                      <Link to={`/profile/${req.user_id}`} className="text-[7px] font-black text-blue-500 hover:underline flex items-center gap-1 uppercase tracking-widest ml-2">
+                                          View Profile <ExternalLink size={8} />
+                                      </Link>
+                                  </div>
+                                  <p className="text-[9px] text-text/40 font-bold uppercase tracking-widest">Sector: {req.group_title}</p>
+                              </div>
+                          </div>
+                          <div className="flex gap-2">
+                              <button onClick={() => handleRespondGroupRequest(req.id, 'Accepted')} className="bg-blue-500 hover:bg-blue-600 text-white p-1.5 rounded-lg transition-all active:scale-95 shadow-lg shadow-blue-500/10"><Check size={14}/></button>
+                              <button onClick={() => handleRespondGroupRequest(req.id, 'Declined')} className="bg-background border border-border hover:bg-red-500 hover:text-white p-1.5 rounded-lg transition-all active:scale-95 shadow-sm"><X size={14}/></button>
+                          </div>
+                      </div>
+                  ))}
+
+                  {/* Project Build Requests */}
+                  {pendingProjects.map((proj) => (
+                      <div key={`proj-${proj.id}`} onClick={() => setSelectedProject(proj)} className="flex items-center justify-between p-3 bg-purple-500/5 border border-purple-500/10 rounded-xl hover:border-purple-500/30 transition-all group cursor-pointer">
+                          <div className="flex items-center gap-4">
+                              <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500"><Monitor size={16} /></div>
+                              <div>
+                                  <div className="flex items-center gap-2">
+                                      <span className="text-[7px] font-black text-purple-500 uppercase tracking-widest bg-purple-500/10 px-1.5 py-0.5 rounded">Build Request</span>
+                                      <h4 className="text-sm font-black text-text uppercase italic group-hover:text-purple-500 transition-colors">{proj.title}</h4>
+                                  </div>
+                                  <p className="text-[9px] text-text/40 font-bold uppercase tracking-widest">Architect: {proj.creator_name}</p>
+                              </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                              <span className="text-[8px] font-black text-purple-500/40 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Click to Review</span>
+                              <ChevronRight size={16} className="text-text/20 group-hover:text-purple-500" />
+                          </div>
+                      </div>
+                  ))}
+
+                  {/* Core Ingress Applications */}
+                  {user?.role === 'Admin' && Array.isArray(userApplicants) && userApplicants.map((app) => (
+                      <div key={`app-${app.id}`} onClick={() => setSelectedApplicant(app)} className="flex items-center justify-between p-3 bg-accent/5 border border-accent/10 rounded-xl hover:border-accent/30 transition-all group cursor-pointer">
+                          <div className="flex items-center gap-4">
+                              <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+                                  {app.profile_pic ? <img src={app.profile_pic} className="w-full h-full object-cover rounded-lg" alt="" /> : <User size={16} />}
+                              </div>
+                              <div>
+                                  <div className="flex items-center gap-2">
+                                      <span className="text-[7px] font-black text-accent uppercase tracking-widest bg-accent/10 px-1.5 py-0.5 rounded">Ingress Request</span>
+                                      <h4 className="text-sm font-black text-text uppercase italic group-hover:text-accent transition-colors">{app.name}</h4>
+                                  </div>
+                                  <p className="text-[9px] text-text/40 font-bold uppercase tracking-widest">{app.department} • Year {app.year}</p>
+                              </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                              <span className="text-[8px] font-black text-accent/40 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Review Dossier</span>
+                              <ChevronRight size={16} className="text-text/20 group-hover:text-accent" />
+                          </div>
+                      </div>
+                  ))}
+              </div>
           </motion.div>
       )}
 
       {/* Stats and main sections */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard title="Problems Solved" value={profile?.problems_solved || 0} icon={Code} color="bg-accent" />
         <StatsCard title="GFG Core Score" value={profile?.gfg_score || 0} icon={Star} color="bg-yellow-500" />
-        <StatsCard title="Activity Streak" value={`${profile?.streak || 0} Days`} icon={Zap} color="bg-orange-500" />
+        <StatsCard title="Activity Streak" value={`${profile?.streak || 0} Days`} icon={Zap} iconColor="text-orange-500" color="bg-orange-500" />
         <StatsCard title="Campus Authority" value={`#${profile?.id || 0}`} icon={Trophy} color="bg-blue-500" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        <div className="lg:col-span-2 space-y-12">
+      {/* Contribution Graph */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-card border border-border p-6 rounded-3xl shadow-sm space-y-6">
+          <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                  <Calendar size={20} className="text-accent" />
+                  <h3 className="text-xl font-black text-text uppercase italic tracking-tight">Active Contribution Graph</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                  <span className="text-[8px] font-black text-text/30 uppercase tracking-widest">Less</span>
+                  <div className="flex gap-1">
+                      <div className="w-2.5 h-2.5 rounded-sm bg-border/30"></div>
+                      <div className="w-2.5 h-2.5 rounded-sm bg-accent/20"></div>
+                      <div className="w-2.5 h-2.5 rounded-sm bg-accent/40"></div>
+                      <div className="w-2.5 h-2.5 rounded-sm bg-accent/70"></div>
+                      <div className="w-2.5 h-2.5 rounded-sm bg-accent"></div>
+                  </div>
+                  <span className="text-[8px] font-black text-text/30 uppercase tracking-widest">More</span>
+              </div>
+          </div>
+          
+          <div className="overflow-x-auto pb-2 scrollbar-hide">
+              <div className="flex flex-col flex-wrap h-[100px] gap-1 content-start min-w-[800px]">
+                  {contributionData.map((day, i) => (
+                      <div 
+                          key={i}
+                          title={`${day.date}: ${day.count} problems solved`}
+                          className={`w-[11px] h-[11px] rounded-[2px] transition-colors hover:ring-1 hover:ring-accent/50 cursor-pointer ${getColorLevel(day.count)}`}
+                      ></div>
+                  ))}
+              </div>
+          </div>
+          
+          <div className="flex justify-between items-center pt-2 border-t border-border/50">
+              <p className="text-[9px] font-bold text-text/40 uppercase tracking-widest italic">Signal consistency over the last 365 rotational cycles</p>
+              <p className="text-[9px] font-black text-accent uppercase tracking-widest">{contributionData.filter(d => d.count > 0).length} Days of Activity</p>
+          </div>
+      </motion.div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
             
             {/* REGISTERED MISSIONS */}
-            <div className="bg-card border border-border p-10 rounded-[3rem] shadow-sm">
-                <div className="flex items-center gap-4 mb-10">
-                    <Calendar size={28} className="text-accent" />
-                    <h2 className="text-3xl font-black text-text uppercase tracking-tighter italic">Active Missions</h2>
+            <div className="bg-card border border-border p-6 rounded-3xl shadow-sm">
+                <div className="flex items-center gap-3 mb-6">
+                    <Calendar size={20} className="text-accent" />
+                    <h2 className="text-2xl font-black text-text uppercase tracking-tighter italic">Active Missions</h2>
                 </div>
-                <div className="max-h-[500px] overflow-y-auto pr-4 custom-scrollbar">
+                <div className="max-h-[400px] overflow-y-auto pr-3 custom-scrollbar">
                     {registrations.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-6">
+                        <div className="grid grid-cols-1 gap-4">
                             {registrations.map(reg => (
-                                <Link key={reg.reg_id} to={`/events/${reg.event_id}`} className="flex items-center justify-between p-8 bg-background/50 border border-border rounded-[2rem] hover:border-accent transition-all group shadow-inner">
-                                    <div className="flex items-center gap-6">
-                                        <div className="w-16 h-16 rounded-2xl overflow-hidden border border-border group-hover:border-accent transition-colors">
-                                            {reg.poster ? <img src={reg.poster} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-accent/5 flex items-center justify-center text-accent/20"><Calendar /></div>}
+                                <Link key={reg.reg_id} to={`/events/${reg.event_id}`} className="flex items-center justify-between p-5 bg-background/50 border border-border rounded-2xl hover:border-accent transition-all group shadow-inner">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-xl overflow-hidden border border-border group-hover:border-accent transition-colors">
+                                            {reg.poster ? <img src={reg.poster} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-accent/5 flex items-center justify-center text-accent/20"><Calendar size={16}/></div>}
                                         </div>
                                         <div>
-                                            <h4 className="font-black text-text text-xl group-hover:text-accent transition-colors uppercase italic tracking-tight">{reg.title}</h4>
-                                            <div className="flex gap-3 mt-2">
-                                                <span className="text-[10px] font-black text-text/40 uppercase tracking-widest">{reg.team_name ? `Team: ${reg.team_name}` : 'Individual Entry'}</span>
-                                                {reg.is_leader && <span className="bg-accent/10 text-accent text-[8px] font-black px-2 py-0.5 rounded border border-accent/20 uppercase tracking-widest">Leader</span>}
+                                            <h4 className="font-black text-text text-lg group-hover:text-accent transition-colors uppercase italic tracking-tight">{reg.title}</h4>
+                                            <div className="flex gap-2 mt-1">
+                                                <span className="text-[9px] font-black text-text/40 uppercase tracking-widest">{reg.team_name ? `Team: ${reg.team_name}` : 'Individual'}</span>
+                                                {reg.is_leader && <span className="bg-accent/10 text-accent text-[7px] font-black px-1.5 py-0.5 rounded border border-accent/20 uppercase tracking-widest">Leader</span>}
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-4">
-                                        <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black border uppercase tracking-widest ${reg.status === 'Accepted' ? 'bg-accent/10 text-accent border-accent/20' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'}`}>{reg.status}</span>
-                                        <ChevronRight size={20} className="text-text/20 group-hover:text-accent group-hover:translate-x-1 transition-all" />
+                                    <div className="flex items-center gap-3">
+                                        <span className={`px-3 py-1 rounded-lg text-[9px] font-black border uppercase tracking-widest ${reg.status === 'Accepted' ? 'bg-accent/10 text-accent border-accent/20' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'}`}>{reg.status}</span>
+                                        <ChevronRight size={18} className="text-text/20 group-hover:text-accent group-hover:translate-x-1 transition-all" />
                                     </div>
                                 </Link>
                             ))}
                         </div>
                     ) : (
-                        <div className="py-20 text-center bg-background/30 rounded-[2.5rem] border-2 border-dashed border-border">
-                            <p className="text-text/30 font-black tracking-widest uppercase text-sm">No Missions Authorized.</p>
-                            <Link to="/events" className="text-accent font-black text-xs uppercase tracking-widest mt-4 inline-block hover:underline">Browse Event Matrix</Link>
+                        <div className="py-12 text-center bg-background/30 rounded-2xl border-2 border-dashed border-border">
+                            <p className="text-text/30 font-black tracking-widest uppercase text-xs">No Missions Authorized.</p>
                         </div>
                     )}
                 </div>
             </div>
 
             {/* PROJECT REGISTRY */}
-            <div className="bg-card border border-border p-10 rounded-[3rem] shadow-sm">
-                <div className="flex justify-between items-center mb-10">
-                    <div className="flex items-center gap-4">
-                        <BookOpen size={28} className="text-accent" />
-                        <h2 className="text-3xl font-black text-text uppercase tracking-tighter italic">Project Registry</h2>
+            <div className="bg-card border border-border p-6 rounded-3xl shadow-sm">
+                <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center gap-3">
+                        <BookOpen size={20} className="text-accent" />
+                        <h2 className="text-2xl font-black text-text uppercase tracking-tighter italic">Project Registry</h2>
                     </div>
-                    <Link to="/projects" className="bg-accent/10 text-accent px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-accent/20 hover:bg-accent hover:text-white transition-all">Submit Build</Link>
+                    <Link to="/projects" className="bg-accent/10 text-accent px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border border-accent/20 hover:bg-accent hover:text-white transition-all">Submit Build</Link>
                 </div>
-                <div className="max-h-[500px] overflow-y-auto pr-4 custom-scrollbar">
+                <div className="max-h-[400px] overflow-y-auto pr-3 custom-scrollbar">
                     {myProjects.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-5">
+                        <div className="grid grid-cols-1 gap-4">
                             {myProjects.map(proj => (
-                                <div key={proj.id} className="flex items-center justify-between p-8 bg-background/50 border border-border rounded-[2rem] hover:border-accent transition-all group shadow-inner">
-                                    <div className="flex items-center gap-6">
-                                        <div className="p-4 bg-accent/5 rounded-2xl text-accent border border-accent/10 shadow-sm transition-all group-hover:bg-accent group-hover:text-white"><Monitor size={28} /></div>
+                                <div key={proj.id} className="flex items-center justify-between p-5 bg-background/50 border border-border rounded-2xl hover:border-accent transition-all group shadow-inner">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-accent/5 rounded-xl text-accent border border-accent/10 shadow-sm transition-all group-hover:bg-accent group-hover:text-white"><Monitor size={20} /></div>
                                         <div>
-                                            <h4 className="font-black text-text text-xl group-hover:text-accent transition-colors uppercase italic tracking-tight">{proj.title}</h4>
-                                            <p className="text-[10px] text-text/40 font-black uppercase tracking-widest mt-2">{proj.category} • {new Date(proj.created_at).toLocaleDateString()}</p>
+                                            <h4 className="font-black text-text text-lg group-hover:text-accent transition-colors uppercase italic tracking-tight">{proj.title}</h4>
+                                            <p className="text-[9px] text-text/40 font-black uppercase tracking-widest mt-1">{proj.category}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex gap-2">
-                                            <Link to={`/projects/${proj.id}?edit=true`} className="p-3 rounded-xl bg-blue-500/5 text-blue-400 border border-blue-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Edit3 size={18}/></Link>
-                                            <button onClick={() => handleDeleteProjectFromDashboard(proj.id)} className="p-3 rounded-xl bg-red-500/5 text-red-500 border border-red-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Trash2 size={18}/></button>
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex gap-1.5">
+                                            <Link to={`/projects/${proj.id}?edit=true`} className="p-2 rounded-lg bg-blue-500/5 text-blue-400 border border-blue-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Edit3 size={16}/></Link>
+                                            <button onClick={() => handleDeleteProjectFromDashboard(proj.id)} className="p-2 rounded-lg bg-red-500/5 text-red-500 border border-red-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Trash2 size={16}/></button>
                                         </div>
-                                        <div className={`px-5 py-2 rounded-xl text-[10px] font-black border uppercase tracking-[0.2em] shadow-sm ${getStatusStyle(proj.status)}`}>{proj.status}</div>
+                                        <div className={`px-4 py-1.5 rounded-lg text-[9px] font-black border uppercase tracking-widest shadow-sm ${getStatusStyle(proj.status)}`}>{proj.status}</div>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="py-20 text-center bg-background/30 rounded-[2.5rem] border-2 border-dashed border-border"><p className="text-text/30 font-black tracking-widest uppercase text-sm">No Build Data found.</p></div>
+                        <div className="py-12 text-center bg-background/30 rounded-2xl border-2 border-dashed border-border"><p className="text-text/30 font-black tracking-widest uppercase text-xs">No Build Data found.</p></div>
                     )}
                 </div>
             </div>
 
             {/* COMMUNITY TRANSMISSIONS */}
-            <div className="bg-card border border-border p-10 rounded-[3rem] shadow-sm">
-                <div className="flex items-center gap-4 mb-10">
-                    <MessageSquare size={28} className="text-blue-500" />
-                    <h2 className="text-3xl font-black text-text uppercase tracking-tighter italic">Transmissions</h2>
+            <div className="bg-card border border-border p-6 rounded-3xl shadow-sm">
+                <div className="flex items-center gap-3 mb-6">
+                    <MessageSquare size={20} className="text-blue-500" />
+                    <h2 className="text-2xl font-black text-text uppercase tracking-tighter italic">Transmissions</h2>
                 </div>
-                <div className="max-h-[500px] overflow-y-auto pr-4 custom-scrollbar">
+                <div className="max-h-[400px] overflow-y-auto pr-3 custom-scrollbar">
                     {myDiscussions.length > 0 ? (
-                        <div className="space-y-5">
+                        <div className="space-y-4">
                             {myDiscussions.map(post => (
-                                <div key={post.id} className="flex items-center justify-between p-8 bg-background/50 border border-border rounded-[2rem] hover:border-blue-500 transition-all group shadow-inner">
-                                    <div className="flex items-center gap-6">
-                                        <div className="p-4 bg-blue-500/5 rounded-2xl text-blue-400 border border-blue-500/10 shadow-sm group-hover:bg-blue-500 group-hover:text-white transition-all"><MessageSquare size={28} /></div>
+                                <div key={post.id} className="flex items-center justify-between p-5 bg-background/50 border border-border rounded-2xl hover:border-blue-500 transition-all group shadow-inner">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-blue-500/5 rounded-xl text-blue-400 border border-blue-500/10 shadow-sm group-hover:bg-blue-500 group-hover:text-white transition-all"><MessageSquare size={20} /></div>
                                         <div>
-                                            <h4 className="font-black text-text text-xl group-hover:text-blue-400 transition-colors uppercase italic tracking-tight">{post.title}</h4>
-                                            <p className="text-[10px] text-text/40 font-black uppercase tracking-widest mt-2">{new Date(post.created_at).toLocaleDateString()} • {post.comment_count} Transmission Signals</p>
+                                            <h4 className="font-black text-text text-lg group-hover:text-blue-400 transition-colors uppercase italic tracking-tight">{post.title}</h4>
+                                            <p className="text-[9px] text-text/40 font-black uppercase tracking-widest mt-1">{new Date(post.created_at).toLocaleDateString()} • {post.comment_count} Replies</p>
                                         </div>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <Link to={`/community/${post.id}?edit=true`} className="p-3 rounded-xl bg-blue-500/5 text-blue-400 border border-blue-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Edit3 size={18}/></Link>
-                                        <button onClick={() => handleDeletePost(post.id)} className="p-3 rounded-xl bg-red-500/5 text-red-500 border border-red-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Trash2 size={18}/></button>
-                                        <ChevronRight size={24} className="text-text/20 group-hover:text-blue-400 transition-all group-hover:translate-x-2" />
+                                    <div className="flex gap-1.5 items-center">
+                                        <Link to={`/community/${post.id}?edit=true`} className="p-2 rounded-lg bg-blue-500/5 text-blue-400 border border-blue-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Edit3 size={16}/></Link>
+                                        <button onClick={() => handleDeletePost(post.id)} className="p-2 rounded-lg bg-red-500/5 text-red-500 border border-red-500/10 opacity-0 group-hover:opacity-100 transition-all active:scale-90"><Trash2 size={16}/></button>
+                                        <ChevronRight size={20} className="text-text/20 group-hover:text-blue-400 transition-all group-hover:translate-x-1" />
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="py-20 text-center bg-background/30 rounded-[2.5rem] border-2 border-dashed border-border"><p className="text-text/30 font-black tracking-widest uppercase text-sm">No active transmissions.</p></div>
+                        <div className="py-12 text-center bg-background/30 rounded-2xl border-2 border-dashed border-border"><p className="text-text/30 font-black tracking-widest uppercase text-xs">No transmissions.</p></div>
                     )}
                 </div>
             </div>
         </div>
 
         {/* Sidebar Nodes */}
-        <div className="space-y-10">
-            <div className="bg-card border border-border p-10 rounded-[3rem] shadow-sm sticky top-24">
-                <div className="flex items-center gap-4 mb-10">
-                    <Zap size={28} className="text-yellow-500" />
-                    <h2 className="text-3xl font-black text-text uppercase tracking-tighter italic">Interface Nodes</h2>
+        <div className="space-y-8">
+            <div className="bg-card border border-border p-6 rounded-3xl shadow-sm sticky top-20">
+                <div className="flex items-center gap-3 mb-6">
+                    <Zap size={20} className="text-yellow-500" />
+                    <h2 className="text-2xl font-black text-text uppercase tracking-tighter italic">Interface Nodes</h2>
                 </div>
-                <div className="space-y-6">
+                <div className="space-y-4">
                     {[
                     { name: 'GeeksforGeeks', icon: Code, link: profile?.gfg_profile, solved: profile?.gfg_solved, color: 'text-green-600', bg: 'bg-green-600/5' },
                     { name: 'LeetCode', icon: Terminal, link: profile?.leetcode_profile, solved: profile?.leetcode_solved, color: 'text-yellow-500', bg: 'bg-yellow-500/5' },
                     { name: 'GitHub', icon: Github, link: profile?.github_profile, solved: profile?.github_repos, label: 'Repos', color: 'text-text', bg: 'bg-text/5' }
                     ].map((p, i) => (
-                    <div key={i} className={`p-6 ${p.bg} border border-border rounded-[2rem] shadow-sm group hover:border-accent transition-colors`}>
-                        <div className="flex justify-between items-center mb-6">
-                            <div className="flex items-center gap-4">
-                                <p.icon className={p.color} size={24} />
-                                <span className="font-black text-text uppercase tracking-widest text-xs">{p.name}</span>
+                    <div key={i} className={`p-4 ${p.bg} border border-border rounded-2xl shadow-sm group hover:border-accent transition-colors`}>
+                        <div className="flex justify-between items-center mb-4">
+                            <div className="flex items-center gap-3">
+                                <p.icon className={p.color} size={18} />
+                                <span className="font-black text-text uppercase tracking-widest text-[10px]">{p.name}</span>
                             </div>
-                            {p.link && <a href={p.link} target="_blank" rel="noopener noreferrer" className="p-2 bg-background border border-border rounded-lg text-text/30 hover:text-accent transition-all shadow-sm"><ExternalLink size={16} /></a>}
+                            {p.link && <a href={p.link} target="_blank" rel="noopener noreferrer" className="p-1.5 bg-background border border-border rounded-lg text-text/30 hover:text-accent transition-all shadow-sm"><ExternalLink size={14} /></a>}
                         </div>
                         <div className="flex justify-between items-end">
-                            <span className="text-[10px] font-black text-text/30 uppercase tracking-[0.2em]">{p.label || 'Solved'}</span>
-                            <span className="text-3xl font-black text-accent tracking-tighter leading-none italic">{p.solved || 0}</span>
+                            <span className="text-[8px] font-black text-text/30 uppercase tracking-[0.2em]">{p.label || 'Solved'}</span>
+                            <span className="text-2xl font-black text-accent tracking-tighter leading-none italic">{p.solved || 0}</span>
                         </div>
                     </div>
                     ))}
                 </div>
                 
-                <div className="mt-10 p-8 bg-accent/5 border border-accent/20 rounded-[2.5rem] space-y-4">
-                    <div className="flex items-center gap-3">
-                        <TrendingUp size={20} className="text-accent" />
-                        <h4 className="font-black text-text uppercase text-xs tracking-widest italic">Rank Milestone</h4>
+                <div className="mt-8 p-6 bg-accent/5 border border-accent/20 rounded-2xl space-y-3">
+                    <div className="flex items-center gap-2">
+                        <TrendingUp size={16} className="text-accent" />
+                        <h4 className="font-black text-text uppercase text-[10px] tracking-widest italic">Rank Milestone</h4>
                     </div>
-                    <div className="w-full bg-background border border-border h-3 rounded-full overflow-hidden shadow-inner">
+                    <div className="w-full bg-background border border-border h-2 rounded-full overflow-hidden shadow-inner">
                         <div className="bg-accent h-full w-[65%] shadow-lg shadow-accent/20"></div>
                     </div>
-                    <p className="text-[9px] font-black text-text/40 uppercase tracking-widest text-center italic">Level 4 Node Access at 100 Solved</p>
+                    <p className="text-[8px] font-black text-text/40 uppercase tracking-widest text-center italic">Level 4 Node Access at 100 Solved</p>
                 </div>
             </div>
         </div>
@@ -614,8 +671,8 @@ const Dashboard = () => {
       <AnimatePresence>
         {selectedApplicant && (
             <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl overflow-y-auto">
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-card border border-border rounded-[3.5rem] w-full max-w-4xl my-auto shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                    <div className="p-8 md:p-12 border-b border-border flex justify-between items-center bg-background/50">
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-card border border-border rounded-3xl w-full max-w-4xl my-auto shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                    <div className="p-6 md:p-8 border-b border-border flex justify-between items-center bg-background/50">
                         <div className="flex items-center gap-6">
                             <div className="w-20 h-20 rounded-[2rem] bg-accent/10 flex items-center justify-center text-accent font-black border border-accent/20 text-3xl shadow-inner overflow-hidden">
                                 {selectedApplicant.profile_pic ? <img src={selectedApplicant.profile_pic} className="w-full h-full object-cover" alt="" /> : selectedApplicant.name[0]}
@@ -700,13 +757,24 @@ const Dashboard = () => {
                                 </div>
 
                                 {selectedApplicant.resume_url && (
-                                    <a 
-                                        href={selectedApplicant.resume_url} 
-                                        download={`${selectedApplicant.name}_Dossier.pdf`}
-                                        className="w-full flex items-center justify-center gap-3 bg-blue-500/10 text-blue-500 border border-blue-500/20 py-6 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-xl shadow-blue-500/5"
-                                    >
-                                        <FileText size={20} /> Download Technical Dossier
-                                    </a>
+                                    <div className="flex gap-2">
+                                        <button 
+                                            onClick={() => {
+                                                const win = window.open();
+                                                win.document.write(`<iframe src="${selectedApplicant.resume_url}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+                                            }}
+                                            className="flex-1 flex items-center justify-center gap-2 bg-blue-500/10 text-blue-500 border border-blue-500/20 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-lg shadow-blue-500/5"
+                                        >
+                                            <ExternalLink size={16} /> Open Dossier
+                                        </button>
+                                        <a 
+                                            href={selectedApplicant.resume_url} 
+                                            download={`${selectedApplicant.name}_Dossier.pdf`}
+                                            className="flex-1 flex items-center justify-center gap-2 bg-card border border-border py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:border-accent hover:text-accent transition-all shadow-sm"
+                                        >
+                                            <FileText size={16} /> Download
+                                        </a>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -724,6 +792,83 @@ const Dashboard = () => {
                             className="flex-grow bg-card border border-border hover:bg-red-500 hover:text-white py-6 rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] transition active:scale-95"
                         >
                             Decline Application
+                        </button>
+                    </div>
+                </motion.div>
+            </div>
+        )}
+      </AnimatePresence>
+
+      {/* Project Detail Modal for Moderation */}
+      <AnimatePresence>
+        {selectedProject && (
+            <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl overflow-y-auto">
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-card border border-border rounded-3xl w-full max-w-4xl my-auto shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                    <div className="p-6 md:p-8 border-b border-border flex justify-between items-center bg-background/50">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 font-black border border-purple-500/20 text-xl shadow-inner">
+                                <Code size={24} />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-black text-text uppercase tracking-tighter italic">Review <span className="text-purple-500">Build</span></h2>
+                                <div className="flex items-center gap-2">
+                                    <p className="text-[8px] font-black text-text/40 uppercase tracking-widest">Project ID: #{selectedProject.id} • Submitted by {selectedProject.creator_name}</p>
+                                    <Link to={`/profile/${selectedProject.created_by}`} target="_blank" className="text-[8px] font-black text-purple-500 hover:underline uppercase tracking-widest flex items-center gap-1">
+                                        View Profile <ExternalLink size={8} />
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                        <button onClick={() => setSelectedProject(null)} className="text-text/40 hover:text-red-500 p-2 rounded-full transition-all active:scale-90"><X size={24} /></button>
+                    </div>
+                    
+                    <div className="p-6 md:p-10 space-y-8 overflow-y-auto custom-scrollbar flex-grow">
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <h3 className="text-xl font-black text-text uppercase italic tracking-tight">{selectedProject.title}</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedProject.tech_stack?.split(',').map((s, i) => (
+                                        <span key={i} className="text-[8px] font-black text-purple-500 bg-purple-500/5 px-3 py-1 rounded-lg border border-purple-500/10 uppercase tracking-widest">{s.trim()}</span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <h4 className="text-[10px] font-black text-purple-500 uppercase tracking-widest flex items-center gap-2">
+                                    <AlignLeft size={14}/> Architecture & Process
+                                </h4>
+                                <div className="text-sm text-text/60 leading-relaxed font-medium italic border-l-2 border-purple-500/20 pl-6 ql-editor !p-0" dangerouslySetInnerHTML={{ __html: selectedProject.description }} />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                                {selectedProject.github_link && (
+                                    <a href={selectedProject.github_link} target="_blank" className="flex items-center justify-center gap-2 p-4 bg-background border border-border rounded-xl hover:border-text transition-all group/node">
+                                        <Github size={18} className="text-text/40 group-hover/node:text-text" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Source Repository</span>
+                                    </a>
+                                )}
+                                {selectedProject.demo_link && (
+                                    <a href={selectedProject.demo_link} target="_blank" className="flex items-center justify-center gap-2 p-4 bg-background border border-border rounded-xl hover:border-purple-500 transition-all group/node">
+                                        <Globe size={18} className="text-text/40 group-hover/node:text-purple-500" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Live Deployment</span>
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="p-6 md:p-8 bg-background/50 border-t border-border flex gap-4 sticky bottom-0">
+                        <button 
+                            onClick={() => { handleModerateProject(selectedProject.id, 'Approved'); setSelectedProject(null); }}
+                            className="flex-grow bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest transition shadow-xl shadow-purple-500/20 flex items-center justify-center gap-2 active:scale-[0.98]"
+                        >
+                            <Check size={18} /> Authorize Build
+                        </button>
+                        <button 
+                            onClick={() => { handleModerateProject(selectedProject.id, 'Rejected'); setSelectedProject(null); }}
+                            className="flex-grow bg-card border border-border hover:bg-red-500 hover:text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest transition active:scale-95"
+                        >
+                            Decline
                         </button>
                     </div>
                 </motion.div>

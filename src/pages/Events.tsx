@@ -128,86 +128,86 @@ const Events = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-12 pb-20">
+    <div className="container mx-auto px-4 py-6 space-y-8 pb-16">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="space-y-2">
-          <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase italic">Club <span className="text-accent">Events</span></h1>
-          <p className="text-text/60 text-lg font-medium">Workshops, contests, and seminars for the campus coding community.</p>
+        <div className="space-y-1">
+          <h1 className="text-3xl md:text-4xl font-black text-text tracking-tighter uppercase italic">Club <span className="text-accent">Events</span></h1>
+          <p className="text-text/60 text-sm font-medium">Workshops, contests, and seminars for the community.</p>
         </div>
         {canManage && (
           <button 
             onClick={handleOpenCreate}
-            className="bg-accent hover:bg-gfg-green-hover text-white px-8 py-4 rounded-2xl font-black flex items-center gap-3 transition shadow-xl shadow-accent/20 text-lg uppercase tracking-widest active:scale-95"
+            className="bg-accent hover:bg-gfg-green-hover text-white px-5 py-2.5 rounded-xl font-black flex items-center gap-2 transition shadow-lg shadow-accent/10 text-[10px] uppercase tracking-widest active:scale-95"
           >
-            <Plus size={24} /> Create Event
+            <Plus size={16} /> Create Event
           </button>
         )}
       </div>
 
       {loading ? (
-        <div className="py-32 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xl italic">Synchronizing Event Matrix...</div>
+        <div className="py-24 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xs italic">Synchronizing Frequencies...</div>
       ) : events.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map(event => (
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               key={event.id} 
               onClick={() => handleShowDetails(event)}
-              className="bg-card rounded-[2.5rem] overflow-hidden border border-border hover:border-accent transition-all group flex flex-col cursor-pointer hover:shadow-2xl shadow-sm"
+              className="bg-card rounded-3xl overflow-hidden border border-border hover:border-accent transition-all group flex flex-col cursor-pointer hover:shadow-xl shadow-sm"
             >
-              <div className="h-56 bg-background relative overflow-hidden">
+              <div className="h-44 bg-background relative overflow-hidden">
                 {event.poster ? (
                   <img src={event.poster} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-text/10 bg-accent/5"><Calendar size={64} /></div>
+                  <div className="w-full h-full flex items-center justify-center text-text/10 bg-accent/5"><Calendar size={48} /></div>
                 )}
                 {!event.is_open && (
                   <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px] flex items-center justify-center">
-                    <span className="bg-red-500 text-white px-6 py-2 rounded-xl text-xs font-black border border-red-400/50 shadow-xl uppercase tracking-widest">REGISTRATIONS CLOSED</span>
+                    <span className="bg-red-500 text-white px-4 py-1 rounded-lg text-[8px] font-black border border-red-400/50 shadow-xl uppercase tracking-widest">REGISTRATIONS CLOSED</span>
                   </div>
                 )}
-                <div className="absolute top-5 left-5 flex gap-2">
-                   <span className="bg-accent/90 backdrop-blur-md text-white px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg">Upcoming</span>
-                   <span className="bg-blue-500/90 backdrop-blur-md text-white px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg capitalize">{event.participation_type}</span>
+                <div className="absolute top-4 left-4 flex gap-1.5">
+                   <span className="bg-accent/90 backdrop-blur-md text-white px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest shadow-lg">Upcoming</span>
+                   <span className="bg-blue-500/90 backdrop-blur-md text-white px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest shadow-lg capitalize">{event.participation_type}</span>
                 </div>
               </div>
-              <div className="p-8 flex-grow flex flex-col space-y-6">
+              <div className="p-6 flex-grow flex flex-col space-y-4">
                 <div className="flex justify-between items-start">
-                  <h3 className="text-2xl font-black text-text group-hover:text-accent transition-colors leading-tight tracking-tight uppercase italic">{event.title}</h3>
+                  <h3 className="text-xl font-black text-text group-hover:text-accent transition-colors leading-tight tracking-tight uppercase italic">{event.title}</h3>
                   {canManage && (
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                      <button onClick={(e) => handleOpenEdit(e, event)} className="p-2 bg-background border border-border rounded-xl text-text/40 hover:text-accent shadow-sm"><Edit size={16} /></button>
-                      <button onClick={(e) => handleDelete(e, event.id)} className="p-2 bg-background border border-border rounded-xl text-text/40 hover:text-red-500 shadow-sm"><Trash2 size={16} /></button>
+                    <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                      <button onClick={(e) => handleOpenEdit(e, event)} className="p-1.5 bg-background border border-border rounded-lg text-text/40 hover:text-accent shadow-sm"><Edit size={12} /></button>
+                      <button onClick={(e) => handleDelete(e, event.id)} className="p-1.5 bg-background border border-border rounded-lg text-text/40 hover:text-red-500 shadow-sm"><Trash2 size={12} /></button>
                     </div>
                   )}
                 </div>
                 
-                <p className="text-text/60 text-sm line-clamp-2 leading-relaxed font-medium">{stripHtml(event.description)}</p>
+                <p className="text-text/60 text-xs line-clamp-2 leading-relaxed font-medium">{stripHtml(event.description)}</p>
                 
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-text/40 bg-background/50 border border-border px-3 py-2 rounded-xl">
-                    <Calendar size={16} className="text-accent" />
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-text/40 bg-background/50 border border-border px-2 py-1.5 rounded-lg">
+                    <Calendar size={14} className="text-accent" />
                     {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </div>
-                  <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-text/40 bg-background/50 border border-border px-3 py-2 rounded-xl">
-                    <MapPin size={16} className="text-accent" />
+                  <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-text/40 bg-background/50 border border-border px-2 py-1.5 rounded-lg">
+                    <MapPin size={14} className="text-accent" />
                     {event.location}
                   </div>
                 </div>
 
-                <div className="mt-auto pt-6 border-t border-border/50 flex items-center justify-between group-hover:text-accent transition-colors font-black uppercase tracking-[0.2em] text-[10px]">
+                <div className="mt-auto pt-4 border-t border-border/50 flex items-center justify-between group-hover:text-accent transition-colors font-black uppercase tracking-[0.2em] text-[8px]">
                   <span>Explore Details</span>
-                  <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                  <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
       ) : (
-        <div className="py-40 text-center text-text/30 bg-card rounded-[3rem] border border-border border-dashed shadow-inner">
-          <Calendar size={80} className="mx-auto mb-6 opacity-5" />
-          <p className="text-2xl font-black uppercase tracking-widest">No Events Scheduled</p>
+        <div className="py-32 text-center text-text/30 bg-card rounded-3xl border border-border border-dashed shadow-inner">
+          <Calendar size={64} className="mx-auto mb-4 opacity-5" />
+          <p className="text-xl font-black uppercase tracking-widest">No Events Scheduled</p>
         </div>
       )}
 

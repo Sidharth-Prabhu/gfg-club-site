@@ -92,31 +92,31 @@ const Projects = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-12 pb-20">
+    <div className="container mx-auto px-4 py-6 max-w-7xl space-y-8 pb-16">
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
       >
-        <div className="space-y-2">
-          <h1 className="text-4xl md:text-5xl font-black text-text tracking-tighter uppercase">Project <span className="text-accent">Gallery</span></h1>
-          <p className="text-text/60 text-lg font-medium">Student-led innovation, open-sourced for the community.</p>
+        <div className="space-y-1">
+          <h1 className="text-3xl md:text-4xl font-black text-text tracking-tighter uppercase">Project <span className="text-accent">Gallery</span></h1>
+          <p className="text-text/60 text-sm font-medium">Student innovation, open-sourced for the community.</p>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="bg-accent hover:bg-gfg-green-hover text-white px-10 py-5 rounded-2xl font-black flex items-center gap-3 transition shadow-xl shadow-accent/20 text-lg uppercase tracking-widest active:scale-95">
-          <Plus size={24} /> Submit Build
+        <button onClick={() => setIsModalOpen(true)} className="bg-accent hover:bg-gfg-green-hover text-white px-6 py-2.5 rounded-xl font-black flex items-center gap-2 transition shadow-lg shadow-accent/10 text-[10px] uppercase tracking-widest active:scale-95">
+          <Plus size={16} /> Submit Build
         </button>
       </motion.div>
 
-      <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
         {categories.map(cat => (
-          <button key={cat} onClick={() => setCategory(cat)} className={`px-6 py-3 rounded-xl text-xs font-black border transition flex items-center gap-2 uppercase tracking-widest whitespace-nowrap ${category === cat ? 'bg-accent border-accent text-white shadow-lg' : 'bg-card border-border text-text/40 hover:border-accent/40 hover:text-accent'}`}>
-            {cat !== 'All' && getCategoryIcon(cat)} {cat}
+          <button key={cat} onClick={() => setCategory(cat)} className={`px-4 py-2 rounded-lg text-[10px] font-black border transition flex items-center gap-1.5 uppercase tracking-widest whitespace-nowrap ${category === cat ? 'bg-accent border-accent text-white shadow-md' : 'bg-card border-border text-text/40 hover:border-accent/40 hover:text-accent'}`}>
+            {cat !== 'All' && React.cloneElement(getCategoryIcon(cat), { size: 14 })} {cat}
           </button>
         ))}
       </div>
 
       {loading ? (
-        <div className="py-32 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xl">Syncing Matrix Showcase...</div>
+        <div className="py-24 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xs">Syncing Showcase...</div>
       ) : projects.length > 0 ? (
         <motion.div 
             initial="hidden"
@@ -125,7 +125,7 @@ const Projects = () => {
                 hidden: { opacity: 0 },
                 visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
             }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           {projects.map(project => (
             <motion.div 
@@ -133,66 +133,66 @@ const Projects = () => {
                   hidden: { opacity: 0, y: 20 },
                   visible: { opacity: 1, y: 0 }
               }}
-              whileHover={{ y: -8, borderColor: 'var(--color-accent)' }}
+              whileHover={{ y: -4, borderColor: 'var(--color-accent)' }}
               key={project.id} 
               onClick={() => navigate(`/projects/${project.id}`)}
-              className="bg-card border border-border rounded-[2.5rem] overflow-hidden group cursor-pointer flex flex-col shadow-sm hover:shadow-2xl transition-all duration-500"
+              className="bg-card border border-border rounded-3xl overflow-hidden group cursor-pointer flex flex-col shadow-sm hover:shadow-xl transition-all duration-500"
             >
-              <div className="p-10 flex-grow space-y-8">
+              <div className="p-6 flex-grow space-y-6">
                 <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-5">
-                        <div className="p-4 rounded-2xl bg-accent/5 text-accent border border-accent/10 group-hover:bg-accent group-hover:text-white transition-all duration-500 shadow-inner">{getCategoryIcon(project.category)}</div>
-                        <div className="text-[10px] font-black text-accent uppercase tracking-[0.2em]">{project.category}</div>
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 rounded-xl bg-accent/5 text-accent border border-accent/10 group-hover:bg-accent group-hover:text-white transition-all duration-500 shadow-inner">{React.cloneElement(getCategoryIcon(project.category), { size: 18 })}</div>
+                        <div className="text-[8px] font-black text-accent uppercase tracking-widest">{project.category}</div>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <div className="flex flex-col items-center bg-background border border-border rounded-2xl p-2 shadow-inner">
-                            <button onClick={(e) => handleVote(e, project.id, 1)} className="p-1.5 text-text/30 hover:text-accent transition-colors"><ChevronUp size={20} /></button>
-                            <span className="text-sm font-black text-text/80">{project.vote_score || 0}</span>
-                            <button onClick={(e) => handleVote(e, project.id, -1)} className="p-1.5 text-text/30 hover:text-red-500 transition-colors"><ChevronDown size={20} /></button>
+                    <div className="flex items-center gap-2">
+                        <div className="flex flex-col items-center bg-background border border-border rounded-xl p-1.5 shadow-inner">
+                            <button onClick={(e) => handleVote(e, project.id, 1)} className="p-1 text-text/30 hover:text-accent transition-colors"><ChevronUp size={16} /></button>
+                            <span className="text-xs font-black text-text/80">{project.vote_score || 0}</span>
+                            <button onClick={(e) => handleVote(e, project.id, -1)} className="p-1 text-text/30 hover:text-red-500 transition-colors"><ChevronDown size={16} /></button>
                         </div>
                         {(user?.id === project.created_by || user?.role === 'Admin' || user?.role === 'Core') && (
                             <button 
                                 onClick={(e) => handleDeleteProject(e, project.id)}
-                                className="p-3 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all border border-red-500/10"
+                                className="p-2 rounded-lg bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all border border-red-500/10"
                             >
-                                <Trash2 size={18} />
+                                <Trash2 size={14} />
                             </button>
                         )}
                     </div>
                 </div>
 
-                <div className="space-y-4">
-                    <h3 className="text-2xl md:text-3xl font-black text-text leading-tight group-hover:text-accent transition-colors tracking-tight uppercase break-words">{project.title}</h3>
-                    <p className="text-text/60 text-sm line-clamp-3 leading-relaxed font-medium break-words overflow-hidden">
+                <div className="space-y-2">
+                    <h3 className="text-xl font-black text-text leading-tight group-hover:text-accent transition-colors tracking-tight uppercase break-words italic">{project.title}</h3>
+                    <p className="text-text/60 text-xs line-clamp-2 leading-relaxed font-medium break-words overflow-hidden">
                         {stripHtml(project.description)}
                     </p>
                 </div>
 
-                <div className="flex flex-wrap gap-2 pt-2">
+                <div className="flex flex-wrap gap-1.5 pt-1">
                   {project.tech_stack.split(',').slice(0, 3).map((tech, i) => (
-                    <span key={i} className="text-[9px] font-black text-text/40 bg-background border border-border px-3 py-1.5 rounded-lg uppercase tracking-widest">
+                    <span key={i} className="text-[7px] font-black text-text/40 bg-background border border-border px-2 py-1 rounded-md uppercase tracking-widest">
                       {tech.trim()}
                     </span>
                   ))}
                 </div>
               </div>
 
-              <div className="px-10 py-8 bg-background/50 border-t border-border/50 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center text-[10px] font-black text-accent border border-accent/20">{project.creator_name[0]}</div>
-                  <span className="text-[10px] font-black text-text/40 uppercase tracking-widest">{project.creator_name}</span>
+              <div className="px-6 py-4 bg-background/50 border-t border-border/50 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-accent/10 flex items-center justify-center text-[8px] font-black text-accent border border-accent/20">{project.creator_name[0]}</div>
+                  <span className="text-[8px] font-black text-text/40 uppercase tracking-widest">{project.creator_name}</span>
                 </div>
-                <div className="flex items-center gap-2 text-accent font-black text-[10px] uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
-                    Explore Build <ChevronRight size={14} />
+                <div className="flex items-center gap-1.5 text-accent font-black text-[8px] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                    Details <ChevronRight size={12} />
                 </div>
               </div>
             </motion.div>
           ))}
         </motion.div>
       ) : (
-        <div className="py-40 text-center text-text/30 bg-card rounded-[3rem] border border-border border-dashed shadow-inner">
-          <Monitor size={80} className="mx-auto mb-6 opacity-5" />
-          <p className="text-2xl font-black uppercase tracking-widest">No builds found</p>
+        <div className="py-32 text-center text-text/30 bg-card rounded-3xl border border-border border-dashed shadow-inner">
+          <Monitor size={64} className="mx-auto mb-4 opacity-5" />
+          <p className="text-xl font-black uppercase tracking-widest">No builds found</p>
         </div>
       )}
 
