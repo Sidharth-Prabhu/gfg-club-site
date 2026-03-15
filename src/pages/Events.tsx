@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -150,7 +150,7 @@ const Events = () => {
       </div>
 
       {loading ? (
-        <div className="py-24 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xs italic">Synchronizing Frequencies...</div>
+        <div className="py-24 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xs italic">Loading Events...</div>
       ) : events.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map(event => (
@@ -224,27 +224,27 @@ const Events = () => {
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl overflow-y-auto">
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-card border border-border rounded-3xl w-full max-w-4xl my-auto shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
               <div className="p-6 md:p-8 border-b border-border flex justify-between items-center bg-background/50">
-                <h2 className="text-2xl font-black text-text uppercase tracking-tighter italic">{selectedEvent ? 'Modify Matrix Event' : 'Initialize New Event'}</h2>
+                <h2 className="text-2xl font-black text-text uppercase tracking-tighter italic">{selectedEvent ? 'Edit Event' : 'Create New Event'}</h2>
                 <button onClick={() => setIsEditModalOpen(false)} className="text-text/40 hover:text-red-500 p-2 rounded-full transition-all group active:scale-90"><FontAwesomeIcon icon={faTimes} size="lg" /></button>
               </div>
               <form onSubmit={handleSubmit} className="p-6 md:p-10 space-y-6 overflow-y-auto custom-scrollbar">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="md:col-span-2 space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Event Headline</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Event Title</label>
                     <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-lg font-black text-text shadow-inner transition-colors italic" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Authority / Organizer</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Organizer</label>
                     <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-sm font-bold text-text shadow-inner italic" value={formData.organizer} onChange={(e) => setFormData({...formData, organizer: e.target.value})} />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Spatial Node / Venue</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Venue</label>
                     <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-sm font-bold text-text shadow-inner italic" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Participation Paradigm</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Participation Type</label>
                     <select className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-sm font-bold text-text shadow-inner appearance-none cursor-pointer italic" value={formData.participation_type} onChange={(e) => setFormData({...formData, participation_type: e.target.value})}>
                         <option value="individual">Individual Only</option>
                         <option value="team">Team Only</option>
@@ -259,16 +259,16 @@ const Events = () => {
                   )}
 
                   <div className="space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Temporal Node / DateTime</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Date & Time</label>
                     <input required type="datetime-local" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-sm font-bold text-text shadow-inner" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Visual Poster Node (URL)</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Poster URL</label>
                     <input type="url" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-sm font-bold text-text shadow-inner" value={formData.poster} onChange={(e) => setFormData({...formData, poster: e.target.value})} />
                   </div>
 
                   <div className="md:col-span-2 space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Protocol / Description</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Description</label>
                     <div className="bg-background rounded-xl overflow-hidden border-2 border-border focus-within:border-accent shadow-inner">
                         <ReactQuill theme="snow" value={formData.description} onChange={(c) => setFormData({...formData, description: c})} modules={modules} />
                     </div>
@@ -294,8 +294,8 @@ const Events = () => {
                         <FontAwesomeIcon icon={formData.is_open ? faPlus : faClock} className="text-lg" />
                       </div>
                       <div>
-                        <p className="text-xs font-black text-text uppercase tracking-widest leading-none mb-1">{formData.is_open ? 'Node Open' : 'Node Restricted'}</p>
-                        <p className="text-[8px] font-medium text-text/40 uppercase">Access Control</p>
+                        <p className="text-xs font-black text-text uppercase tracking-widest leading-none mb-1">{formData.is_open ? 'Registration Open' : 'Registration Closed'}</p>
+                        <p className="text-[8px] font-medium text-text/40 uppercase">Status</p>
                       </div>
                     </div>
                     <button type="button" onClick={() => setFormData({...formData, is_open: !formData.is_open})} className={`relative inline-flex h-8 w-16 items-center rounded-full transition-all focus:outline-none shadow-inner ${formData.is_open ? 'bg-accent' : 'bg-text/10'}`}>
@@ -305,9 +305,9 @@ const Events = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 pt-2">
                     <button type="submit" className="bg-accent hover:bg-gfg-green-hover text-white font-black py-4 px-8 rounded-xl transition text-sm flex-grow shadow-lg shadow-accent/10 uppercase tracking-widest active:scale-95">
-                      <FontAwesomeIcon icon={faSave} /> {selectedEvent ? 'Commit Updates' : 'Deploy Event'}
+                      <FontAwesomeIcon icon={faSave} /> {selectedEvent ? 'Save Changes' : 'Create Event'}
                     </button>
-                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 px-8 rounded-xl transition text-sm uppercase tracking-widest shadow-sm italic">Abort</button>
+                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 px-8 rounded-xl transition text-sm uppercase tracking-widest shadow-sm italic">Cancel</button>
                 </div>
               </form>
             </motion.div>

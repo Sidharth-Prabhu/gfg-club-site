@@ -77,7 +77,7 @@ const Community = () => {
 
   const handleDeletePost = async (e, postId) => {
     e.stopPropagation();
-    if (!window.confirm('Terminate this transmission?')) return;
+    if (!window.confirm('Delete this post?')) return;
     try {
       await api.delete(`/discussions/${postId}`);
       fetchPosts();
@@ -91,7 +91,7 @@ const Community = () => {
     if (!newPost.title.trim() || !newPost.content.trim()) return;
     
     if (user?.role === 'Guest' && activeTab === 'groups') {
-      alert('Guest entities are restricted to public broadcasting in the main feed only.');
+      alert('Guest users are restricted to posting in the main feed only.');
       return;
     }
 
@@ -134,7 +134,7 @@ const Community = () => {
     if (!user) return navigate('/login');
     try {
       await api.post('/groups/join', { groupId });
-      alert('Join request sent to the architect');
+      alert('Join request sent to the group organizer');
       fetchGroups();
     } catch (error) {
       alert(error.response?.data?.message || 'Join request failed');
@@ -152,7 +152,7 @@ const Community = () => {
           <h1 className="text-3xl md:text-4xl font-black text-text tracking-tighter uppercase italic">
             Community <span className="text-accent">Hub</span>
           </h1>
-          <p className="text-text/60 text-sm max-w-2xl font-medium italic">Broadcast signals or join exclusive sectors.</p>
+          <p className="text-text/60 text-sm max-w-2xl font-medium italic">Share your thoughts or join interest groups.</p>
         </motion.div>
         
         <div className="flex gap-3">
@@ -161,7 +161,7 @@ const Community = () => {
                     onClick={() => setIsGroupModalOpen(true)}
                     className="bg-card border border-border hover:border-accent text-text/60 hover:text-accent px-5 py-2.5 rounded-xl font-black flex items-center gap-2 transition shadow-sm text-[10px] uppercase tracking-widest active:scale-95"
                 >
-                    <FontAwesomeIcon icon={faShieldAlt} /> Establish Sector
+                    <FontAwesomeIcon icon={faShieldAlt} /> Create Group
                 </button>
             )}
             {user && (
@@ -169,7 +169,7 @@ const Community = () => {
                 onClick={() => setIsCreateModalOpen(true)}
                 className="bg-accent hover:bg-gfg-green-hover text-white px-5 py-2.5 rounded-xl font-black flex items-center gap-2 transition shadow-lg shadow-accent/10 text-[10px] uppercase tracking-widest active:scale-95"
             >
-                <FontAwesomeIcon icon={faPlus} /> {activeTab === 'groups' ? 'Request Ingress' : 'Broadcast'}
+                <FontAwesomeIcon icon={faPlus} /> {activeTab === 'groups' ? 'Join Group' : 'Post'}
             </button>
             )}
         </div>
@@ -188,7 +188,7 @@ const Community = () => {
             onClick={() => setActiveTab('groups')}
             className={`pb-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative ${activeTab === 'groups' ? 'text-accent' : 'text-text/30 hover:text-text/60'}`}
         >
-            Sectors
+            Groups
             {activeTab === 'groups' && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 w-full h-0.5 bg-accent rounded-full" />}
         </button>
       </div>
@@ -200,7 +200,7 @@ const Community = () => {
                 <FontAwesomeIcon icon={faSearch} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/30 group-focus-within:text-accent transition-colors" />
                 <input 
                     type="text" 
-                    placeholder="Search transmissions..." 
+                    placeholder="Search posts..." 
                     className="w-full bg-card border border-border rounded-xl py-3 pl-11 pr-4 focus:border-accent outline-none transition shadow-sm text-text font-medium text-sm italic"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -217,7 +217,7 @@ const Community = () => {
             </div>
 
             {loading ? (
-                <div className="py-24 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xs italic">Synchronizing...</div>
+                <div className="py-24 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xs italic">Loading...</div>
             ) : posts.length > 0 ? (
                 <motion.div initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }} className="grid grid-cols-1 gap-4">
                 {posts.map(post => (
@@ -264,7 +264,7 @@ const Community = () => {
             ) : (
                 <div className="py-32 text-center text-text/30 bg-card rounded-3xl border border-border border-dashed shadow-inner">
                 <FontAwesomeIcon icon={faMessage} size="4x" className="mx-auto mb-4 opacity-5" />
-                <p className="text-xl font-black uppercase tracking-widest italic">Node Idle</p>
+                <p className="text-xl font-black uppercase tracking-widest italic">No posts found</p>
                 </div>
             )}
         </>
@@ -301,7 +301,7 @@ const Community = () => {
                         </div>
                         <div className="pt-3 border-t border-border/50 flex items-center justify-between">
                             <div className="flex flex-col">
-                                <span className="text-[7px] font-black text-text/20 uppercase tracking-widest">Architect</span>
+                                <span className="text-[7px] font-black text-text/20 uppercase tracking-widest">Leader</span>
                                 <span className="text-[9px] font-black text-text/60 uppercase italic">{group.creator_name}</span>
                             </div>
                             
@@ -311,14 +311,14 @@ const Community = () => {
                                 </button>
                             ) : group.user_status === 'Pending' ? (
                                 <span className="text-yellow-500 text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5 bg-yellow-500/5 px-3 py-1.5 rounded-lg border border-yellow-500/10 italic">
-                                    Syncing...
+                                    Pending...
                                 </span>
                             ) : (
                                 <button 
                                     onClick={(e) => handleJoinGroup(e, group.id)}
                                     className="bg-card border border-border hover:border-accent text-text/40 hover:text-accent text-[8px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest flex items-center gap-1.5 transition-all active:scale-95 italic"
                                 >
-                                    Access
+                                    Join
                                 </button>
                             )}
                         </div>
@@ -328,7 +328,7 @@ const Community = () => {
             {groups.length === 0 && (
                 <div className="py-32 text-center text-text/30 bg-card rounded-3xl border border-border border-dashed shadow-inner">
                     <FontAwesomeIcon icon={faShieldAlt} size="4x" className="mx-auto mb-4 opacity-5" />
-                    <p className="text-xl font-black uppercase tracking-widest italic">No Sectors Active</p>
+                    <p className="text-xl font-black uppercase tracking-widest italic">No groups active</p>
                 </div>
             )}
         </div>
@@ -342,19 +342,19 @@ const Community = () => {
               <div className="p-6 md:p-8 border-b border-border flex justify-between items-center bg-background/50">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-accent/10 rounded-lg text-accent"><FontAwesomeIcon icon={faShieldAlt} /></div>
-                    <h2 className="text-xl font-black text-text uppercase tracking-tighter italic">Establish Sector</h2>
+                    <h2 className="text-xl font-black text-text uppercase tracking-tighter italic">Create Group</h2>
                 </div>
                 <button onClick={() => setIsGroupModalOpen(false)} className="text-text/40 hover:text-red-500 p-1.5 rounded-full transition-all active:scale-90"><FontAwesomeIcon icon={faTimes} size="lg" /></button>
               </div>
               <form onSubmit={handleCreateGroup} className="p-6 md:p-10 space-y-6 overflow-y-auto max-h-[75vh] custom-scrollbar">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="md:col-span-2 space-y-2">
-                        <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Sector Title</label>
-                        <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner italic" placeholder="e.g. SYSTEMS" value={newGroup.title} onChange={(e) => setNewGroup({...newGroup, title: e.target.value})} />
+                        <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Group Title</label>
+                        <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner italic" placeholder="e.g. Development Team" value={newGroup.title} onChange={(e) => setNewGroup({...newGroup, title: e.target.value})} />
                     </div>
                     <div className="md:col-span-2 space-y-2">
                         <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Description</label>
-                        <textarea required rows={3} className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-text font-medium text-sm transition shadow-inner resize-none italic" placeholder="Sector scope..." value={newGroup.description} onChange={(e) => setNewGroup({...newGroup, description: e.target.value})} />
+                        <textarea required rows={3} className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-text font-medium text-sm transition shadow-inner resize-none italic" placeholder="Group description..." value={newGroup.description} onChange={(e) => setNewGroup({...newGroup, description: e.target.value})} />
                     </div>
                     <div className="space-y-2">
                         <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Capacity</label>
@@ -366,15 +366,15 @@ const Community = () => {
                     </div>
                     <div className="md:col-span-2 flex items-center gap-3 bg-background/50 p-4 rounded-xl border border-border">
                         <input type="checkbox" id="allow_guests" checked={newGroup.allow_guests} onChange={(e) => setNewGroup({...newGroup, allow_guests: e.target.checked})} className="w-5 h-5 rounded bg-background border-2 border-border text-accent focus:ring-accent italic" />
-                        <label htmlFor="allow_guests" className="text-[10px] font-black text-text/60 uppercase tracking-widest cursor-pointer select-none italic">Allow Guest Sync</label>
+                        <label htmlFor="allow_guests" className="text-[10px] font-black text-text/60 uppercase tracking-widest cursor-pointer select-none italic">Allow Guest Members</label>
                     </div>
                 </div>
 
                 <div className="flex gap-4 pt-2">
                     <button type="submit" disabled={isSubmitting} className="flex-grow bg-accent hover:bg-gfg-green-hover text-white font-black py-4 rounded-xl transition shadow-xl uppercase tracking-widest text-[10px] active:scale-[0.98] disabled:opacity-50">
-                        <FontAwesomeIcon icon={faSave} /> Initialize
+                        <FontAwesomeIcon icon={faSave} /> Create
                     </button>
-                    <button type="button" onClick={() => setIsGroupModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 px-8 rounded-xl transition uppercase tracking-widest text-[10px] shadow-sm italic">Abort</button>
+                    <button type="button" onClick={() => setIsGroupModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 px-8 rounded-xl transition uppercase tracking-widest text-[10px] shadow-sm italic">Cancel</button>
                 </div>
               </form>
             </motion.div>
@@ -390,36 +390,36 @@ const Community = () => {
               <div className="p-6 md:p-8 border-b border-border flex justify-between items-center bg-background/50">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-accent/10 rounded-lg text-accent"><FontAwesomeIcon icon={faMessage} /></div>
-                    <h2 className="text-xl font-black text-text uppercase tracking-tighter italic">Transmission</h2>
+                    <h2 className="text-xl font-black text-text uppercase tracking-tighter italic">New Post</h2>
                 </div>
                 <button onClick={() => setIsCreateModalOpen(false)} className="text-text/40 hover:text-red-500 p-1.5 rounded-full transition-all active:scale-90"><FontAwesomeIcon icon={faTimes} size="lg" /></button>
               </div>
               <form onSubmit={handleCreatePost} className="p-6 md:p-10 space-y-6 overflow-y-auto max-h-[75vh] custom-scrollbar">
                 <div className="space-y-2">
-                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Headline</label>
-                  <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner italic" placeholder="Transmission code..." value={newPost.title} onChange={(e) => setNewPost({...newPost, title: e.target.value})} />
+                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Title</label>
+                  <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner italic" placeholder="Post title..." value={newPost.title} onChange={(e) => setNewPost({...newPost, title: e.target.value})} />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Signal Data</label>
+                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Content</label>
                   <div className="bg-background rounded-xl border-2 border-border overflow-hidden focus-within:border-accent transition-colors shadow-inner">
                     <ReactQuill theme="snow" value={newPost.content} onChange={(content) => setNewPost({...newPost, content})} />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Metadata Tags</label>
+                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Tags</label>
                   <div className="relative">
                       <FontAwesomeIcon icon={faHashtag} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 text-xs"/>
-                      <input type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-10 focus:border-accent outline-none text-text font-black text-sm transition shadow-inner italic" placeholder="logic, core" value={newPost.tags} onChange={(e) => setNewPost({...newPost, tags: e.target.value})} />
+                      <input type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-10 focus:border-accent outline-none text-text font-black text-sm transition shadow-inner italic" placeholder="logic, development" value={newPost.tags} onChange={(e) => setNewPost({...newPost, tags: e.target.value})} />
                   </div>
                 </div>
 
                 <div className="flex gap-4 pt-2">
                     <button type="submit" disabled={isSubmitting} className="flex-grow bg-accent hover:bg-gfg-green-hover text-white font-black py-4 rounded-xl transition shadow-xl uppercase tracking-widest text-[10px] active:scale-[0.98] disabled:opacity-50">
-                        <FontAwesomeIcon icon={faSave} /> Deploy Signal
+                        <FontAwesomeIcon icon={faSave} /> Publish Post
                     </button>
-                    <button type="button" onClick={() => setIsCreateModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 px-8 rounded-xl transition uppercase tracking-widest text-[10px] shadow-sm italic">Abort</button>
+                    <button type="button" onClick={() => setIsCreateModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 px-8 rounded-xl transition uppercase tracking-widest text-[10px] shadow-sm italic">Cancel</button>
                 </div>
               </form>
             </motion.div>

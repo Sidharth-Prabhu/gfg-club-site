@@ -60,7 +60,7 @@ const Register = () => {
       setUserRole(response.data.role);
       setSubmitted(true);
     } catch (err) {
-      setError(err.response?.data?.message || 'Application deployment failed.');
+      setError(err.response?.data?.message || 'Registration failed.');
     } finally {
       setLoading(false);
     }
@@ -72,7 +72,7 @@ const Register = () => {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-2xl w-full bg-card border border-border p-12 md:p-20 rounded-3xl text-center space-y-8 shadow-2xl relative overflow-hidden italic"
+          className="max-w-2xl w-full bg-card border border-border p-12 md:p-20 rounded-3xl text-center space-y-8 shadow-2xl relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
           <div className="w-20 h-20 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto text-accent mb-8 shadow-inner border border-accent/20">
@@ -80,27 +80,26 @@ const Register = () => {
           </div>
           {userRole === 'Guest' ? (
             <>
-              <h2 className="text-3xl md:text-4xl font-black text-text uppercase tracking-tighter italic">Guest Account <span className="text-accent">Created</span></h2>
-              <p className="text-text/60 text-base font-medium leading-relaxed italic">
+              <h2 className="text-3xl md:text-4xl font-black text-text uppercase tracking-tighter">Guest Account <span className="text-accent">Created</span></h2>
+              <p className="text-text/60 text-base font-medium leading-relaxed">
                 Your guest account has been successfully registered. You can now login and explore the public features of our community.
               </p>
             </>
           ) : (
             <>
-              <h2 className="text-3xl md:text-4xl font-black text-text uppercase tracking-tighter italic">Transmission <span className="text-accent">Logged</span></h2>
-              <p className="text-text/60 text-base font-medium leading-relaxed italic">
-                Your ingress application has been broadcasted to Central Command. 
-                The Architects will review your technical stack and institutional data.
+              <h2 className="text-3xl md:text-4xl font-black text-text uppercase tracking-tighter">Registration <span className="text-accent">Successful</span></h2>
+              <p className="text-text/60 text-base font-medium leading-relaxed">
+                Your application has been submitted to the team for review. 
+                We will verify your technical profile and university information soon.
               </p>
             </>
           )}
           <div className="bg-background/50 border border-border p-6 rounded-2xl text-left font-mono text-[10px] space-y-2 opacity-60">
-            <p className="text-accent">{">"} Status: {userRole === 'Guest' ? 'APPROVED' : 'PENDING_APPROVAL'}</p>
-            <p>{">"} Encryption: AES-256-GCM</p>
-            <p>{">"} Role: {userRole === 'Guest' ? 'GUEST_ENTITY' : 'CORE_AGENT'}</p>
+            <p className="text-accent">{">"} Status: {userRole === 'Guest' ? 'APPROVED' : 'PENDING'}</p>
+            <p>{">"} Role: {userRole === 'Guest' ? 'GUEST' : 'MEMBER'}</p>
           </div>
           <Link to="/login" className="inline-flex items-center gap-2 bg-accent hover:bg-gfg-green-hover text-white px-8 py-4 rounded-xl font-black uppercase tracking-widest transition-all shadow-xl shadow-accent/20 active:scale-95 text-[10px]">
-            Return to Matrix <FontAwesomeIcon icon={faChevronRight} />
+            Go to Login <FontAwesomeIcon icon={faChevronRight} />
           </Link>
         </motion.div>
       </div>
@@ -115,22 +114,22 @@ const Register = () => {
         className="bg-card rounded-3xl border border-border shadow-xl relative overflow-hidden flex flex-col md:flex-row"
       >
         {/* Sidebar Info */}
-        <div className="md:w-1/3 bg-accent p-8 text-white flex flex-col justify-between relative overflow-hidden italic">
+        <div className="md:w-1/3 bg-accent p-8 text-white flex flex-col justify-between relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='3' cy='3' r='3' fill='%23ffffff'/%3E%3C/svg%3E")` }}></div>
             <div className="relative z-10 space-y-6">
                 <div className="bg-white/20 w-12 h-12 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/30 shadow-lg">
-                    <FontAwesomeIcon icon={faTerminal} size="lg" />
+                    <FontAwesomeIcon icon={faUser} size="lg" />
                 </div>
                 <div className="space-y-3">
-                    <h2 className="text-2xl font-black uppercase tracking-tighter leading-none italic">Apply for <br/>Core Ingress</h2>
-                    <p className="text-white/70 text-[10px] font-medium leading-relaxed">Join the elite community. Your application represents your technical potential.</p>
+                    <h2 className="text-2xl font-black uppercase tracking-tighter leading-none">Join the <br/>Community</h2>
+                    <p className="text-white/70 text-[10px] font-medium leading-relaxed">Become a part of our elite tech community and showcase your potential.</p>
                 </div>
                 
                 <div className="space-y-4 pt-6">
                     {[
-                        { s: 1, label: 'Institutional Data', icon: faBook },
-                        { s: 2, label: 'Technical Nodes', icon: faGithub },
-                        { s: 3, label: 'Persona Profile', icon: faFileAlt }
+                        { s: 1, label: 'Academic Info', icon: faBook },
+                        { s: 2, label: 'Online Presence', icon: faGithub },
+                        { s: 3, label: 'Profile Details', icon: faFileAlt }
                     ].map((item) => (
                         <div key={item.s} className={`flex items-center gap-3 transition-all duration-500 ${step >= item.s ? 'opacity-100 translate-x-1' : 'opacity-40'}`}>
                             <div className={`w-6 h-6 rounded-md flex items-center justify-center font-black text-[10px] border ${step >= item.s ? 'bg-white text-accent border-white' : 'border-white/30'}`}>
@@ -142,14 +141,14 @@ const Register = () => {
                 </div>
             </div>
             <div className="relative z-10 pt-8">
-                <p className="text-[8px] font-black uppercase tracking-widest opacity-40">GfG RITChennai Node</p>
+                <p className="text-[8px] font-black uppercase tracking-widest opacity-40">GfG RITChennai Chapter</p>
             </div>
         </div>
 
         {/* Form Area */}
         <div className="flex-grow p-6 md:p-10 space-y-8">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-black text-text uppercase tracking-widest">Section 0{step}</h3>
+            <h3 className="text-lg font-black text-text uppercase tracking-widest">Step 0{step}</h3>
             {error && <span className="text-red-500 text-[8px] font-black uppercase animate-pulse">{error}</span>}
           </div>
 
@@ -161,31 +160,31 @@ const Register = () => {
                   className="space-y-4"
                 >
                   <div className="space-y-1.5">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Real Name (Agent ID)</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Full Name</label>
                     <div className="relative group">
                       <FontAwesomeIcon icon={faUser} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors text-sm" />
-                      <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner italic" placeholder="Alan Turing" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                      <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner" placeholder="Alan Turing" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Matrix Link (Email)</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Email Address</label>
                     <div className="relative group">
                       <FontAwesomeIcon icon={faEnvelope} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors text-sm" />
-                      <input required type="email" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner" placeholder="agent@ritchennai.edu.in" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                      <input required type="email" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner" placeholder="name@ritchennai.edu.in" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Department Node</label>
-                      <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3.5 px-5 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner italic" placeholder="CSE" value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} />
+                      <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Department</label>
+                      <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3.5 px-5 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner" placeholder="CSE" value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Deployment Year</label>
+                      <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Current Year</label>
                       <input required type="number" className="w-full bg-background border-2 border-border rounded-xl py-3.5 px-5 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner" placeholder="3" value={formData.year} onChange={(e) => setFormData({ ...formData, year: e.target.value })} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Access Key (Password)</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Password</label>
                     <div className="relative group">
                       <FontAwesomeIcon icon={faLock} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors text-sm" />
                       <input required type="password" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner" placeholder="••••••••" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
@@ -200,21 +199,21 @@ const Register = () => {
                   className="space-y-4"
                 >
                   <div className="space-y-1.5">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2 text-accent flex items-center gap-1.5"><FontAwesomeIcon icon={faStar} className="text-[8px]"/> GeeksforGeeks URL</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2 text-accent flex items-center gap-1.5"><FontAwesomeIcon icon={faStar} className="text-[8px]"/> GeeksforGeeks Profile</label>
                     <div className="relative group">
                       <FontAwesomeIcon icon={faGlobe} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors text-sm" />
                       <input required type="url" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner" placeholder="https://www.geeksforgeeks.org/user/..." value={formData.gfg_profile} onChange={(e) => setFormData({ ...formData, gfg_profile: e.target.value })} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2 text-orange-500 flex items-center gap-1.5"><FontAwesomeIcon icon={faCode} className="text-[8px]"/> LeetCode Hub URL</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2 text-orange-500 flex items-center gap-1.5"><FontAwesomeIcon icon={faCode} className="text-[8px]"/> LeetCode Profile</label>
                     <div className="relative group">
                       <FontAwesomeIcon icon={faCode} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-orange-500 transition-colors text-sm" />
                       <input required type="url" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-orange-500 outline-none text-text text-sm font-bold transition shadow-inner" placeholder="https://leetcode.com/..." value={formData.leetcode_profile} onChange={(e) => setFormData({ ...formData, leetcode_profile: e.target.value })} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2 text-text flex items-center gap-1.5"><FontAwesomeIcon icon={faGithub} className="text-[8px]"/> GitHub Repository</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2 text-text flex items-center gap-1.5"><FontAwesomeIcon icon={faGithub} className="text-[8px]"/> GitHub Profile</label>
                     <div className="relative group">
                       <FontAwesomeIcon icon={faGithub} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-text transition-colors text-sm" />
                       <input required type="url" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-text outline-none text-text text-sm font-bold transition shadow-inner" placeholder="https://github.com/..." value={formData.github_profile} onChange={(e) => setFormData({ ...formData, github_profile: e.target.value })} />
@@ -231,25 +230,25 @@ const Register = () => {
                   {!isGuest ? (
                     <>
                       <div className="space-y-1.5">
-                        <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Technological Skills (CSV)</label>
+                        <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Technical Skills</label>
                         <div className="relative group">
                           <FontAwesomeIcon icon={faHashtag} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors text-sm" />
-                          <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner italic" placeholder="React, Node.js, Python" value={formData.skills} onChange={(e) => setFormData({ ...formData, skills: e.target.value })} />
+                          <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3.5 pl-11 pr-4 focus:border-accent outline-none text-text text-sm font-bold transition shadow-inner" placeholder="React, Node.js, Python" value={formData.skills} onChange={(e) => setFormData({ ...formData, skills: e.target.value })} />
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">About Your Persona</label>
-                        <textarea required rows={3} className="w-full bg-background border-2 border-border rounded-xl py-3.5 px-5 focus:border-accent outline-none text-text text-sm font-medium transition shadow-inner resize-none italic" placeholder="Define your technical focus..." value={formData.about} onChange={(e) => setFormData({ ...formData, about: e.target.value })} />
+                        <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">About You</label>
+                        <textarea required rows={3} className="w-full bg-background border-2 border-border rounded-xl py-3.5 px-5 focus:border-accent outline-none text-text text-sm font-medium transition shadow-inner resize-none" placeholder="Tell us about your technical focus..." value={formData.about} onChange={(e) => setFormData({ ...formData, about: e.target.value })} />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Resume PDF</label>
+                        <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Resume (PDF)</label>
                         <div className="relative">
                             <input required type="file" accept="application/pdf" className="hidden" id="resume-upload" onChange={handleFileChange} />
                             <label htmlFor="resume-upload" className="w-full flex items-center justify-between bg-background border-2 border-dashed border-border hover:border-accent rounded-xl p-4 cursor-pointer transition-all group shadow-inner">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2 bg-accent/5 rounded-lg text-accent group-hover:bg-accent group-hover:text-white transition-all"><FontAwesomeIcon icon={faFileAlt} /></div>
                                     <div className="text-left">
-                                        <p className="text-[10px] font-black text-text uppercase tracking-widest">{resumeName || 'Select PDF Dossier'}</p>
+                                        <p className="text-[10px] font-black text-text uppercase tracking-widest">{resumeName || 'Select Resume'}</p>
                                         <p className="text-[7px] font-bold text-text/30 uppercase tracking-widest mt-0.5">Max 2MB | PDF Only</p>
                                     </div>
                                 </div>
@@ -263,8 +262,8 @@ const Register = () => {
                       <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto text-accent shadow-inner">
                         <FontAwesomeIcon icon={faStar} size="2x" />
                       </div>
-                      <h4 className="text-lg font-black text-text uppercase tracking-widest italic">Guest Ready</h4>
-                      <p className="text-text/50 text-[10px] font-medium italic">Guest accounts do not require extra technical profile data.</p>
+                      <h4 className="text-lg font-black text-text uppercase tracking-widest">Guest Ready</h4>
+                      <p className="text-text/50 text-[10px] font-medium">Guest accounts do not require extra technical profile data.</p>
                     </div>
                   )}
                 </motion.div>
@@ -273,7 +272,7 @@ const Register = () => {
 
             <div className="flex gap-3 pt-4">
               {step > 1 && (
-                <button type="button" onClick={() => setStep(step - 1)} className="flex-grow bg-card border border-border hover:bg-background text-text/60 font-black py-3.5 rounded-xl flex items-center justify-center gap-2 transition uppercase tracking-widest text-[10px] shadow-sm italic">
+                <button type="button" onClick={() => setStep(step - 1)} className="flex-grow bg-card border border-border hover:bg-background text-text/60 font-black py-3.5 rounded-xl flex items-center justify-center gap-2 transition uppercase tracking-widest text-[10px] shadow-sm">
                   <FontAwesomeIcon icon={faChevronLeft} /> Back
                 </button>
               )}
@@ -282,15 +281,15 @@ const Register = () => {
                 disabled={loading}
                 className="flex-[2] bg-accent hover:bg-gfg-green-hover text-white font-black py-3.5 rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-accent/10 uppercase tracking-widest text-[10px] active:scale-[0.98] disabled:opacity-50"
               >
-                {loading ? 'Transmitting...' : step === 3 ? <><FontAwesomeIcon icon={faPaperPlane} /> Submit</> : <><FontAwesomeIcon icon={faChevronRight} /> Continue</>}
+                {loading ? 'Submitting...' : step === 3 ? <><FontAwesomeIcon icon={faPaperPlane} /> Submit</> : <><FontAwesomeIcon icon={faChevronRight} /> Continue</>}
               </button>
             </div>
           </form>
 
           <div className="pt-6 border-t border-border/50 text-center">
-            <p className="text-text/40 font-bold text-[8px] uppercase tracking-widest italic">
-              Verified agent?{' '}
-              <Link to="/login" className="text-accent hover:underline font-black ml-1">Authenticate</Link>
+            <p className="text-text/40 font-bold text-[8px] uppercase tracking-widest">
+              Already have an account?{' '}
+              <Link to="/login" className="text-accent hover:underline font-black ml-1">Login</Link>
             </p>
           </div>
         </div>

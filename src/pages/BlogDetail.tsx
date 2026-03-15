@@ -51,7 +51,7 @@ const BlogDetail = () => {
   }, [blog, user]);
 
   const handleDelete = async () => {
-    if (!window.confirm('Terminate this publication?')) return;
+    if (!window.confirm('Delete this post?')) return;
     try {
       await api.delete(`/blogs/${id}`);
       navigate('/blog');
@@ -70,7 +70,7 @@ const BlogDetail = () => {
       setIsEditModalOpen(false);
       fetchBlog();
     } catch (error) {
-      alert('Failed to update publication');
+      alert('Failed to update post');
     } finally {
       setIsSubmitting(false);
     }
@@ -89,7 +89,7 @@ const BlogDetail = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center text-accent font-black tracking-[0.2em] uppercase animate-pulse text-xs italic">
-          Decrypting Node...
+          Loading...
         </div>
       </div>
     );
@@ -121,7 +121,7 @@ const BlogDetail = () => {
           <div className="max-w-7xl mx-auto space-y-6">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-center gap-3">
                 <span className="bg-accent/10 text-accent text-[8px] font-black px-3 py-1 rounded-full border border-accent/20 tracking-widest uppercase backdrop-blur-md">
-                    OFFICIAL PUBLICATION
+                    OFFICIAL POST
                 </span>
                 <div className="flex gap-1.5">
                     {blog.tags?.split(',').map((tag, i) => (
@@ -153,7 +153,7 @@ const BlogDetail = () => {
                 </Link>
                 <div>
                   <Link to={`/profile/${blog.author_id}`} className="font-black text-lg text-text uppercase tracking-widest hover:text-accent transition-colors italic">{blog.author_name}</Link>
-                  <p className="text-[8px] text-accent font-black uppercase tracking-[0.2em] mt-0.5 italic">Technical Authority</p>
+                  <p className="text-[8px] text-accent font-black uppercase tracking-[0.2em] mt-0.5 italic">Author</p>
                 </div>
               </div>
               <div className="h-8 w-[1px] bg-border hidden sm:block"></div>
@@ -190,8 +190,8 @@ const BlogDetail = () => {
                     <FontAwesomeIcon icon={faBookOpen} size="2x" className="text-accent" />
                 </div>
                 <div>
-                    <h4 className="text-lg font-black text-text uppercase tracking-widest italic">Publication</h4>
-                    <p className="text-text/40 font-black uppercase text-[8px] tracking-[0.2em] mt-1">Verified Stream</p>
+                    <h4 className="text-lg font-black text-text uppercase tracking-widest italic">Blog Post</h4>
+                    <p className="text-text/40 font-black uppercase text-[8px] tracking-[0.2em] mt-1">Verified Content</p>
                 </div>
               </div>
 
@@ -199,21 +199,21 @@ const BlogDetail = () => {
               <div className="space-y-3 pt-6 border-t border-border/50">
                 {(user?.id === blog.author_id || user?.role === 'Admin') && (
                   <button onClick={handleOpenEditModal} className="w-full py-3.5 rounded-xl bg-blue-500/5 text-blue-500 border border-border hover:bg-blue-500 hover:text-white transition-all font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 active:scale-95">
-                    <FontAwesomeIcon icon={faEdit} /> Modify
+                    <FontAwesomeIcon icon={faEdit} /> Edit
                   </button>
                 )}
                 {(user?.id === blog.author_id || user?.role === 'Admin' || user?.role === 'Core') && (
                   <button onClick={handleDelete} className="w-full py-3.5 rounded-xl bg-red-500/5 text-red-500 border border-border hover:bg-red-500 hover:text-white transition-all font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 active:scale-95">
-                    <FontAwesomeIcon icon={faTrashAlt} /> Terminate
+                    <FontAwesomeIcon icon={faTrashAlt} /> Delete
                   </button>
                 )}
-                <button className="w-full py-3.5 bg-background border border-border text-text/40 hover:text-accent hover:border-accent rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95"><FontAwesomeIcon icon={faShareAlt} /> Broadcast</button>
+                <button className="w-full py-3.5 bg-background border border-border text-text/40 hover:text-accent hover:border-accent rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95"><FontAwesomeIcon icon={faShareAlt} /> Share</button>
               </div>
 
               <div className="pt-6 border-t border-border/50">
                    <div className="flex items-center gap-3 text-text/40 mb-4">
                       <FontAwesomeIcon icon={faTag} className="text-accent text-xs" />
-                      <span className="text-[8px] font-black uppercase tracking-widest">Metadata</span>
+                      <span className="text-[8px] font-black uppercase tracking-widest">Information</span>
                    </div>
                    <div className="flex flex-wrap gap-1.5">
                       {blog.tags?.split(',').map((tag, i) => (
@@ -236,30 +236,30 @@ const BlogDetail = () => {
               <div className="p-6 md:p-8 border-b border-border flex justify-between items-center bg-background/50">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-accent/10 rounded-lg text-accent"><FontAwesomeIcon icon={faEdit} /></div>
-                  <h2 className="text-xl font-black text-text uppercase tracking-tighter italic">Re-Draft Node</h2>
+                  <h2 className="text-xl font-black text-text uppercase tracking-tighter italic">Edit Post</h2>
                 </div>
                 <button onClick={() => setIsEditModalOpen(false)} className="text-text/40 hover:text-red-500 p-2 rounded-full transition-all group active:scale-90"><FontAwesomeIcon icon={faTimes} size="lg" className="group-hover:rotate-90 transition-transform" /></button>
               </div>
               <form onSubmit={handleEdit} className="p-6 md:p-10 space-y-8 overflow-y-auto custom-scrollbar">
                 <div className="space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Headline</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Title</label>
                     <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-lg font-black text-text shadow-inner transition-colors italic" value={editFormData.title} onChange={(e) => setEditFormData({...editFormData, title: e.target.value})} />
                 </div>
                 <div className="space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Content Matrix</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Content</label>
                     <div className="bg-background rounded-2xl overflow-hidden border-2 border-border focus-within:border-accent transition shadow-inner">
                         <ReactQuill theme="snow" value={editFormData.content} onChange={(content) => setEditFormData({...editFormData, content: content})} />
                     </div>
                 </div>
                 <div className="space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Tags (CSV)</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Tags</label>
                     <input type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none font-bold text-sm text-text shadow-inner transition-colors italic" value={editFormData.tags} onChange={(e) => setEditFormData({...editFormData, tags: e.target.value})} />
                 </div>
                 <div className="flex gap-4 pt-2">
                     <button type="submit" disabled={isSubmitting} className="flex-grow bg-accent hover:bg-gfg-green-hover text-white font-black py-4 px-8 rounded-xl transition text-sm shadow-xl shadow-accent/10 uppercase tracking-widest active:scale-[0.98] disabled:opacity-50">
-                        <FontAwesomeIcon icon={faSave} /> {isSubmitting ? 'Updating...' : 'Commit'}
+                        <FontAwesomeIcon icon={faSave} /> {isSubmitting ? 'Updating...' : 'Save Changes'}
                     </button>
-                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 px-8 rounded-xl transition text-sm flex-grow uppercase tracking-widest shadow-sm italic">Abort</button>
+                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 px-8 rounded-xl transition text-sm flex-grow uppercase tracking-widest shadow-sm italic">Cancel</button>
                 </div>
               </form>
             </motion.div>

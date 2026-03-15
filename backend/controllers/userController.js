@@ -45,7 +45,12 @@ export const getUserProfile = async (req, res) => {
     await updateStreak(req.user.id);
 
     const [rows] = await pool.execute(
-      'SELECT id, name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile, problems_solved, gfg_solved, gfg_score, leetcode_solved, github_repos, weekly_points, streak, role, last_login, created_at, skills, about, resume_url, status, profile_pic FROM users WHERE id = ?',
+      `SELECT id, name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile, 
+       problems_solved, gfg_solved, gfg_score, leetcode_solved, github_repos, weekly_points, streak, role, 
+       last_login, created_at, skills, about, resume_url, status, profile_pic,
+       (SELECT COUNT(*) FROM post_comments WHERE user_id = users.id) as comment_count,
+       (SELECT COUNT(*) FROM discussions WHERE author_id = users.id) as discussion_count
+       FROM users WHERE id = ?`,
       [req.user.id]
     );
     const user = rows[0];
@@ -68,6 +73,7 @@ export const getUserProfileById = async (req, res) => {
        problems_solved, gfg_solved, gfg_score, leetcode_solved, github_repos, streak, role, created_at, 
        skills, about, profile_pic,
        (SELECT COUNT(*) FROM discussions WHERE author_id = users.id) as discussion_count,
+       (SELECT COUNT(*) FROM post_comments WHERE user_id = users.id) as comment_count,
        (SELECT COUNT(*) FROM projects WHERE created_by = users.id AND status = 'Approved') as project_count
        FROM users WHERE id = ? AND status = 'Approved'`,
       [id]

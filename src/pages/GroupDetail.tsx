@@ -67,13 +67,13 @@ const GroupDetail = () => {
       setNewPost({ title: '', content: '', tags: '' });
       fetchGroupData();
     } catch (error) {
-      alert('Transmission failed');
+      alert('Post creation failed');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (loading) return <div className="py-24 text-center text-accent font-black tracking-widest animate-pulse uppercase italic text-xs">Syncing Sector...</div>;
+  if (loading) return <div className="py-24 text-center text-accent font-black tracking-widest animate-pulse uppercase italic text-xs">Loading Group...</div>;
   if (!group) return null;
 
   const isMember = group.user_status === 'Accepted';
@@ -84,7 +84,7 @@ const GroupDetail = () => {
         onClick={() => navigate('/community')} 
         className="flex items-center gap-1.5 text-text/60 hover:text-accent transition-all group font-black uppercase text-[10px] tracking-widest bg-card px-4 py-2 rounded-xl border border-border shadow-sm active:scale-95"
       >
-        <FontAwesomeIcon icon={faArrowLeft} /> Exit Sector
+        <FontAwesomeIcon icon={faArrowLeft} /> Back to Community
       </button>
 
       {/* Group Header */}
@@ -102,10 +102,10 @@ const GroupDetail = () => {
         <div className="flex-grow space-y-4 text-center md:text-left relative z-10">
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
                 <span className="bg-accent/10 text-accent text-[8px] font-black px-3 py-1 rounded-full border border-accent/20 tracking-widest uppercase backdrop-blur-md italic">
-                    OPERATIONAL SECTOR
+                    ACTIVE GROUP
                 </span>
                 {group.allow_guests ? (
-                    <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-1.5 bg-blue-500/5 px-3 py-1 rounded-full border border-blue-500/10 italic"><FontAwesomeIcon icon={faGlobe} /> Global Sync</span>
+                    <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-1.5 bg-blue-500/5 px-3 py-1 rounded-full border border-blue-500/10 italic"><FontAwesomeIcon icon={faGlobe} /> Public Group</span>
                 ) : (
                     <span className="text-[8px] font-black text-red-400 uppercase tracking-widest flex items-center gap-1.5 bg-red-500/5 px-3 py-1 rounded-full border border-red-500/10 italic"><FontAwesomeIcon icon={faLock} /> Restricted</span>
                 )}
@@ -115,11 +115,11 @@ const GroupDetail = () => {
             
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 pt-2">
                 <div className="flex flex-col">
-                    <span className="text-[8px] font-black text-text/20 uppercase tracking-widest">Architect</span>
+                    <span className="text-[8px] font-black text-text/20 uppercase tracking-widest">Leader</span>
                     <Link to={`/profile/${group.created_by}`} className="text-[10px] font-black text-text/60 uppercase hover:text-accent transition-colors italic">{group.creator_name}</Link>
                 </div>
                 <div className="flex flex-col border-l border-border/50 pl-6">
-                    <span className="text-[8px] font-black text-text/20 uppercase tracking-widest">Nodes</span>
+                    <span className="text-[8px] font-black text-text/20 uppercase tracking-widest">Members</span>
                     <span className="text-[10px] font-black text-text/60 uppercase italic">{group.member_count} / {group.max_members}</span>
                 </div>
             </div>
@@ -130,7 +130,7 @@ const GroupDetail = () => {
                 onClick={() => setIsCreateModalOpen(true)}
                 className="bg-accent hover:bg-gfg-green-hover text-white px-6 py-3.5 rounded-xl font-black flex items-center gap-2 transition shadow-lg shadow-accent/10 text-[10px] uppercase tracking-widest active:scale-95 whitespace-nowrap"
             >
-                <FontAwesomeIcon icon={faPlus} /> New Transmission
+                <FontAwesomeIcon icon={faPlus} /> New Post
             </button>
         )}
       </motion.div>
@@ -141,14 +141,14 @@ const GroupDetail = () => {
             onClick={() => setActiveTab('feed')}
             className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all relative ${activeTab === 'feed' ? 'text-accent' : 'text-text/30 hover:text-text/60'}`}
         >
-            Sector Feed
+            Group Feed
             {activeTab === 'feed' && <motion.div layoutId="tab-underline-group" className="absolute bottom-0 left-0 w-full h-0.5 bg-accent rounded-full" />}
         </button>
         <button 
             onClick={() => setActiveTab('members')}
             className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all relative ${activeTab === 'members' ? 'text-accent' : 'text-text/30 hover:text-text/60'}`}
         >
-            Active Nodes
+            Member List
             {activeTab === 'members' && <motion.div layoutId="tab-underline-group" className="absolute bottom-0 left-0 w-full h-0.5 bg-accent rounded-full" />}
         </button>
       </div>
@@ -160,7 +160,7 @@ const GroupDetail = () => {
                     {posts.map(post => (
                         <motion.div 
                             initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
+                            animate={{ opacity: 1, y: 0 }}
                             key={post.id} 
                             onClick={() => navigate(`/community/${post.id}`)}
                             className="bg-card border border-border rounded-3xl p-6 md:p-8 hover:shadow-xl transition-all group cursor-pointer flex flex-col md:flex-row gap-8 shadow-sm"
@@ -172,7 +172,7 @@ const GroupDetail = () => {
                                 </div>
                                 <div className={`text-center p-3 rounded-xl border w-full transition-all ${post.comment_count > 0 ? 'border-accent/30 bg-accent/5 text-accent' : 'border-border'}`}>
                                     <p className="text-lg font-black">{post.comment_count || 0}</p>
-                                    <p className="text-[7px] font-black uppercase tracking-widest text-text/40">Signals</p>
+                                    <p className="text-[7px] font-black uppercase tracking-widest text-text/40">Replies</p>
                                 </div>
                             </div>
                             <div className="flex-grow min-w-0 space-y-4">
@@ -195,7 +195,7 @@ const GroupDetail = () => {
             ) : (
                 <div className="py-24 text-center bg-card rounded-3xl border border-border border-dashed shadow-inner">
                     <FontAwesomeIcon icon={faMessage} size="3x" className="mx-auto mb-4 opacity-5" />
-                    <p className="text-xl font-black uppercase tracking-widest text-text/20 italic">Sector Idle</p>
+                    <p className="text-xl font-black uppercase tracking-widest text-text/20 italic">No posts found.</p>
                 </div>
             )}
         </div>
@@ -223,40 +223,40 @@ const GroupDetail = () => {
       <AnimatePresence>
         {isCreateModalOpen && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl overflow-y-auto">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-card border border-border rounded-3xl w-full max-w-2xl my-auto shadow-2xl overflow-hidden">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-card border border-border rounded-3xl w-full max-w-4xl my-auto shadow-2xl overflow-hidden">
               <div className="p-6 md:p-8 border-b border-border flex justify-between items-center bg-background/50">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-accent/10 rounded-lg text-accent"><FontAwesomeIcon icon={faMessage} /></div>
-                    <h2 className="text-xl font-black text-text uppercase tracking-tighter italic">Sector Transmission</h2>
+                    <h2 className="text-xl font-black text-text uppercase tracking-tighter italic">New Post</h2>
                 </div>
                 <button onClick={() => setIsCreateModalOpen(false)} className="text-text/40 hover:text-red-500 p-1.5 rounded-full transition-all active:scale-90"><FontAwesomeIcon icon={faTimes} size="lg" /></button>
               </div>
               <form onSubmit={handleCreatePost} className="p-6 md:p-10 space-y-6 overflow-y-auto max-h-[75vh] custom-scrollbar">
                 <div className="space-y-2">
                   <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Title</label>
-                  <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner italic" placeholder="Enter code..." value={newPost.title} onChange={(e) => setNewPost({...newPost, title: e.target.value})} />
+                  <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner italic" placeholder="Enter title..." value={newPost.title} onChange={(e) => setNewPost({...newPost, title: e.target.value})} />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Signal Data</label>
+                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Content</label>
                   <div className="bg-background rounded-xl border-2 border-border overflow-hidden focus-within:border-accent transition-colors shadow-inner">
                     <ReactQuill theme="snow" value={newPost.content} onChange={(content) => setNewPost({...newPost, content})} />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Metadata</label>
+                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Tags</label>
                   <div className="relative">
                       <FontAwesomeIcon icon={faHashtag} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 text-xs"/>
-                      <input type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 pl-10 pr-5 focus:border-accent outline-none text-text font-black text-sm transition shadow-inner italic" placeholder="logic, core" value={newPost.tags} onChange={(e) => setNewPost({...newPost, tags: e.target.value})} />
+                      <input type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 pl-10 pr-5 focus:border-accent outline-none text-text font-black text-sm transition shadow-inner italic" placeholder="e.g. React, Node.js" value={newPost.tags} onChange={(e) => setNewPost({...newPost, tags: e.target.value})} />
                   </div>
                 </div>
 
                 <div className="flex gap-4 pt-4">
                     <button type="submit" disabled={isSubmitting} className="flex-grow bg-accent hover:bg-gfg-green-hover text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 transition shadow-xl shadow-accent/10 uppercase tracking-widest text-[10px] active:scale-[0.98] disabled:opacity-50">
-                        <FontAwesomeIcon icon={faSave} /> {isSubmitting ? 'Transmitting...' : 'Deploy'}
+                        <FontAwesomeIcon icon={faSave} /> {isSubmitting ? 'Posting...' : 'Post'}
                     </button>
-                    <button type="button" onClick={() => setIsCreateModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 px-8 rounded-xl transition uppercase tracking-widest text-[10px] shadow-sm italic">Abort</button>
+                    <button type="button" onClick={() => setIsCreateModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 px-8 rounded-xl transition uppercase tracking-widest text-[10px] shadow-sm italic">Cancel</button>
                 </div>
               </form>
             </motion.div>

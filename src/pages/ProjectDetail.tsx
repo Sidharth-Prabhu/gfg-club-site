@@ -66,7 +66,7 @@ const ProjectDetail = () => {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Terminate this project deployment?')) return;
+    if (!window.confirm('Delete this project?')) return;
     try {
       await api.delete(`/projects/${id}`);
       navigate('/projects');
@@ -84,7 +84,7 @@ const ProjectDetail = () => {
       await api.put(`/projects/${id}`, editFormData);
       setIsEditModalOpen(false);
       fetchProject();
-      alert('Project updated and sent for re-approval');
+      alert('Project updated and sent for review');
     } catch (error) {
       alert('Failed to update project');
     } finally {
@@ -117,7 +117,7 @@ const ProjectDetail = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center text-accent font-black tracking-[0.2em] uppercase animate-pulse text-xs italic">
-          Syncing Node...
+          Loading Project...
         </div>
       </div>
     );
@@ -141,7 +141,7 @@ const ProjectDetail = () => {
             onClick={() => navigate('/projects')} 
             className="flex items-center gap-1.5 text-text/60 bg-card/40 hover:bg-card backdrop-blur-md px-4 py-2 rounded-full border border-border transition-all group font-black uppercase text-[10px] tracking-widest active:scale-95"
           >
-            <FontAwesomeIcon icon={faArrowLeft} className="group-hover:-translate-x-1 transition-transform" /> Back
+            <FontAwesomeIcon icon={faArrowLeft} /> Back
           </button>
         </div>
 
@@ -149,7 +149,7 @@ const ProjectDetail = () => {
           <div className="max-w-7xl mx-auto space-y-6">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-center gap-3">
                 <span className="bg-accent/10 text-accent text-[8px] font-black px-3 py-1 rounded-full border border-accent/20 tracking-widest uppercase backdrop-blur-md">
-                    {project.category} NODE
+                    {project.category} PROJECT
                 </span>
                 <span className={`px-3 py-1 rounded-full text-[8px] font-black tracking-widest uppercase backdrop-blur-md border ${project.status === 'Approved' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'}`}>
                     {project.status === 'Approved' ? 'VERIFIED' : 'PENDING'}
@@ -177,7 +177,7 @@ const ProjectDetail = () => {
                 </Link>
                 <div>
                   <Link to={`/profile/${project.created_by}`} className="font-black text-lg text-text uppercase tracking-widest hover:text-accent transition-colors italic">{project.creator_name}</Link>
-                  <p className="text-[8px] text-accent font-black uppercase tracking-[0.2em] mt-0.5 italic">Lead Architect</p>
+                  <p className="text-[8px] text-accent font-black uppercase tracking-[0.2em] mt-0.5 italic">Author</p>
                 </div>
               </div>
               <div className="h-8 w-[1px] bg-border hidden sm:block"></div>
@@ -185,7 +185,7 @@ const ProjectDetail = () => {
                 <FontAwesomeIcon icon={faClock} className="text-accent" /> {new Date(project.created_at).toLocaleDateString()}
               </span>
               <span className="flex items-center gap-2 font-black uppercase text-[10px] tracking-widest text-accent italic">
-                <FontAwesomeIcon icon={faStar} /> {project.vote_score || 0} Excellence
+                <FontAwesomeIcon icon={faStar} /> {project.vote_score || 0} Points
               </span>
             </motion.div>
           </div>
@@ -200,10 +200,10 @@ const ProjectDetail = () => {
             <div className="space-y-6">
               <div className="flex items-center gap-3">
                 <FontAwesomeIcon icon={faFileAlt} className="text-accent text-xl" />
-                <h4 className="text-2xl font-black text-text uppercase tracking-tight italic">Narrative</h4>
+                <h4 className="text-2xl font-black text-text uppercase tracking-tight italic">Description</h4>
               </div>
               <div className="bg-card border border-border p-8 rounded-3xl shadow-xl italic">
-                <div className="prose dark:prose-invert prose-accent max-w-none text-text/80 text-base leading-[1.7] font-medium ql-editor !p-0" dangerouslySetInnerHTML={{ __html: project.description }} />
+                <div className="prose dark:prose-invert prose-accent max-w-none text-text/80 text-base md:text-lg leading-[1.7] font-medium ql-editor !p-0" dangerouslySetInnerHTML={{ __html: project.description }} />
               </div>
             </div>
 
@@ -211,7 +211,7 @@ const ProjectDetail = () => {
             <div className="space-y-6">
               <div className="flex items-center gap-3">
                 <FontAwesomeIcon icon={faCode} className="text-accent text-xl" />
-                <h4 className="text-2xl font-black text-text uppercase tracking-tight italic">Architecture</h4>
+                <h4 className="text-2xl font-black text-text uppercase tracking-tight italic">Technologies</h4>
               </div>
               <div className="flex flex-wrap gap-2.5">
                 {project.tech_stack.split(',').map((tech, i) => (
@@ -231,13 +231,13 @@ const ProjectDetail = () => {
                 <div className="space-y-3">
                   {project.github_link && (
                     <a href={project.github_link} target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-between p-4 bg-background border border-border hover:border-text rounded-xl transition-all text-text/80 font-black uppercase tracking-widest text-[10px] group/link shadow-inner">
-                      <div className="flex items-center gap-3"><FontAwesomeIcon icon={faGithub} className="text-lg" /> Source</div>
+                      <div className="flex items-center gap-3"><FontAwesomeIcon icon={faGithub} className="text-lg" /> Source Code</div>
                       <FontAwesomeIcon icon={faExternalLinkAlt} className="opacity-40 group-hover/link:opacity-100 transition-all text-[10px]" />
                     </a>
                   )}
                   {project.demo_link && (
                     <a href={project.demo_link} target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-between p-4 bg-accent/10 border border-accent/20 text-accent hover:bg-accent hover:text-white rounded-xl transition-all font-black uppercase tracking-widest text-[10px] group/link shadow-lg shadow-accent/10">
-                      <div className="flex items-center gap-3"><FontAwesomeIcon icon={faDesktop} /> Live Node</div>
+                      <div className="flex items-center gap-3"><FontAwesomeIcon icon={faDesktop} /> Live Demo</div>
                       <FontAwesomeIcon icon={faExternalLinkAlt} className="group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform text-[10px]" />
                     </a>
                   )}
@@ -248,11 +248,11 @@ const ProjectDetail = () => {
                 <div className="flex gap-3">
                   <button onClick={() => handleVote(1)} className="flex-1 py-5 bg-background border border-border hover:border-accent rounded-2xl text-text/30 hover:text-accent transition-all flex flex-col items-center gap-1.5 group/btn shadow-inner active:scale-95">
                     <FontAwesomeIcon icon={faChevronUp} size="2x" className="group-hover/btn:-translate-y-0.5 transition-transform" /> 
-                    <span className="text-[8px] font-black uppercase tracking-widest">Applaud</span>
+                    <span className="text-[8px] font-black uppercase tracking-widest">Upvote</span>
                   </button>
                   <button onClick={() => handleVote(-1)} className="flex-1 py-5 bg-background border border-border hover:border-red-500 rounded-2xl text-text/30 hover:text-red-500 transition-all flex flex-col items-center gap-1.5 group/btn shadow-inner active:scale-95">
                     <FontAwesomeIcon icon={faChevronDown} size="2x" className="group-hover/btn:translate-y-0.5 transition-transform" /> 
-                    <span className="text-[8px] font-black uppercase tracking-widest">Critique</span>
+                    <span className="text-[8px] font-black uppercase tracking-widest">Downvote</span>
                   </button>
                 </div>
               </div>
@@ -261,12 +261,12 @@ const ProjectDetail = () => {
               <div className="space-y-3 pt-6 border-t border-border/50">
                 {(user?.id === project.created_by || user?.role === 'Admin' || user?.role === 'Core') && (
                   <button onClick={handleOpenEditModal} className="w-full py-3.5 rounded-xl bg-blue-500/5 text-blue-500 border border-border hover:bg-blue-500 hover:text-white transition-all font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 active:scale-95">
-                    <FontAwesomeIcon icon={faEdit} /> Modify
+                    <FontAwesomeIcon icon={faEdit} /> Edit
                   </button>
                 )}
                 {(user?.id === project.created_by || user?.role === 'Admin' || user?.role === 'Core') && (
                   <button onClick={handleDelete} className="w-full py-3.5 rounded-xl bg-red-500/5 text-red-500 border border-border hover:bg-red-500 hover:text-white transition-all font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 active:scale-95">
-                    <FontAwesomeIcon icon={faTrashAlt} /> Terminate
+                    <FontAwesomeIcon icon={faTrashAlt} /> Delete
                   </button>
                 )}
                 <button className="w-full py-3.5 bg-background border border-border text-text/40 hover:text-accent hover:border-accent rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95"><FontAwesomeIcon icon={faShareAlt} /> Share</button>
@@ -284,28 +284,28 @@ const ProjectDetail = () => {
               <div className="p-6 md:p-8 border-b border-border flex justify-between items-center bg-background/50">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-accent/10 rounded-lg text-accent"><FontAwesomeIcon icon={faEdit} /></div>
-                  <h2 className="text-xl font-black text-text uppercase tracking-tighter italic">Re-Configure Build</h2>
+                  <h2 className="text-xl font-black text-text uppercase tracking-tighter italic">Edit Project</h2>
                 </div>
-                <button onClick={() => setIsEditModalOpen(false)} className="text-text/40 hover:text-red-500 p-2 rounded-full transition-all group active:scale-90"><FontAwesomeIcon icon={faTimes} size="lg" className="group-hover:rotate-90 transition-transform" /></button>
+                <button onClick={() => setIsEditModalOpen(false)} className="text-text/40 hover:text-red-500 p-1.5 rounded-full transition-all group active:scale-90"><FontAwesomeIcon icon={faTimes} size="lg" className="group-hover:rotate-90 transition-transform" /></button>
               </div>
               <form onSubmit={handleEdit} className="p-6 md:p-10 space-y-8 overflow-y-auto custom-scrollbar">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="md:col-span-2 space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Headline</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Project Title</label>
                     <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-lg font-black text-text shadow-inner transition-colors italic" placeholder="Project name..." value={editFormData.title} onChange={(e) => setEditFormData({...editFormData, title: e.target.value})} />
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Narrative</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Description</label>
                     <div className="bg-background rounded-2xl overflow-hidden border-2 border-border focus-within:border-accent transition shadow-inner">
                         <ReactQuill theme="snow" value={editFormData.description} onChange={(content) => setEditFormData({...editFormData, description: content})} />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Stack (CSV)</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Technologies (comma separated)</label>
                     <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none font-bold text-sm text-text shadow-inner transition-colors italic" placeholder="React, Python..." value={editFormData.tech_stack} onChange={(e) => setEditFormData({...editFormData, tech_stack: e.target.value})} />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Classification</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Category</label>
                     <div className="relative">
                       <select className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none cursor-pointer font-black text-text uppercase text-[10px] appearance-none shadow-inner italic" value={editFormData.category} onChange={(e) => setEditFormData({...editFormData, category: e.target.value})}>
                         {categories.map(c => <option key={c} value={c}>{c}</option>)}
@@ -318,15 +318,15 @@ const ProjectDetail = () => {
                     <input type="url" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none font-bold text-xs text-text shadow-inner transition-colors" value={editFormData.github_link} onChange={(e) => setEditFormData({...editFormData, github_link: e.target.value})} />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Live Node</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Demo URL</label>
                     <input type="url" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none font-bold text-xs text-text shadow-inner transition-colors" value={editFormData.demo_link} onChange={(e) => setEditFormData({...editFormData, demo_link: e.target.value})} />
                   </div>
                 </div>
                 <div className="flex gap-4 pt-2">
                     <button type="submit" disabled={isSubmitting} className="flex-grow bg-accent hover:bg-gfg-green-hover text-white font-black py-4 px-8 rounded-xl transition text-sm shadow-xl shadow-accent/10 uppercase tracking-widest active:scale-[0.98] disabled:opacity-50">
-                        <FontAwesomeIcon icon={faSave} /> {isSubmitting ? 'Updating...' : 'Commit'}
+                        <FontAwesomeIcon icon={faSave} /> {isSubmitting ? 'Updating...' : 'Save Changes'}
                     </button>
-                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 px-8 rounded-xl transition text-sm flex-grow uppercase tracking-widest shadow-sm italic">Abort</button>
+                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 px-8 rounded-xl transition text-sm flex-grow uppercase tracking-widest shadow-sm italic">Cancel</button>
                 </div>
               </form>
             </motion.div>

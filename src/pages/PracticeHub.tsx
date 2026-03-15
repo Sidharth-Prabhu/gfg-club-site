@@ -45,7 +45,7 @@ const PracticeHub = () => {
       >
         <div className="space-y-1">
           <h1 className="text-3xl md:text-4xl font-black text-text tracking-tighter uppercase italic">Practice <span className="text-accent">Hub</span></h1>
-          <p className="text-text/60 text-sm font-medium">Curated challenges to sharpen your edge.</p>
+          <p className="text-text/60 text-sm font-medium">Curated problems to improve your coding skills.</p>
         </div>
         
         <div className="flex flex-wrap gap-3 w-full lg:w-auto items-center">
@@ -88,7 +88,7 @@ const PracticeHub = () => {
       {loading ? (
         <div className="py-32 text-center space-y-4">
           <div className="w-12 h-12 bg-accent/10 border-2 border-accent/20 border-t-accent rounded-full animate-spin mx-auto"></div>
-          <p className="text-accent font-black tracking-[0.3em] uppercase text-xs animate-pulse">Syncing Matrix...</p>
+          <p className="text-accent font-black tracking-[0.3em] uppercase text-xs animate-pulse">Loading Challenges...</p>
         </div>
       ) : (
         <motion.div 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import StatsCard from '../components/StatsCard';
@@ -12,13 +12,14 @@ import {
   faGithub 
 } from '@fortawesome/free-brands-svg-icons';
 import { motion } from 'framer-motion';
+import { REWARD_LEVELS, calculateLevel } from '../utils/rewards';
 
 const Profile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
-  const [projects, setProjects] = useState([]);
-  const [posts, setPosts] = useState([]);
+  const [profile, setProfile] = useState<any>(null);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,7 +44,9 @@ const Profile = () => {
     fetchProfileData();
   }, [userId, navigate]);
 
-  const stripHtml = (html) => {
+  const currentLevel = useMemo(() => calculateLevel(profile), [profile]);
+
+  const stripHtml = (html: string) => {
     const tmp = document.createElement("DIV");
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || "";
@@ -53,7 +56,7 @@ const Profile = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center text-accent font-black tracking-[0.2em] uppercase animate-pulse text-xs italic">
-          Syncing Node...
+          Loading Profile...
         </div>
       </div>
     );
@@ -85,11 +88,16 @@ const Profile = () => {
           <div className="max-w-7xl mx-auto space-y-4">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-center gap-3">
                 <span className="bg-accent/10 text-accent text-[8px] font-black px-3 py-1 rounded-full border border-accent/20 tracking-widest uppercase backdrop-blur-md flex items-center gap-1.5 italic">
-                    <FontAwesomeIcon icon={faShieldAlt} /> {profile.role?.toUpperCase()} AGENT
+                    <FontAwesomeIcon icon={faShieldAlt} /> {profile.role?.toUpperCase()}
                 </span>
                 <span className="bg-blue-500/10 text-blue-400 text-[8px] font-black px-3 py-1 rounded-full border border-blue-500/20 tracking-widest uppercase backdrop-blur-md italic">
                     ID: #{profile.id}
                 </span>
+                {currentLevel > 0 && (
+                    <span className="bg-yellow-500/10 text-yellow-500 text-[8px] font-black px-3 py-1 rounded-full border border-yellow-500/20 tracking-widest uppercase backdrop-blur-md flex items-center gap-1.5 italic">
+                        <FontAwesomeIcon icon={faTrophy} /> {REWARD_LEVELS[currentLevel-1]?.name} (LVL {currentLevel})
+                    </span>
+                )}
             </motion.div>
             
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
@@ -129,10 +137,10 @@ const Profile = () => {
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 -mt-8 relative z-20">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatsCard title="Mastered" value={profile.problems_solved || 0} icon={faCode} color="bg-accent" />
-            <StatsCard title="Logic Score" value={profile.gfg_score || 0} icon={faStar} color="bg-yellow-500" />
+            <StatsCard title="Problems Solved" value={profile.problems_solved || 0} icon={faCode} color="bg-accent" />
+            <StatsCard title="Club Score" value={profile.gfg_score || 0} icon={faStar} color="bg-yellow-500" />
             <StatsCard title="Streak" value={`${profile.streak || 0}D`} icon={faZap} color="bg-orange-500" />
-            <StatsCard title="Repos" value={profile.github_repos || 0} icon={faGithub} color="bg-blue-500" />
+            <StatsCard title="Repositories" value={profile.github_repos || 0} icon={faGithub} color="bg-blue-500" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mt-12">
@@ -141,17 +149,17 @@ const Profile = () => {
                 <div className="space-y-4">
                     <div className="flex items-center gap-3">
                         <FontAwesomeIcon icon={faUser} className="text-accent" />
-                        <h3 className="text-xl font-black text-text uppercase tracking-tight italic">Persona</h3>
+                        <h3 className="text-xl font-black text-text uppercase tracking-tight italic">About</h3>
                     </div>
                     <p className="text-text/60 text-sm md:text-base leading-relaxed font-medium italic bg-card border border-border p-6 rounded-3xl shadow-inner">
-                        {profile.about || "Persona node not yet initialized."}
+                        {profile.about || "No description provided."}
                     </p>
                 </div>
 
                 <div className="space-y-4">
                     <div className="flex items-center gap-3">
                         <FontAwesomeIcon icon={faHashtag} className="text-accent" />
-                        <h3 className="text-xl font-black text-text uppercase tracking-tight italic">Skill Matrix</h3>
+                        <h3 className="text-xl font-black text-text uppercase tracking-tight italic">Technical Skills</h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
                         {profile.skills?.split(',').map((skill, i) => (
@@ -162,14 +170,14 @@ const Profile = () => {
                     </div>
                 </div>
 
-                {/* Published Projects */}
+                {/* Projects */}
                 <div className="space-y-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <FontAwesomeIcon icon={faDesktop} className="text-accent" />
-                            <h3 className="text-xl font-black text-text uppercase tracking-tight italic">Operational Sectors</h3>
+                            <h3 className="text-xl font-black text-text uppercase tracking-tight italic">Projects</h3>
                         </div>
-                        <span className="text-[8px] font-black text-text/30 uppercase tracking-widest">{projects.length} Nodes</span>
+                        <span className="text-[8px] font-black text-text/30 uppercase tracking-widest">{projects.length} Total</span>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {projects.length > 0 ? (
@@ -184,24 +192,24 @@ const Profile = () => {
                                         <p className="text-text/40 text-[10px] line-clamp-2">{stripHtml(proj.description)}</p>
                                     </div>
                                     <div className="flex items-center gap-1.5 text-[8px] font-black text-accent uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0">
-                                        Explore Build <FontAwesomeIcon icon={faArrowRight} className="text-[7px]" />
+                                        View Project <FontAwesomeIcon icon={faArrowRight} className="text-[7px]" />
                                     </div>
                                 </Link>
                             ))
                         ) : (
-                            <div className="md:col-span-2 py-12 text-center bg-card/20 rounded-3xl border border-dashed border-border text-text/20 font-black uppercase tracking-widest italic text-xs">No active deployments.</div>
+                            <div className="md:col-span-2 py-12 text-center bg-card/20 rounded-3xl border border-dashed border-border text-text/20 font-black uppercase tracking-widest italic text-xs">No projects available.</div>
                         )}
                     </div>
                 </div>
 
-                {/* Community Activities */}
+                {/* Community Posts */}
                 <div className="space-y-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <FontAwesomeIcon icon={faMessage} className="text-accent" />
-                            <h3 className="text-xl font-black text-text uppercase tracking-tight italic">Broadcast History</h3>
+                            <h3 className="text-xl font-black text-text uppercase tracking-tight italic">Post History</h3>
                         </div>
-                        <span className="text-[8px] font-black text-text/30 uppercase tracking-widest">{posts.length} Signals</span>
+                        <span className="text-[8px] font-black text-text/30 uppercase tracking-widest">{posts.length} Total</span>
                     </div>
                     <div className="space-y-3">
                         {posts.length > 0 ? (
@@ -211,14 +219,14 @@ const Profile = () => {
                                         <h4 className="text-base font-black text-text uppercase italic tracking-tight group-hover:text-accent transition-colors truncate">{post.title}</h4>
                                         <div className="flex items-center gap-3 text-[8px] font-black text-text/30 uppercase tracking-widest">
                                             <span className="flex items-center gap-1"><FontAwesomeIcon icon={faClock} /> {new Date(post.created_at).toLocaleDateString()}</span>
-                                            <span className="flex items-center gap-1 text-accent"><FontAwesomeIcon icon={faMessage} /> {post.comment_count} Signals</span>
+                                            <span className="flex items-center gap-1 text-accent"><FontAwesomeIcon icon={faMessage} /> {post.comment_count} Replies</span>
                                         </div>
                                     </div>
                                     <FontAwesomeIcon icon={faArrowRight} className="text-text/10 group-hover:text-accent group-hover:translate-x-1 transition-all" />
                                 </Link>
                             ))
                         ) : (
-                            <div className="py-12 text-center bg-card/20 rounded-3xl border border-dashed border-border text-text/20 font-black uppercase tracking-widest italic text-xs">No transmissions detected.</div>
+                            <div className="py-12 text-center bg-card/20 rounded-3xl border border-dashed border-border text-text/20 font-black uppercase tracking-widest italic text-xs">No posts available.</div>
                         )}
                     </div>
                 </div>
@@ -228,11 +236,11 @@ const Profile = () => {
             <div className="space-y-8">
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className="bg-card border border-border p-6 rounded-3xl shadow-xl sticky top-20 space-y-6">
                     <div className="space-y-4">
-                        <h5 className="font-black text-text/40 uppercase tracking-widest text-[8px]">Matrix Nodes</h5>
+                        <h5 className="font-black text-text/40 uppercase tracking-widest text-[8px]">External Profiles</h5>
                         <div className="space-y-3">
                             {profile.github_profile && (
                                 <a href={profile.github_profile} target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-between p-4 bg-background border border-border hover:border-text rounded-xl transition-all text-text/80 font-black uppercase tracking-widest text-[10px] group/link shadow-inner italic">
-                                    <div className="flex items-center gap-3"><FontAwesomeIcon icon={faGithub} className="text-lg text-accent" /> GitHub Node</div>
+                                    <div className="flex items-center gap-3"><FontAwesomeIcon icon={faGithub} className="text-lg text-accent" /> GitHub Profile</div>
                                     <FontAwesomeIcon icon={faGlobe} className="opacity-40 group-hover/link:opacity-100 transition-all text-[10px]" />
                                 </a>
                             )}
@@ -254,7 +262,7 @@ const Profile = () => {
                     <div className="pt-6 border-t border-border/50">
                         <div className="bg-background/50 border border-border p-4 rounded-xl space-y-2 shadow-inner">
                             <div className="flex items-center gap-2 text-[8px] font-black text-text/40 uppercase tracking-widest italic">
-                                <FontAwesomeIcon icon={faEnvelope} className="text-accent" /> Communication
+                                <FontAwesomeIcon icon={faEnvelope} className="text-accent" /> Contact Info
                             </div>
                             <p className="text-[10px] font-black text-text break-all italic">{profile.email}</p>
                         </div>

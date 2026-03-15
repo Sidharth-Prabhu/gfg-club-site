@@ -64,7 +64,7 @@ const Resources = () => {
       const { data } = await api.get(`/resources/search-gfg?query=${encodeURIComponent(query)}`);
       setSearchResults(data);
     } catch (error) {
-      alert('Failed to sync with GfG Mainframe');
+      alert('Failed to search GfG articles');
     } finally {
       setLoading(false);
     }
@@ -76,7 +76,7 @@ const Resources = () => {
       const { data } = await api.get(`/resources/fetch-article?url=${encodeURIComponent(url)}`);
       setSelectedArticle(data);
     } catch (error) {
-      alert('Failed to extract neural data');
+      alert('Failed to load article content');
     } finally {
       setArticleLoading(false);
     }
@@ -115,13 +115,13 @@ const Resources = () => {
         className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-border pb-6"
       >
         <div className="space-y-1">
-          <h1 className="text-3xl md:text-4xl font-black text-text tracking-tighter uppercase italic">Neural <span className="text-accent">Archives</span></h1>
-          <p className="text-text/40 font-black text-[10px] tracking-[0.2em] uppercase flex items-center gap-2 italic"><FontAwesomeIcon icon={faZap} className="text-accent" /> High-Fidelity Intelligence</p>
+          <h1 className="text-3xl md:text-4xl font-black text-text tracking-tighter uppercase italic">Learning <span className="text-accent">Resources</span></h1>
+          <p className="text-text/40 font-black text-[10px] tracking-[0.2em] uppercase flex items-center gap-2 italic"><FontAwesomeIcon icon={faZap} className="text-accent" /> Quality Materials</p>
         </div>
         
         <div className="flex bg-card border border-border p-1 rounded-xl shadow-inner">
-            <button onClick={() => setActiveTab('gfg')} className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'gfg' ? 'bg-accent text-white shadow-md' : 'text-text/40 hover:text-text'}`}>GfG Synapse</button>
-            <button onClick={() => setActiveTab('archive')} className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'archive' ? 'bg-accent text-white shadow-md' : 'text-text/40 hover:text-text'}`}>Global Nodes</button>
+            <button onClick={() => setActiveTab('gfg')} className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'gfg' ? 'bg-accent text-white shadow-md' : 'text-text/40 hover:text-text'}`}>GfG Articles</button>
+            <button onClick={() => setActiveTab('archive')} className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'archive' ? 'bg-accent text-white shadow-md' : 'text-text/40 hover:text-text'}`}>Community Resources</button>
         </div>
       </motion.div>
 
@@ -133,8 +133,8 @@ const Resources = () => {
                         <FontAwesomeIcon icon={faBookmark} className="text-accent opacity-20 text-4xl" />
                     </div>
                     <div className="space-y-1">
-                        <h3 className="text-2xl font-black text-text uppercase italic tracking-tighter">Authority Required</h3>
-                        <p className="text-text/40 text-xs font-medium uppercase tracking-widest max-w-md mx-auto italic px-8">Queries restricted to Approved Core Agents.</p>
+                        <h3 className="text-2xl font-black text-text uppercase italic tracking-tighter">Access Restricted</h3>
+                        <p className="text-text/40 text-xs font-medium uppercase tracking-widest max-w-md mx-auto italic px-8">Resources restricted to approved members.</p>
                     </div>
                 </div>
             ) : !selectedArticle ? (
@@ -144,7 +144,7 @@ const Resources = () => {
                             <FontAwesomeIcon icon={faSearch} className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" />
                             <input 
                                 type="text" 
-                                placeholder="Query GfG Mainframe..." 
+                                placeholder="Search GfG Articles..." 
                                 className="w-full bg-card border-2 border-border rounded-2xl py-4 pl-14 pr-6 focus:border-accent outline-none transition shadow-lg text-text font-black text-lg italic"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -168,7 +168,7 @@ const Resources = () => {
                     {loading ? (
                         <div className="py-24 text-center space-y-4">
                             <FontAwesomeIcon icon={faCircleNotch} className="mx-auto text-accent animate-spin opacity-20 text-4xl" />
-                            <p className="text-accent font-black tracking-[0.3em] uppercase italic text-xs animate-pulse">Establishing Link...</p>
+                            <p className="text-accent font-black tracking-[0.3em] uppercase italic text-xs animate-pulse">Searching...</p>
                         </div>
                     ) : searchResults.length > 0 ? (
                         <motion.div initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -182,13 +182,13 @@ const Resources = () => {
                                     <div className="space-y-3">
                                         <div className="flex justify-between items-start">
                                             <div className="p-2.5 bg-accent/5 rounded-xl text-accent border border-accent/10"><FontAwesomeIcon icon={faTerminal} /></div>
-                                            <div className="text-[7px] font-black text-text/20 uppercase tracking-widest">Synapse #{i+1}</div>
+                                            <div className="text-[7px] font-black text-text/20 uppercase tracking-widest">Article #{i+1}</div>
                                         </div>
                                         <h3 className="text-xl font-black text-text leading-tight group-hover:text-accent transition-colors uppercase italic">{res.title}</h3>
                                         <p className="text-text/40 text-xs font-medium line-clamp-2 italic">{res.snippet}</p>
                                     </div>
                                     <div className="flex items-center gap-1.5 text-[9px] font-black text-accent uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0">
-                                        Load Neural Data <FontAwesomeIcon icon={faArrowRight} />
+                                        Read Article <FontAwesomeIcon icon={faArrowRight} />
                                     </div>
                                 </motion.div>
                             ))}
@@ -198,7 +198,7 @@ const Resources = () => {
                             <div className="p-6 bg-background border border-border rounded-2xl shadow-inner">
                                 <FontAwesomeIcon icon={faMicrochip} className="text-text/10 text-4xl" />
                             </div>
-                            <p className="text-xl font-black text-text/20 uppercase tracking-widest italic">Sector Offline</p>
+                            <p className="text-xl font-black text-text/20 uppercase tracking-widest italic">No articles found</p>
                         </div>
                     )}
                 </>
@@ -208,15 +208,15 @@ const Resources = () => {
                         onClick={() => setSelectedArticle(null)} 
                         className="flex items-center gap-2 text-text/60 bg-card hover:bg-background px-5 py-2.5 rounded-xl border border-border transition-all font-black uppercase text-[10px] tracking-widest active:scale-95 shadow-sm"
                     >
-                        <FontAwesomeIcon icon={faArrowLeft} /> Terminate Link
+                        <FontAwesomeIcon icon={faArrowLeft} /> Go Back
                     </button>
 
                     <div className="bg-card border border-border rounded-3xl p-8 md:p-12 shadow-2xl space-y-8 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-[80px] -mr-32 -mt-32"></div>
                         <div className="space-y-4 relative z-10">
                             <div className="flex items-center gap-3">
-                                <span className="bg-accent/10 text-accent text-[8px] font-black px-3 py-1 rounded-full border border-accent/20 tracking-widest uppercase backdrop-blur-md italic">Neural Stream</span>
-                                <span className="text-[8px] font-black text-text/20 uppercase tracking-widest italic">Source: Mainframe</span>
+                                <span className="bg-accent/10 text-accent text-[8px] font-black px-3 py-1 rounded-full border border-accent/20 tracking-widest uppercase backdrop-blur-md italic">Article Content</span>
+                                <span className="text-[8px] font-black text-text/20 uppercase tracking-widest italic">Source: GeeksforGeeks</span>
                             </div>
                             <h2 className="text-3xl md:text-5xl font-black text-text leading-tight tracking-tighter uppercase italic">{selectedArticle.title}</h2>
                         </div>
@@ -224,7 +224,7 @@ const Resources = () => {
                         {articleLoading ? (
                             <div className="py-24 text-center space-y-4">
                                 <FontAwesomeIcon icon={faCircleNotch} className="mx-auto text-accent animate-spin opacity-20 text-4xl" />
-                                <p className="text-accent font-black tracking-[0.3em] uppercase italic text-xs">Decrypting...</p>
+                                <p className="text-accent font-black tracking-[0.3em] uppercase italic text-xs">Loading...</p>
                             </div>
                         ) : (
                             <motion.div 
@@ -256,13 +256,13 @@ const Resources = () => {
                         onClick={() => setIsModalOpen(true)}
                         className="bg-accent hover:bg-gfg-green-hover text-white px-6 py-2.5 rounded-xl font-black flex items-center gap-2 transition shadow-lg shadow-accent/10 text-[10px] uppercase tracking-widest active:scale-95"
                     >
-                        <FontAwesomeIcon icon={faPlus} /> Deploy Node
+                        <FontAwesomeIcon icon={faPlus} /> Add Resource
                     </button>
                 )}
             </div>
 
             {loading ? (
-                <div className="py-24 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xs italic">Accessing Archives...</div>
+                <div className="py-24 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xs italic">Loading Resources...</div>
             ) : resources.length > 0 ? (
                 <motion.div initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {resources.map(res => (
@@ -283,7 +283,7 @@ const Resources = () => {
                                 <p className="text-text/50 text-xs leading-relaxed font-medium line-clamp-3 italic">{res.description}</p>
                             </div>
                             <a href={res.link} target="_blank" rel="noopener noreferrer" className="w-full py-3.5 bg-background border border-border rounded-xl flex items-center justify-center gap-3 text-text/60 font-black text-[10px] uppercase tracking-widest hover:border-accent hover:text-accent transition-all shadow-inner group/link active:scale-[0.98]">
-                                Sync Neural Node <FontAwesomeIcon icon={faExternalLinkAlt} className="group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
+                                Open Resource <FontAwesomeIcon icon={faExternalLinkAlt} className="group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
                             </a>
                         </motion.div>
                     ))}
@@ -293,7 +293,7 @@ const Resources = () => {
                     <div className="p-6 bg-background border border-border rounded-2xl shadow-inner">
                         <FontAwesomeIcon icon={faLink} className="opacity-10 text-4xl" />
                     </div>
-                    <p className="text-xl font-black uppercase tracking-widest italic">No Global Nodes</p>
+                    <p className="text-xl font-black uppercase tracking-widest italic">No resources found</p>
                 </div>
             )}
         </div>
@@ -305,17 +305,17 @@ const Resources = () => {
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-background/95 backdrop-blur-xl overflow-y-auto">
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-card border border-border rounded-3xl w-full max-w-2xl my-auto shadow-2xl overflow-hidden">
               <div className="p-6 md:p-8 border-b border-border flex justify-between items-center bg-background/50">
-                <h2 className="text-2xl font-black text-text uppercase tracking-tighter italic">Establish Archive <span className="text-accent">Node</span></h2>
+                <h2 className="text-2xl font-black text-text uppercase tracking-tighter italic">Add New <span className="text-accent">Resource</span></h2>
                 <button onClick={() => setIsModalOpen(false)} className="text-text/40 hover:text-red-500 p-2 rounded-full transition-all active:scale-90"><FontAwesomeIcon icon={faTimes} size="lg" /></button>
               </div>
               <form onSubmit={handleSubmit} className="p-6 md:p-10 space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Node Title</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Resource Title</label>
                     <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner italic" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Data Classification</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Category</label>
                     <div className="relative">
                       <select className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none cursor-pointer font-black text-text uppercase text-[10px] appearance-none shadow-inner italic" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})}>
                         {categories.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
@@ -324,15 +324,15 @@ const Resources = () => {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Intelligence Summary</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Description</label>
                     <textarea required rows={3} className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none resize-none text-text font-medium text-sm leading-relaxed shadow-inner italic" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Sync Link (URL)</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Resource Link (URL)</label>
                     <input required type="url" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-text font-bold text-sm transition shadow-inner italic" value={formData.link} onChange={(e) => setFormData({...formData, link: e.target.value})} />
                   </div>
                 </div>
-                <button type="submit" className="w-full bg-accent hover:bg-gfg-green-hover text-white font-black py-4 rounded-xl transition text-sm shadow-xl uppercase tracking-widest active:scale-[0.98]"><FontAwesomeIcon icon={faSave} /> Deploy Neural Node</button>
+                <button type="submit" className="w-full bg-accent hover:bg-gfg-green-hover text-white font-black py-4 rounded-xl transition text-sm shadow-xl uppercase tracking-widest active:scale-[0.98]"><FontAwesomeIcon icon={faSave} /> Add Resource</button>
               </form>
             </motion.div>
           </div>

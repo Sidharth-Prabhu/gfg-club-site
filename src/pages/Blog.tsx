@@ -114,21 +114,21 @@ const Blog = () => {
         className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-border pb-6"
       >
         <div className="space-y-1">
-          <h1 className="text-3xl md:text-4xl font-black text-text tracking-tighter uppercase italic">Club <span className="text-accent">Insights</span></h1>
-          <p className="text-text/60 text-sm font-medium italic">Deep dives into tech and campus activities.</p>
+          <h1 className="text-3xl md:text-4xl font-black text-text tracking-tighter uppercase italic">Club <span className="text-accent">Blog</span></h1>
+          <p className="text-text/60 text-sm font-medium italic">Latest updates and articles from the community.</p>
         </div>
         {canPost && (
           <button 
             onClick={handleOpenCreate}
             className="bg-accent hover:bg-gfg-green-hover text-white px-6 py-2.5 rounded-xl font-black flex items-center gap-2 transition shadow-lg shadow-accent/10 text-[10px] uppercase tracking-widest active:scale-95"
           >
-            <FontAwesomeIcon icon={faPlus} /> Write Entry
+            <FontAwesomeIcon icon={faPlus} /> New Post
           </button>
         )}
       </motion.div>
 
       {loading ? (
-        <div className="py-24 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xs italic">Accessing Knowledge Archives...</div>
+        <div className="py-24 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xs italic">Loading Blog Posts...</div>
       ) : blogs.length > 0 ? (
         <motion.div 
             initial="hidden"
@@ -188,7 +188,7 @@ const Blog = () => {
                     </div>
                 </div>
                 <div className="text-accent font-black text-[8px] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0 flex items-center gap-1.5">
-                    Read <FontAwesomeIcon icon={faChevronRight} className="text-[10px]" />
+                    Read More <FontAwesomeIcon icon={faChevronRight} className="text-[10px]" />
                 </div>
               </div>
             </motion.div>
@@ -197,7 +197,7 @@ const Blog = () => {
       ) : (
         <div className="py-32 text-center text-text/30 bg-card rounded-3xl border border-border border-dashed shadow-inner flex flex-col items-center justify-center space-y-4">
           <FontAwesomeIcon icon={faBookOpen} size="4x" className="opacity-10" />
-          <p className="text-xl font-black uppercase tracking-widest italic">No entries.</p>
+          <p className="text-xl font-black uppercase tracking-widest italic">No blog posts found.</p>
         </div>
       )}
 
@@ -207,29 +207,29 @@ const Blog = () => {
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-10 bg-background/95 backdrop-blur-xl overflow-y-auto">
             <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }} className="bg-card border border-border rounded-3xl w-full max-w-4xl my-auto shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
               <div className="p-6 md:p-8 border-b border-border flex justify-between items-center bg-background/50">
-                <h2 className="text-2xl font-black text-text uppercase tracking-tighter italic">{isEditing ? 'Modify Insight' : 'Draft New Insight'}</h2>
+                <h2 className="text-2xl font-black text-text uppercase tracking-tighter italic">{isEditing ? 'Edit Post' : 'Create New Post'}</h2>
                 <button onClick={() => setIsModalOpen(false)} className="text-text/40 hover:text-red-500 p-2 rounded-full transition-all group active:scale-90"><FontAwesomeIcon icon={faTimes} size="lg" /></button>
               </div>
               <form onSubmit={handleSubmit} className="p-6 md:p-10 space-y-6 overflow-y-auto custom-scrollbar">
                 <div className="space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Headline</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Title</label>
                     <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-lg font-black text-text shadow-inner transition-colors italic" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
                 </div>
                 <div className="space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Content Matrix</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Content</label>
                     <div className="bg-background rounded-xl overflow-hidden border-2 border-border focus-within:border-accent transition shadow-inner">
                         <ReactQuill theme="snow" value={formData.content} onChange={(content) => setFormData({...formData, content})} modules={modules} />
                     </div>
                 </div>
                 <div className="space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Metadata Tags (CSV)</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Tags (comma separated)</label>
                     <input type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none font-bold text-sm text-text shadow-inner transition-colors italic" value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} />
                 </div>
                 <div className="flex gap-4 pt-2 sticky bottom-0 bg-card/80 backdrop-blur-md">
                     <button type="submit" className="flex-grow bg-accent hover:bg-gfg-green-hover text-white font-black py-4 rounded-xl transition text-sm shadow-xl shadow-accent/10 uppercase tracking-widest active:scale-[0.98]">
-                        <FontAwesomeIcon icon={faSave} /> {isEditing ? 'Update' : 'Deploy'}
+                        <FontAwesomeIcon icon={faSave} /> {isEditing ? 'Save Changes' : 'Publish'}
                     </button>
-                    <button type="button" onClick={() => setIsModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 rounded-xl transition text-sm flex-grow uppercase tracking-widest shadow-sm italic">Abort</button>
+                    <button type="button" onClick={() => setIsModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 rounded-xl transition text-sm flex-grow uppercase tracking-widest shadow-sm italic">Cancel</button>
                 </div>
               </form>
             </motion.div>

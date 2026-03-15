@@ -81,7 +81,7 @@ const PostDetail = () => {
   };
 
   const handleDeletePost = async () => {
-    if (!window.confirm('Terminate this transmission?')) return;
+    if (!window.confirm('Delete this post?')) return;
     try {
       await api.delete(`/discussions/${postId}`);
       navigate('/community');
@@ -171,7 +171,7 @@ const PostDetail = () => {
         <div className={`space-y-3 ${depth > 0 ? 'ml-4 md:ml-10 border-l border-border/50 pl-4 md:pl-6' : ''}`}>
           <motion.div 
             initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             className="bg-card border border-border p-4 rounded-2xl space-y-3 shadow-sm italic"
           >
             <div className="flex justify-between items-start">
@@ -228,7 +228,7 @@ const PostDetail = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center text-accent font-black tracking-[0.2em] uppercase animate-pulse text-xs italic">
-          Fetching Node...
+          Loading...
         </div>
       </div>
     );
@@ -252,7 +252,7 @@ const PostDetail = () => {
             onClick={() => navigate(group ? `/groups/${group.id}` : '/community')} 
             className="flex items-center gap-1.5 text-text/60 bg-card/40 hover:bg-card backdrop-blur-md px-4 py-2 rounded-full border border-border transition-all group font-black uppercase text-[10px] tracking-widest active:scale-95 shadow-sm"
           >
-            <FontAwesomeIcon icon={faArrowLeft} className="group-hover:-translate-x-1 transition-transform" /> Back
+            <FontAwesomeIcon icon={faArrowLeft} /> Back
           </button>
         </div>
 
@@ -264,7 +264,7 @@ const PostDetail = () => {
               className="flex flex-wrap items-center gap-3"
             >
               <span className="bg-accent/10 text-accent text-[8px] font-black px-3 py-1 rounded-full border border-accent/20 tracking-widest uppercase backdrop-blur-md italic">
-                {group ? `SECTOR: ${group.title}` : 'COMMUNITY'}
+                {group ? `GROUP: ${group.title}` : 'COMMUNITY'}
               </span>
               <div className="flex gap-1.5">
                 {post.tags?.split(',').map((tag, i) => (
@@ -307,7 +307,7 @@ const PostDetail = () => {
                 <FontAwesomeIcon icon={faClock} className="text-accent" /> {new Date(post.created_at).toLocaleDateString()}
               </span>
               <span className="flex items-center gap-2 font-black uppercase tracking-widest text-text/40 italic">
-                <FontAwesomeIcon icon={faMessage} className="text-accent" /> {comments.length} Signals
+                <FontAwesomeIcon icon={faMessage} className="text-accent" /> {comments.length} Replies
               </span>
             </motion.div>
           </div>
@@ -330,7 +330,7 @@ const PostDetail = () => {
             {/* Comments Section */}
             <div className="space-y-8">
               <div className="flex items-center gap-4">
-                <h3 className="text-xl font-black text-text uppercase tracking-tight italic">Feed</h3>
+                <h3 className="text-xl font-black text-text uppercase tracking-tight italic">Comments</h3>
                 <div className="h-[1px] flex-grow bg-gradient-to-r from-border to-transparent"></div>
               </div>
               
@@ -341,7 +341,7 @@ const PostDetail = () => {
                   ))
                 ) : (
                   <div className="py-16 text-center bg-card border border-dashed border-border rounded-3xl shadow-inner italic">
-                    <p className="text-sm text-text/30 font-black uppercase tracking-widest">No signals detected.</p>
+                    <p className="text-sm text-text/30 font-black uppercase tracking-widest">No comments yet.</p>
                   </div>
                 )}
               </div>
@@ -351,12 +351,12 @@ const PostDetail = () => {
                 <div className="absolute top-0 right-0 w-48 h-48 bg-accent/5 rounded-full -mr-24 -mt-24 blur-2xl transition-all group-hover:bg-accent/10"></div>
                 <form onSubmit={handleAddMainComment} className="space-y-6 relative z-10">
                   <div className="space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Broadcast Signal</label>
+                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Post a Comment</label>
                     <textarea 
                       required 
                       rows={4} 
                       className="w-full bg-background border border-border rounded-2xl py-5 px-6 focus:border-accent outline-none resize-none text-text text-sm leading-relaxed shadow-inner transition-colors font-medium italic" 
-                      placeholder="Input sequence..." 
+                      placeholder="Write your thoughts..." 
                       value={mainComment} 
                       onChange={(e) => setMainComment(e.target.value)} 
                     />
@@ -366,7 +366,7 @@ const PostDetail = () => {
                       type="submit" 
                       className="bg-accent hover:bg-gfg-green-hover text-white font-black px-10 py-4 rounded-xl transition shadow-lg text-[10px] uppercase tracking-widest active:scale-95"
                     >
-                      Post Signal
+                      Add Comment
                     </button>
                   </div>
                 </form>
@@ -389,7 +389,7 @@ const PostDetail = () => {
                   </div>
                   <div>
                     <h4 className="text-xl font-black text-text uppercase tracking-widest italic">{post?.reaction_count || 0}</h4>
-                    <p className="text-text/40 font-black uppercase text-[8px] tracking-widest">Recognition Score</p>
+                    <p className="text-text/40 font-black uppercase text-[8px] tracking-widest">Likes</p>
                   </div>
                 </div>
 
@@ -399,7 +399,7 @@ const PostDetail = () => {
                     className={`w-full py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95 shadow-md italic ${post?.reaction_count > 0 ? 'bg-accent text-white shadow-accent/20' : 'bg-background border border-border text-text hover:border-accent hover:text-accent'}`}
                   >
                     <FontAwesomeIcon icon={faHeart} />
-                    {post?.reaction_count > 0 ? 'Acknowledged' : 'Recognize'}
+                    {post?.reaction_count > 0 ? 'Liked' : 'Like'}
                   </button>
                   
                   <button 
@@ -410,7 +410,7 @@ const PostDetail = () => {
                     }}
                     className="w-full py-4 rounded-xl bg-card border border-border text-text/60 hover:text-accent hover:border-accent transition-all font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 active:scale-95 italic shadow-sm"
                   >
-                    <FontAwesomeIcon icon={faReply} /> Signal
+                    <FontAwesomeIcon icon={faReply} /> Comment
                   </button>
 
                   {/* Author Actions */}
@@ -428,7 +428,7 @@ const PostDetail = () => {
                       onClick={handleDeletePost}
                       className="w-full py-3 rounded-lg bg-red-500/5 text-red-500 border border-border/50 hover:bg-red-500 hover:text-white transition-all font-black uppercase text-[8px] tracking-widest flex items-center justify-center gap-2 active:scale-95 italic"
                     >
-                      <FontAwesomeIcon icon={faTrashAlt} /> Terminate
+                      <FontAwesomeIcon icon={faTrashAlt} /> Delete
                     </button>
                   )}
                 </div>
@@ -436,7 +436,7 @@ const PostDetail = () => {
                 <div className="pt-6 border-t border-border/50">
                    <div className="flex items-center gap-3 text-text/40 mb-4">
                       <FontAwesomeIcon icon={faTag} className="text-accent text-xs" />
-                      <span className="text-[8px] font-black uppercase tracking-widest italic">Metadata</span>
+                      <span className="text-[8px] font-black uppercase tracking-widest italic">Tags</span>
                    </div>
                    <div className="flex flex-wrap gap-1.5">
                       {post?.tags?.split(',').map((tag, i) => (
@@ -460,25 +460,25 @@ const PostDetail = () => {
               <div className="p-6 md:p-8 border-b border-border flex justify-between items-center bg-background/50">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-accent/10 rounded-lg text-accent"><FontAwesomeIcon icon={faEdit} /></div>
-                    <h2 className="text-xl font-black text-text uppercase tracking-tighter italic">Edit Node</h2>
+                    <h2 className="text-xl font-black text-text uppercase tracking-tighter italic">Edit Post</h2>
                 </div>
                 <button onClick={() => setIsEditModalOpen(false)} className="text-text/40 hover:text-red-500 p-1.5 rounded-full transition-all active:scale-90"><FontAwesomeIcon icon={faTimes} size="lg" /></button>
               </div>
               <form onSubmit={handleEditPost} className="p-6 md:p-10 space-y-6 overflow-y-auto max-h-[75vh] custom-scrollbar">
                 <div className="space-y-2">
-                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Headline</label>
+                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Title</label>
                   <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-lg font-black text-text shadow-inner transition-colors italic" value={editFormData.title} onChange={(e) => setEditFormData({...editFormData, title: e.target.value})} />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Transmission Data</label>
+                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Content</label>
                   <div className="bg-background rounded-xl border-2 border-border overflow-hidden focus-within:border-accent transition-colors shadow-inner">
                     <ReactQuill theme="snow" value={editFormData.content} onChange={(content) => setEditFormData({...editFormData, content})} />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Metadata</label>
+                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Tags</label>
                   <div className="relative">
                       <FontAwesomeIcon icon={faHashtag} className="absolute left-4 top-1/2 -translate-y-1/2 text-text/20 text-xs"/>
                       <input type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-10 focus:border-accent outline-none text-text font-black text-sm transition shadow-inner italic" value={editFormData.tags} onChange={(e) => setEditFormData({...editFormData, tags: e.target.value})} />
@@ -487,9 +487,9 @@ const PostDetail = () => {
 
                 <div className="flex gap-4 pt-2">
                     <button type="submit" disabled={isSubmitting} className="flex-grow bg-accent hover:bg-gfg-green-hover text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 transition shadow-xl shadow-accent/10 uppercase tracking-widest text-[10px] active:scale-[0.98] disabled:opacity-50">
-                        <FontAwesomeIcon icon={faSave} /> {isSubmitting ? 'Updating...' : 'Commit'}
+                        <FontAwesomeIcon icon={faSave} /> {isSubmitting ? 'Updating...' : 'Save Changes'}
                     </button>
-                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 px-8 rounded-xl transition text-[10px] uppercase tracking-widest shadow-sm italic">Abort</button>
+                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="bg-card border border-border hover:bg-background text-text/60 font-black py-4 px-8 rounded-xl transition text-[10px] uppercase tracking-widest shadow-sm italic">Cancel</button>
                 </div>
               </form>
             </motion.div>
