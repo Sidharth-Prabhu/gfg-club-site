@@ -17,7 +17,8 @@ import {
   faSun, 
   faMoon, 
   faTimes, 
-  faBookmark 
+  faBookmark,
+  faGraduationCap
 } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -38,6 +39,7 @@ const Navbar = () => {
     { to: "/events", icon: faCalendarAlt, label: "Events" },
     { to: "/leaderboard", icon: faTrophy, label: "Leaderboard" },
     { to: "/practice", icon: faBookOpen, label: "Practice", restricted: true },
+    { to: "/courses", icon: faGraduationCap, label: "Courses", restricted: true },
     { to: "/community", icon: faComments, label: "Community" },
     { to: "/projects", icon: faBriefcase, label: "Projects" },
     { to: "/resources", icon: faBookmark, label: "Resources", restricted: true },

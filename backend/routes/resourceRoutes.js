@@ -4,7 +4,9 @@ import {
   createResource, 
   deleteResource,
   searchGfgResources,
-  fetchGfgArticle
+  fetchGfgArticle,
+  fetchGfgCourses,
+  fetchGfgCourseDetail
 } from '../controllers/resourceController.js';
 import { protect, isApproved } from '../middleware/authMiddleware.js';
 
@@ -16,6 +18,8 @@ router.route('/')
 
 router.get('/search-gfg', protect, isApproved, searchGfgResources);
 router.get('/fetch-article', protect, isApproved, fetchGfgArticle);
+router.get('/fetch-courses', protect, isApproved, fetchGfgCourses);
+router.get('/fetch-course-detail', protect, isApproved, fetchGfgCourseDetail);
 
 router.route('/:id')
   .delete(protect, deleteResource);

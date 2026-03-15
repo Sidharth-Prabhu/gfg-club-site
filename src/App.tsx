@@ -19,6 +19,8 @@ import ProjectDetail from './pages/ProjectDetail';
 import Blog from './pages/Blog';
 import BlogDetail from './pages/BlogDetail';
 import Resources from './pages/Resources';
+import Courses from './pages/Courses';
+import CourseDetail from './pages/CourseDetail';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -60,6 +62,16 @@ function App() {
             <Route path="/practice" element={
               <RITRoute>
                 <PracticeHub />
+              </RITRoute>
+            } />
+            <Route path="/courses" element={
+              <RITRoute>
+                <Courses />
+              </RITRoute>
+            } />
+            <Route path="/courses/:slug" element={
+              <RITRoute>
+                <CourseDetail />
               </RITRoute>
             } />
             <Route path="/community" element={<Community />} />
