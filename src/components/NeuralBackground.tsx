@@ -49,12 +49,12 @@ const NeuralBackground: React.FC = () => {
 
       dots.forEach((dot) => {
         const dist = Math.sqrt(Math.pow(dot.x - width / 2, 2) + Math.pow(dot.y - height / 2, 2));
-        const pulse = Math.sin(time - dist * 0.005);
-        const size = 1.2 + pulse * 0.8;
+        const pulse = Math.sin(time - dist * 0.003);
+        const size = 2.2 + pulse * 0.8;
         const opacity = 0.15 + (pulse + 1) * 0.15;
 
         ctx.beginPath();
-        ctx.arc(dot.x, dot.y, size, 0, Math.PI * 2);
+        ctx.arc(dot.x, dot.y, size, 0, Math.PI * 10);
         // Using a slightly more vibrant GfG green
         ctx.fillStyle = `rgba(47, 141, 70, ${opacity})`;
         ctx.fill();
