@@ -1,8 +1,8 @@
-# GeeksforGeeks Campus Club Platform
+# GeeksforGeeks Campus Body of RITChennai
 
 ### **Empowering the next generation of campus coders.**
 
-The GeeksforGeeks Campus Club Platform is a comprehensive coding ecosystem designed to centralize and enhance the technical culture of a college campus. It moves beyond a static website to provide a dynamic, data-driven environment for students to track their progress, compete on leaderboards, and collaborate on projects.
+The GeeksforGeeks Campus Body of RITChennai is a comprehensive coding ecosystem designed to centralize and enhance the technical culture of a college campus. It moves beyond a static website to provide a dynamic, data-driven environment for students to track their progress, compete on leaderboards, and collaborate on projects.
 
 ---
 
@@ -11,10 +11,10 @@ The GeeksforGeeks Campus Club Platform is a comprehensive coding ecosystem desig
 Below is a walkthrough of the platform's key features and user interface.
 
 <div align="center">
-  <video width="100%" controls>
-    <source src="demo.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
+  <a href="https://www.youtube.com/watch?v=M0jIq7rS_ng">
+    <img src="https://img.youtube.com/vi/M0jIq7rS_ng/maxresdefault.jpg" alt="Project Demo Video" style="width:100%; border-radius: 20px;">
+  </a>
+  <p><i>Click the image above to watch the demo on YouTube</i></p>
 </div>
 
 ---
@@ -26,7 +26,7 @@ Below is a walkthrough of the platform's key features and user interface.
 *   **Event Management:** A streamlined system for organizing, discovering, and registering for campus workshops and hackathons.
 *   **Community & Collaboration:** Discussion forums for technical doubts, a project showcase for student work, and a technical blog system.
 *   **Personalized Dashboard:** In-depth analytics for individual students, showing problem-solving trends and topic distribution.
-*   **Campus Insights:** High-level analytics for club leads to monitor the overall coding activity and growth within the campus.
+*   **Campus Insights:** High-level analytics for campus leads to monitor the overall coding activity and growth within the campus.
 
 ---
 
