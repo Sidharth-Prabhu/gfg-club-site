@@ -30,6 +30,25 @@ Below is a walkthrough of the platform's key features and user interface.
 
 ---
 
+## 📊 Feature Status
+
+| Feature | Status | Implementation |
+| :--- | :---: | :--- |
+| **Authentication & Role Access** (Admin, Core, User) | ✅ | **Functional** |
+| **GfG Problem of the Day Sync** (Real-time Scraping) | ✅ | **Functional** |
+| **GfG Course Engine** (Live `__NEXT_DATA__` Fetching) | ✅ | **Functional** |
+| **Dynamic Practice Hub** (Topic-wise sets) | ✅ | **Functional** |
+| **Integrated Leaderboard** (Cross-platform tracking) | ✅ | **Functional** |
+| **Community Forums** (Threaded comments & replies) | ✅ | **Functional** |
+| **Project Showcase** (Upvotes & tech stack tagging) | ✅ | **Functional** |
+| **Technical Blog System** (Markdown with images) | ✅ | **Functional** |
+| **User Dashboard** (Analytics & progress charts) | ✅ | **Functional** |
+| **Event Management** (Registrations & team creation) | ✅ | **Functional** |
+| **Campus Insights Dashboard** (Aggregated analytics) | ✅ | **Functional** |
+| **Neural Search Sector** (Discovery of GfG resources) | ✅ | **Functional** |
+
+---
+
 ## 🛠️ Tech Stack
 
 **Frontend:**
