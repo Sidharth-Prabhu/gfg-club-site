@@ -21,6 +21,7 @@ import 'react-quill-new/dist/quill.snow.css';
 import { Link } from 'react-router-dom';
 import { REWARD_LEVELS, calculateLevel, getRewardMetrics } from '../utils/rewards';
 import MarkdownEditor from '../components/MarkdownEditor';
+import DMWidget from '../components/DMWidget';
 
 const Dashboard = () => {
   const { user, login } = useAuth();
@@ -1118,6 +1119,7 @@ const Dashboard = () => {
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
+      <DMWidget />
     </div>
   );
 };

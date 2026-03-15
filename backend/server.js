@@ -14,6 +14,7 @@ import discussionRoutes from './routes/discussionRoutes.js';
 import groupRoutes from './routes/groupRoutes.js';
 import statsRoutes from './routes/statsRoutes.js';
 import resourceRoutes from './routes/resourceRoutes.js';
+import dmRoutes from './routes/dmRoutes.js';
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.use('/api/discussions', discussionRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/resources', resourceRoutes);
+app.use('/api/dm', dmRoutes);
 
 const PORT = process.env.PORT || 5000;
 

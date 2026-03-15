@@ -57,8 +57,42 @@ const migrate = async () => {
         await connection.execute("ALTER TABLE users ADD COLUMN profile_pic LONGTEXT");
         console.log('Added profile_pic to users');
     }
+    if (!userColNames.includes('last_login')) {
+        await connection.execute("ALTER TABLE users ADD COLUMN last_login DATE");
+        console.log('Added last_login to users');
+    }
 
-    // 2. Update events table
+    // 2. Create conversations table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS conversations (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user1_id INT NOT NULL,
+        user2_id INT NOT NULL,
+        last_message_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user1_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (user2_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY participants (user1_id, user2_id)
+      )
+    `);
+    console.log('Ensured conversations table exists');
+
+    // 3. Create messages table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS messages (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        conversation_id INT NOT NULL,
+        sender_id INT NOT NULL,
+        content TEXT NOT NULL,
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
+        FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+    console.log('Ensured messages table exists');
+
+    // 4. Update events table
     const [eventsCols] = await connection.execute('SHOW COLUMNS FROM events');
     const eventColNames = eventsCols.map(c => c.Field);
 
