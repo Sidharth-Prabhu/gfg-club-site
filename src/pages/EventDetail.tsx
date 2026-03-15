@@ -9,6 +9,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import MarkdownRenderer from '../components/MarkdownRenderer';
+import NeuralBackground from '../components/NeuralBackground';
 import 'react-quill-new/dist/quill.snow.css';
 
 const EventDetail = () => {
@@ -160,12 +161,12 @@ const EventDetail = () => {
   return (
     <div className="min-h-screen bg-background pb-16">
       {/* Hero Section */}
-      <section className="relative h-[40vh] md:h-[50vh] w-full overflow-hidden">
+      <section className="relative h-[40vh] md:h-[50vh] w-full overflow-hidden bg-card border-b border-border">
         {event.poster ? (
           <img src={event.poster} alt={event.title} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-accent/10 flex items-center justify-center">
-            <FontAwesomeIcon icon={faCalendarAlt} size="5x" className="text-accent/20" />
+          <div className="w-full h-full">
+            <NeuralBackground />
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent"></div>

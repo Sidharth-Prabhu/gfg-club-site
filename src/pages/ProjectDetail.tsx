@@ -14,6 +14,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import MarkdownRenderer from '../components/MarkdownRenderer';
 import MarkdownEditor from '../components/MarkdownEditor';
+import NeuralBackground from '../components/NeuralBackground';
 
 const ProjectDetail = () => {
   const { id } = useParams();
@@ -129,9 +130,8 @@ const ProjectDetail = () => {
     <div className="min-h-screen bg-background pb-16">
       {/* Hero Section */}
       <section className="relative h-[40vh] md:h-[50vh] w-full overflow-hidden bg-card border-b border-border flex flex-col justify-end">
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-accent/20 rounded-full blur-[80px] -mr-32 -mt-32"></div>
-          <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-500/10 rounded-full blur-[60px] -ml-24 -mb-24"></div>
+        <div className="absolute inset-0 pointer-events-none">
+          <NeuralBackground />
         </div>
         
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>

@@ -8,6 +8,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import Hls from 'hls.js';
+import NeuralBackground from '../components/NeuralBackground';
 
 const HLSPlayer = ({ src, poster }: { src: string, poster?: string }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -89,8 +90,14 @@ const CourseDetail = () => {
       {/* Hero Header */}
       <section className="relative min-h-[40vh] md:min-h-[50vh] w-full overflow-hidden bg-card border-b border-border flex flex-col justify-end">
         <div className="absolute inset-0">
-            <img src={course.banner} className="w-full h-full object-cover opacity-20 blur-sm scale-110" alt="" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"></div>
+            {course.banner ? (
+                <>
+                    <img src={course.banner} className="w-full h-full object-cover opacity-20 blur-sm scale-110" alt="" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"></div>
+                </>
+            ) : (
+                <NeuralBackground />
+            )}
         </div>
         
         <div className="absolute top-6 left-6 z-20">
