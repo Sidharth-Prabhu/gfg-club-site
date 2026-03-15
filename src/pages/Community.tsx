@@ -7,8 +7,8 @@ import {
   faMessage, faSearch, faPlus, faTimes, faSave, faHashtag, faTrashAlt, faUsers, faShieldAlt, faLock, faGlobe, faArrowRight, faUserPlus, faCheckCircle, faClock 
 } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
+import MarkdownEditor from '../components/MarkdownEditor';
+import MarkdownRenderer from '../components/MarkdownRenderer';
 
 const Community = () => {
   const navigate = useNavigate();
@@ -251,7 +251,9 @@ const Community = () => {
                         )}
                         </div>
                         <h2 className="text-xl md:text-2xl font-black text-text group-hover:text-accent transition-colors leading-tight tracking-tight uppercase break-words italic">{post.title}</h2>
-                        <div className="text-text/60 text-xs line-clamp-2 leading-relaxed font-medium break-words overflow-hidden italic" dangerouslySetInnerHTML={{ __html: post.content }} />
+                        <div className="text-text/60 text-xs line-clamp-3 leading-relaxed font-medium break-words overflow-hidden italic">
+                            <MarkdownRenderer content={post.content} />
+                        </div>
                         <div className="flex flex-wrap gap-1.5 pt-1">
                             {post.tags?.split(',').map((tag, i) => (
                             <span key={i} className="text-[8px] font-black uppercase text-accent bg-accent/5 px-2 py-0.5 rounded-md border border-accent/10 tracking-widest italic">#{tag.trim()}</span>
@@ -353,8 +355,13 @@ const Community = () => {
                         <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner italic" placeholder="e.g. Development Team" value={newGroup.title} onChange={(e) => setNewGroup({...newGroup, title: e.target.value})} />
                     </div>
                     <div className="md:col-span-2 space-y-2">
-                        <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Description</label>
-                        <textarea required rows={3} className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-text font-medium text-sm transition shadow-inner resize-none italic" placeholder="Group description..." value={newGroup.description} onChange={(e) => setNewGroup({...newGroup, description: e.target.value})} />
+                        <MarkdownEditor 
+                            label="Description"
+                            value={newGroup.description}
+                            onChange={(val) => setNewGroup({...newGroup, description: val})}
+                            placeholder="Group mission, rules, and focus..."
+                            minHeight="200px"
+                        />
                     </div>
                     <div className="space-y-2">
                         <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Capacity</label>
@@ -401,10 +408,12 @@ const Community = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Content</label>
-                  <div className="bg-background rounded-xl border-2 border-border overflow-hidden focus-within:border-accent transition-colors shadow-inner">
-                    <ReactQuill theme="snow" value={newPost.content} onChange={(content) => setNewPost({...newPost, content})} />
-                  </div>
+                  <MarkdownEditor 
+                    label="Content"
+                    value={newPost.content}
+                    onChange={(content) => setNewPost({...newPost, content})}
+                    placeholder="Share your thoughts, ask a question, or post a resource..."
+                  />
                 </div>
 
                 <div className="space-y-2">

@@ -8,8 +8,8 @@ import {
   faClock, faSave, faHashtag, faTrashAlt, faHeart, faLock, faGlobe 
 } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
+import MarkdownEditor from '../components/MarkdownEditor';
+import MarkdownRenderer from '../components/MarkdownRenderer';
 
 const GroupDetail = () => {
   const { id } = useParams();
@@ -111,7 +111,9 @@ const GroupDetail = () => {
                 )}
             </div>
             <h1 className="text-3xl md:text-5xl font-black text-text uppercase tracking-tighter italic">{group.title}</h1>
-            <p className="text-text/60 text-sm md:text-base font-medium leading-relaxed italic max-w-2xl">{group.description}</p>
+            <div className="text-text/60 text-sm md:text-base font-medium leading-relaxed italic max-w-2xl overflow-hidden">
+                <MarkdownRenderer content={group.description} />
+            </div>
             
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 pt-2">
                 <div className="flex flex-col">
@@ -182,7 +184,9 @@ const GroupDetail = () => {
                                     <span>{new Date(post.created_at).toLocaleDateString()}</span>
                                 </div>
                                 <h2 className="text-xl md:text-2xl font-black text-text group-hover:text-accent transition-colors leading-tight tracking-tight uppercase break-words italic">{post.title}</h2>
-                                <div className="text-text/60 text-sm line-clamp-2 leading-relaxed font-medium break-words overflow-hidden italic" dangerouslySetInnerHTML={{ __html: post.content }} />
+                                <div className="text-text/60 text-sm line-clamp-3 leading-relaxed font-medium break-words overflow-hidden italic">
+                                    <MarkdownRenderer content={post.content} />
+                                </div>
                                 <div className="flex flex-wrap gap-2 pt-2">
                                     {post.tags?.split(',').map((tag, i) => (
                                     <span key={i} className="text-[8px] font-black uppercase text-accent bg-accent/5 px-2 py-1 rounded-lg border border-accent/10 tracking-widest italic">#{tag.trim()}</span>
@@ -238,10 +242,12 @@ const GroupDetail = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Content</label>
-                  <div className="bg-background rounded-xl border-2 border-border overflow-hidden focus-within:border-accent transition-colors shadow-inner">
-                    <ReactQuill theme="snow" value={newPost.content} onChange={(content) => setNewPost({...newPost, content})} />
-                  </div>
+                  <MarkdownEditor 
+                    label="Content"
+                    value={newPost.content}
+                    onChange={(content) => setNewPost({...newPost, content})}
+                    placeholder="Share something with the group..."
+                  />
                 </div>
 
                 <div className="space-y-2">

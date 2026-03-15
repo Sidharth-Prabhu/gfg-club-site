@@ -13,6 +13,7 @@ import {
 } from '@fortawesome/free-brands-svg-icons';
 import { motion } from 'framer-motion';
 import { REWARD_LEVELS, calculateLevel } from '../utils/rewards';
+import MarkdownRenderer from '../components/MarkdownRenderer';
 
 const Profile = () => {
   const { userId } = useParams();
@@ -151,9 +152,13 @@ const Profile = () => {
                         <FontAwesomeIcon icon={faUser} className="text-accent" />
                         <h3 className="text-xl font-black text-text uppercase tracking-tight italic">About</h3>
                     </div>
-                    <p className="text-text/60 text-sm md:text-base leading-relaxed font-medium italic bg-card border border-border p-6 rounded-3xl shadow-inner">
-                        {profile.about || "No description provided."}
-                    </p>
+                    <div className="text-text/60 text-sm md:text-base leading-relaxed font-medium italic bg-card border border-border p-6 md:p-8 rounded-3xl shadow-inner">
+                        {profile.about ? (
+                            <MarkdownRenderer content={profile.about} />
+                        ) : (
+                            <p className="opacity-40 italic uppercase tracking-widest text-[10px] font-black">No description provided.</p>
+                        )}
+                    </div>
                 </div>
 
                 <div className="space-y-4">

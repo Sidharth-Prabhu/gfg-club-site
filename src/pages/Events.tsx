@@ -9,8 +9,8 @@ import {
   faToggleOn, faToggleOff, faBookOpen, faScroll 
 } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
+import MarkdownEditor from '../components/MarkdownEditor';
+import MarkdownRenderer from '../components/MarkdownRenderer';
 
 const Events = () => {
   const { user } = useAuth();
@@ -28,15 +28,6 @@ const Events = () => {
   });
 
   const canManage = user?.role === 'Admin' || user?.role === 'Core';
-
-  const modules = useMemo(() => ({
-    toolbar: [
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      ['link', 'image', 'code-block'],
-      ['clean']
-    ],
-  }), []);
 
   const fetchEvents = async () => {
     setLoading(true);
@@ -190,7 +181,9 @@ const Events = () => {
                   )}
                 </div>
                 
-                <p className="text-text/60 text-xs line-clamp-2 leading-relaxed font-medium italic">{stripHtml(event.description)}</p>
+                <div className="text-text/60 text-xs line-clamp-2 leading-relaxed font-medium italic overflow-hidden">
+                    <MarkdownRenderer content={event.description} />
+                </div>
                 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-text/40 bg-background/50 border border-border px-2 py-1.5 rounded-lg">
@@ -268,24 +261,33 @@ const Events = () => {
                   </div>
 
                   <div className="md:col-span-2 space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Description</label>
-                    <div className="bg-background rounded-xl overflow-hidden border-2 border-border focus-within:border-accent shadow-inner">
-                        <ReactQuill theme="snow" value={formData.description} onChange={(c) => setFormData({...formData, description: c})} modules={modules} />
-                    </div>
+                    <MarkdownEditor 
+                        label="Description"
+                        value={formData.description}
+                        onChange={(c) => setFormData({...formData, description: c})}
+                        placeholder="Core event details..."
+                        minHeight="200px"
+                    />
                   </div>
 
                   <div className="md:col-span-2 space-y-2">
-                    <label className="flex items-center gap-2 text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2"><FontAwesomeIcon icon={faScroll} /> Rules</label>
-                    <div className="bg-background rounded-xl overflow-hidden border-2 border-border focus-within:border-accent shadow-inner">
-                        <ReactQuill theme="snow" value={formData.rules} onChange={(c) => setFormData({...formData, rules: c})} modules={modules} placeholder="Define the rules..." />
-                    </div>
+                    <MarkdownEditor 
+                        label="Rules"
+                        value={formData.rules}
+                        onChange={(c) => setFormData({...formData, rules: c})}
+                        placeholder="Define the rules..."
+                        minHeight="200px"
+                    />
                   </div>
 
                   <div className="md:col-span-2 space-y-2">
-                    <label className="flex items-center gap-2 text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2"><FontAwesomeIcon icon={faBookOpen} /> Requirements</label>
-                    <div className="bg-background rounded-xl overflow-hidden border-2 border-border focus-within:border-accent shadow-inner">
-                        <ReactQuill theme="snow" value={formData.requirements} onChange={(c) => setFormData({...formData, requirements: c})} modules={modules} placeholder="List technical requirements..." />
-                    </div>
+                    <MarkdownEditor 
+                        label="Requirements"
+                        value={formData.requirements}
+                        onChange={(c) => setFormData({...formData, requirements: c})}
+                        placeholder="List technical requirements..."
+                        minHeight="200px"
+                    />
                   </div>
 
                   <div className="md:col-span-2 flex items-center justify-between p-5 bg-background border-2 border-border rounded-2xl shadow-inner">

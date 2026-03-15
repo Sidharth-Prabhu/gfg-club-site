@@ -8,6 +8,7 @@ import {
   faTrashAlt, faScroll, faBookOpen, faUserPlus, faShieldAlt, faSignOutAlt, faEdit, faEnvelope, faUserMinus, faCheck 
 } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
+import MarkdownRenderer from '../components/MarkdownRenderer';
 import 'react-quill-new/dist/quill.snow.css';
 
 const EventDetail = () => {
@@ -198,7 +199,9 @@ const EventDetail = () => {
                         <h3 className="text-xl font-black text-text uppercase tracking-tight italic flex items-center gap-3">
                             <FontAwesomeIcon icon={faInfoCircle} className="text-accent" /> Description
                         </h3>
-                        <div className="text-text/80 leading-relaxed text-base ql-editor !p-0 formatted-content font-medium italic" dangerouslySetInnerHTML={{ __html: event.description }} />
+                        <div className="text-text/80 leading-relaxed text-base font-medium italic overflow-hidden">
+                            <MarkdownRenderer content={event.description} />
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-8 border-t border-border/50">
@@ -227,7 +230,9 @@ const EventDetail = () => {
                                 <h4 className="text-lg font-black text-text uppercase tracking-widest flex items-center gap-2 italic">
                                     <FontAwesomeIcon icon={faScroll} className="text-accent" /> Rules
                                 </h4>
-                                <div className="text-text/60 text-xs ql-editor !p-0 formatted-content font-medium italic" dangerouslySetInnerHTML={{ __html: event.rules }} />
+                                <div className="text-text/60 text-xs font-medium italic overflow-hidden">
+                                    <MarkdownRenderer content={event.rules} />
+                                </div>
                             </div>
                         )}
                         {event.requirements && (
@@ -235,7 +240,9 @@ const EventDetail = () => {
                                 <h4 className="text-lg font-black text-text uppercase tracking-widest flex items-center gap-2 italic">
                                     <FontAwesomeIcon icon={faBookOpen} className="text-accent" /> Requirements
                                 </h4>
-                                <div className="text-text/60 text-xs ql-editor !p-0 formatted-content font-medium italic" dangerouslySetInnerHTML={{ __html: event.requirements }} />
+                                <div className="text-text/60 text-xs font-medium italic overflow-hidden">
+                                    <MarkdownRenderer content={event.requirements} />
+                                </div>
                             </div>
                         )}
                     </motion.div>

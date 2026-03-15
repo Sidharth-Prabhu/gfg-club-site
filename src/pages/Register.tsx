@@ -11,6 +11,7 @@ import {
   faGithub 
 } from '@fortawesome/free-brands-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
+import MarkdownEditor from '../components/MarkdownEditor';
 
 const Register = () => {
   const [step, setStep] = useState(1);
@@ -237,8 +238,13 @@ const Register = () => {
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">About You</label>
-                        <textarea required rows={3} className="w-full bg-background border-2 border-border rounded-xl py-3.5 px-5 focus:border-accent outline-none text-text text-sm font-medium transition shadow-inner resize-none" placeholder="Tell us about your technical focus..." value={formData.about} onChange={(e) => setFormData({ ...formData, about: e.target.value })} />
+                        <MarkdownEditor 
+                            label="About You"
+                            value={formData.about}
+                            onChange={(val) => setFormData({ ...formData, about: val })}
+                            placeholder="Tell us about your technical focus..."
+                            minHeight="200px"
+                        />
                       </div>
                       <div className="space-y-1.5">
                         <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Resume (PDF)</label>

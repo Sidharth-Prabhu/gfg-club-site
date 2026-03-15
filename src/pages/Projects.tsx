@@ -13,8 +13,8 @@ import {
   faGithub 
 } from '@fortawesome/free-brands-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
+import MarkdownEditor from '../components/MarkdownEditor';
+import MarkdownRenderer from '../components/MarkdownRenderer';
 
 const Projects = () => {
   const navigate = useNavigate();
@@ -29,10 +29,6 @@ const Projects = () => {
   });
 
   const categories = ['All', 'AI', 'Web', 'Mobile', 'Systems'];
-
-  const modules = useMemo(() => ({
-    toolbar: [['bold', 'italic', 'underline'], [{'list': 'ordered'}, {'list': 'bullet'}], ['link', 'image'], ['clean']],
-  }), []);
 
   const fetchProjects = async () => {
     setLoading(true);
@@ -169,9 +165,9 @@ const Projects = () => {
 
                 <div className="space-y-2">
                     <h3 className="text-xl font-black text-text leading-tight group-hover:text-accent transition-colors tracking-tight uppercase break-words italic">{project.title}</h3>
-                    <p className="text-text/60 text-xs line-clamp-2 leading-relaxed font-medium break-words overflow-hidden italic">
-                        {stripHtml(project.description)}
-                    </p>
+                    <div className="text-text/60 text-xs line-clamp-2 leading-relaxed font-medium break-words overflow-hidden italic">
+                        <MarkdownRenderer content={project.description} />
+                    </div>
                 </div>
 
                 <div className="flex flex-wrap gap-1.5 pt-1">
@@ -218,10 +214,12 @@ const Projects = () => {
                     <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-lg font-black text-text shadow-inner transition-colors italic" placeholder="Name of your innovation..." value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Development Story</label>
-                    <div className="bg-background rounded-xl overflow-hidden border-2 border-border focus-within:border-accent transition shadow-inner">
-                        <ReactQuill theme="snow" value={formData.description} onChange={(content) => setFormData({...formData, description: content})} modules={modules} placeholder="Describe architecture..." />
-                    </div>
+                    <MarkdownEditor 
+                        label="Development Story"
+                        value={formData.description}
+                        onChange={(content) => setFormData({...formData, description: content})}
+                        placeholder="Describe the architecture, challenges, and core features..."
+                    />
                   </div>
                   <div className="space-y-2">
                     <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Stack (CSV)</label>

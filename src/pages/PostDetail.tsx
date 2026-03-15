@@ -7,8 +7,8 @@ import {
   faHeart, faArrowLeft, faClock, faReply, faMessage, faUser, faTag, faEdit, faTrashAlt, faSave, faTimes, faHashtag 
 } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
+import MarkdownRenderer from '../components/MarkdownRenderer';
+import MarkdownEditor from '../components/MarkdownEditor';
 
 const PostDetail = () => {
   const { postId } = useParams();
@@ -193,7 +193,9 @@ const PostDetail = () => {
                 <span>{comment.reaction_count || 0}</span>
               </button>
             </div>
-            <p className="text-sm text-text/80 leading-relaxed font-medium">{comment.content}</p>
+            <div className="text-sm text-text/80 leading-relaxed font-medium overflow-hidden">
+                <MarkdownRenderer content={comment.content} />
+            </div>
             <div className="flex gap-3 pt-0.5">
                 <button onClick={() => setIsReplying(!isReplying)} className="text-[8px] font-black text-text/40 hover:text-accent flex items-center gap-1.5 transition-colors uppercase tracking-widest italic">
                     <FontAwesomeIcon icon={faReply} /> Reply
@@ -324,7 +326,7 @@ const PostDetail = () => {
               animate={{ opacity: 1, y: 0 }}
               className="bg-card border border-border p-8 md:p-12 rounded-3xl shadow-xl italic"
             >
-              <div className="prose prose-accent dark:prose-invert max-w-none text-text/80 text-base md:text-lg leading-[1.7] font-medium ql-editor !p-0" dangerouslySetInnerHTML={{ __html: post.content }} />
+              <MarkdownRenderer content={post.content} />
             </motion.div>
 
             {/* Comments Section */}
@@ -471,10 +473,12 @@ const PostDetail = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-[8px] font-black text-text/40 uppercase tracking-widest ml-2">Content</label>
-                  <div className="bg-background rounded-xl border-2 border-border overflow-hidden focus-within:border-accent transition-colors shadow-inner">
-                    <ReactQuill theme="snow" value={editFormData.content} onChange={(content) => setEditFormData({...editFormData, content})} />
-                  </div>
+                  <MarkdownEditor 
+                    label="Content"
+                    value={editFormData.content}
+                    onChange={(content) => setEditFormData({...editFormData, content})}
+                    placeholder="Share your thoughts, ask a question, or post a resource..."
+                  />
                 </div>
 
                 <div className="space-y-2">

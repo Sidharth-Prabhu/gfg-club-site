@@ -9,8 +9,8 @@ import {
   faChevronRight, faCalendarAlt
 } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
+import MarkdownEditor from '../components/MarkdownEditor';
+import MarkdownRenderer from '../components/MarkdownRenderer';
 
 const Blog = () => {
   const navigate = useNavigate();
@@ -24,18 +24,6 @@ const Blog = () => {
   const [formData, setFormData] = useState({ title: '', content: '', tags: '' });
 
   const canPost = user?.role === 'Admin' || user?.role === 'Core';
-
-  const modules = useMemo(() => ({
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      [{ 'size': ['small', false, 'large', 'huge'] }],
-      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-      [{'list': 'ordered'}, {'list': 'bullet'}],
-      ['code-block', 'link', 'image'],
-      [{ 'color': [] }, { 'background': [] }],
-      ['clean']
-    ],
-  }), []);
 
   const fetchBlogs = async () => {
     setLoading(true);
@@ -172,9 +160,9 @@ const Blog = () => {
                 </div>
                 <div className="space-y-3">
                     <h2 className="text-xl md:text-2xl font-black text-text group-hover:text-accent transition-colors leading-tight tracking-tight uppercase italic">{blog.title}</h2>
-                    <p className="text-text/60 text-xs line-clamp-2 leading-relaxed font-medium italic">
-                        {stripHtml(blog.content)}
-                    </p>
+                    <div className="text-text/60 text-xs line-clamp-3 leading-relaxed font-medium italic overflow-hidden">
+                        <MarkdownRenderer content={blog.content} />
+                    </div>
                 </div>
               </div>
               <div className="mt-8 pt-6 border-t border-border/50 flex items-center justify-between">
@@ -216,10 +204,12 @@ const Blog = () => {
                     <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-lg font-black text-text shadow-inner transition-colors italic" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
                 </div>
                 <div className="space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Content</label>
-                    <div className="bg-background rounded-xl overflow-hidden border-2 border-border focus-within:border-accent transition shadow-inner">
-                        <ReactQuill theme="snow" value={formData.content} onChange={(content) => setFormData({...formData, content})} modules={modules} />
-                    </div>
+                    <MarkdownEditor 
+                        label="Content"
+                        value={formData.content}
+                        onChange={(content) => setFormData({...formData, content})}
+                        placeholder="Share your technical insights with the community..."
+                    />
                 </div>
                 <div className="space-y-2">
                     <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Tags (comma separated)</label>

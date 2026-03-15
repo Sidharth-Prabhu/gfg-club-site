@@ -8,8 +8,8 @@ import {
   faShareAlt, faBookOpen, faCalendarAlt, faHashtag, faSave, faTimes 
 } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
+import MarkdownRenderer from '../components/MarkdownRenderer';
+import MarkdownEditor from '../components/MarkdownEditor';
 
 const BlogDetail = () => {
   const { id } = useParams();
@@ -178,7 +178,7 @@ const BlogDetail = () => {
               animate={{ opacity: 1, y: 0 }}
               className="bg-card border border-border p-8 md:p-12 rounded-3xl shadow-xl italic"
             >
-              <div className="prose prose-accent dark:prose-invert max-w-none text-text/80 text-lg md:text-xl leading-[1.7] font-medium ql-editor !p-0" dangerouslySetInnerHTML={{ __html: blog.content }} />
+              <MarkdownRenderer content={blog.content} />
             </motion.div>
           </div>
 
@@ -246,10 +246,12 @@ const BlogDetail = () => {
                     <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-lg font-black text-text shadow-inner transition-colors italic" value={editFormData.title} onChange={(e) => setEditFormData({...editFormData, title: e.target.value})} />
                 </div>
                 <div className="space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Content</label>
-                    <div className="bg-background rounded-2xl overflow-hidden border-2 border-border focus-within:border-accent transition shadow-inner">
-                        <ReactQuill theme="snow" value={editFormData.content} onChange={(content) => setEditFormData({...editFormData, content: content})} />
-                    </div>
+                    <MarkdownEditor 
+                        label="Content"
+                        value={editFormData.content}
+                        onChange={(content) => setEditFormData({...editFormData, content})}
+                        placeholder="Share your technical insights with the community..."
+                    />
                 </div>
                 <div className="space-y-2">
                     <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Tags</label>

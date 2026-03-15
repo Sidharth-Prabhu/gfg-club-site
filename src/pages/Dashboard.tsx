@@ -20,6 +20,7 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { Link } from 'react-router-dom';
 import { REWARD_LEVELS, calculateLevel, getRewardMetrics } from '../utils/rewards';
+import MarkdownEditor from '../components/MarkdownEditor';
 
 const Dashboard = () => {
   const { user, login } = useAuth();
@@ -1032,6 +1033,17 @@ const Dashboard = () => {
                 <button onClick={() => setIsEditModalOpen(false)} className="text-text/40 hover:text-red-500 p-4 hover:bg-red-500/5 rounded-full transition-all active:scale-90"><FontAwesomeIcon icon={faTimes} size="32" /></button>
               </div>
               <form onSubmit={handleUpdateProfile} className="p-10 md:p-14 space-y-10 custom-scrollbar overflow-y-auto max-h-[70vh]">
+                {isGuest && (
+                    <div className="bg-blue-500/5 border border-blue-500/20 p-6 rounded-3xl space-y-2">
+                        <p className="text-blue-500 font-black uppercase text-[10px] tracking-widest flex items-center gap-2">
+                            <FontAwesomeIcon icon={faShieldAlt} /> Neural Verification Required
+                        </p>
+                        <p className="text-text/40 text-[9px] leading-relaxed italic uppercase font-bold">
+                            As a guest, you can only update your core identity. Verified RIT membership is required to modify skills, bio, and social nodes.
+                        </p>
+                    </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10 italic">
                     <div className="space-y-3">
                         <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Full Name</label>
@@ -1041,7 +1053,54 @@ const Dashboard = () => {
                         <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Department</label>
                         <input type="text" className="w-full bg-background border-2 border-border rounded-2xl py-5 px-8 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner" value={editFormData.department} onChange={(e) => setEditFormData({...editFormData, department: e.target.value})} />
                     </div>
+                    <div className="space-y-3">
+                        <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Academic Year</label>
+                        <input type="number" min="1" max="4" className="w-full bg-background border-2 border-border rounded-2xl py-5 px-8 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner" value={editFormData.year} onChange={(e) => setEditFormData({...editFormData, year: e.target.value})} />
+                    </div>
+                    <div className="space-y-3">
+                        <label className="block text-[10px] font-black text-text/40 uppercase tracking-[0.3em] ml-2">Technical Skills (Comma Separated)</label>
+                        <input disabled={isGuest} type="text" className="w-full bg-background border-2 border-border rounded-2xl py-5 px-8 focus:border-accent outline-none text-text font-black text-lg transition shadow-inner disabled:opacity-30" placeholder="React, Python, AWS..." value={editFormData.skills} onChange={(e) => setEditFormData({...editFormData, skills: e.target.value})} />
+                    </div>
                 </div>
+
+                {!isGuest && (
+                    <div className="space-y-3">
+                        <MarkdownEditor 
+                            label="About & Biography"
+                            value={editFormData.about}
+                            onChange={(val) => setEditFormData({...editFormData, about: val})}
+                            placeholder="Introduce yourself to the community..."
+                        />
+                    </div>
+                )}
+
+                <div className="space-y-6 pt-6 border-t border-border/50">
+                    <h4 className="text-[10px] font-black text-accent uppercase tracking-[0.4em] italic ml-2">Neural Profile Nodes</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-2">
+                            <label className="block text-[8px] font-black text-text/30 uppercase tracking-[0.2em] ml-2">GitHub Profile</label>
+                            <div className="relative group">
+                                <FontAwesomeIcon icon={faGithub} className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-accent transition-colors" />
+                                <input disabled={isGuest} type="url" className="w-full bg-background border-2 border-border rounded-xl py-4 pl-12 pr-6 focus:border-accent outline-none text-text text-xs font-bold transition shadow-inner disabled:opacity-30" placeholder="https://github.com/..." value={editFormData.github_profile} onChange={(e) => setEditFormData({...editFormData, github_profile: e.target.value})} />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="block text-[8px] font-black text-text/30 uppercase tracking-[0.2em] ml-2">LeetCode Profile</label>
+                            <div className="relative group">
+                                <FontAwesomeIcon icon={faTerminal} className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-orange-500 transition-colors" />
+                                <input disabled={isGuest} type="url" className="w-full bg-background border-2 border-border rounded-xl py-4 pl-12 pr-6 focus:border-accent outline-none text-text text-xs font-bold transition shadow-inner disabled:opacity-30" placeholder="https://leetcode.com/..." value={editFormData.leetcode_profile} onChange={(e) => setEditFormData({...editFormData, leetcode_profile: e.target.value})} />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="block text-[8px] font-black text-text/30 uppercase tracking-[0.2em] ml-2">GeeksforGeeks Profile</label>
+                            <div className="relative group">
+                                <FontAwesomeIcon icon={faCode} className="absolute left-5 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-green-500 transition-colors" />
+                                <input disabled={isGuest} type="url" className="w-full bg-background border-2 border-border rounded-xl py-4 pl-12 pr-6 focus:border-accent outline-none text-text text-xs font-bold transition shadow-inner disabled:opacity-30" placeholder="https://geeksforgeeks.org/profile/..." value={editFormData.gfg_profile} onChange={(e) => setEditFormData({...editFormData, gfg_profile: e.target.value})} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div className="flex gap-6 pt-6">
                     <button type="submit" className="flex-grow bg-accent hover:bg-gfg-green-hover text-white font-black py-6 rounded-[1.5rem] uppercase tracking-widest text-sm active:scale-[0.98]">Save Changes</button>
                     <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-grow bg-card border border-border hover:bg-background text-text/60 font-black py-6 rounded-[1.5rem] transition uppercase tracking-widest text-xs shadow-sm">Cancel</button>

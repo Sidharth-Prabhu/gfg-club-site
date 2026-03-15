@@ -12,8 +12,8 @@ import {
   faGithub 
 } from '@fortawesome/free-brands-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
+import MarkdownRenderer from '../components/MarkdownRenderer';
+import MarkdownEditor from '../components/MarkdownEditor';
 
 const ProjectDetail = () => {
   const { id } = useParams();
@@ -202,8 +202,8 @@ const ProjectDetail = () => {
                 <FontAwesomeIcon icon={faFileAlt} className="text-accent text-xl" />
                 <h4 className="text-2xl font-black text-text uppercase tracking-tight italic">Description</h4>
               </div>
-              <div className="bg-card border border-border p-8 rounded-3xl shadow-xl italic">
-                <div className="prose dark:prose-invert prose-accent max-w-none text-text/80 text-base md:text-lg leading-[1.7] font-medium ql-editor !p-0" dangerouslySetInnerHTML={{ __html: project.description }} />
+              <div className="bg-card border border-border p-8 rounded-3xl shadow-xl italic overflow-hidden">
+                <MarkdownRenderer content={project.description} />
               </div>
             </div>
 
@@ -295,10 +295,12 @@ const ProjectDetail = () => {
                     <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-lg font-black text-text shadow-inner transition-colors italic" placeholder="Project name..." value={editFormData.title} onChange={(e) => setEditFormData({...editFormData, title: e.target.value})} />
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Description</label>
-                    <div className="bg-background rounded-2xl overflow-hidden border-2 border-border focus-within:border-accent transition shadow-inner">
-                        <ReactQuill theme="snow" value={editFormData.description} onChange={(content) => setEditFormData({...editFormData, description: content})} />
-                    </div>
+                    <MarkdownEditor 
+                        label="Development Story"
+                        value={editFormData.description}
+                        onChange={(content) => setEditFormData({...editFormData, description: content})}
+                        placeholder="Describe the architecture, challenges, and core features..."
+                    />
                   </div>
                   <div className="space-y-2">
                     <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Technologies (comma separated)</label>
