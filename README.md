@@ -45,6 +45,20 @@ Below is a walkthrough of the platform's key features and user interface.
 
 ---
 
+## 🔍 Data Integration & Scraping
+
+The platform dynamically synchronizes with GeeksforGeeks through a multi-layered data extraction strategy:
+
+*   **Practice Hub & POTD:** Uses **Axios** and **Cheerio** to scrape the "Problem of the Day" directly from GfG, extracting titles, difficulty, and company tags in real-time.
+*   **Resource Engine:** Employs a three-tier discovery system:
+    1.  **WP-JSON API** for structured article metadata.
+    2.  **Explore Page Scraping** for curated technical content.
+    3.  **Search Sector Extraction** as a fallback for deep-link discovery.
+*   **Course Synchronization:** Programmatically extracts the `__NEXT_DATA__` JSON payload from GfG course pages to retrieve accurate pricing, ratings, curriculum, and video trailers.
+*   **Content Sanitization:** Automatically re-styles scraped HTML (code blocks, images, links) to maintain the platform's cohesive dark-mode aesthetic.
+
+---
+
 ## ⚙️ Getting Started
 
 ### Prerequisites
