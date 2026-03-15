@@ -28,7 +28,7 @@ const Footer = () => {
               <img 
                 src={theme === 'dark' ? "/src/assets/GfG_darkmode.png" : "/src/assets/GfG_lightmode.png"} 
                 alt="GfG RIT Logo" 
-                className="h-8 w-auto object-contain transition-transform group-hover:scale-105" 
+                className="h-12 w-auto object-contain transition-transform group-hover:scale-105" 
               />
             </Link>
             <p className="text-text/60 leading-relaxed max-w-xs text-sm italic">

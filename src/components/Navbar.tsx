@@ -53,7 +53,7 @@ const Navbar = () => {
           <img 
             src={theme === 'dark' ? "/src/assets/GfG_darkmode.png" : "/src/assets/GfG_lightmode.png"} 
             alt="GfG RIT Logo" 
-            className="h-7 md:h-8 w-auto object-contain transition-transform group-hover:scale-105" 
+            className="h-10 md:h-12 w-auto object-contain transition-transform group-hover:scale-105" 
           />
         </Link>
 
