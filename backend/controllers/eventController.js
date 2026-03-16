@@ -1,4 +1,5 @@
 import pool from '../config/db.js';
+import { notifyAll, createNotification } from './notificationController.js';
 
 export const getEvents = async (req, res) => {
   try {
@@ -32,7 +33,12 @@ export const createEvent = async (req, res) => {
       'INSERT INTO events (title, description, poster, date, location, organizer, is_open, participation_type, max_team_size, rules, requirements) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [title, description, poster, date, location, organizer, is_open, participation_type, max_team_size, rules, requirements]
     );
-    res.status(201).json({ id: result.insertId, ...req.body });
+    const eventId = result.insertId;
+
+    // Notify all users about the new event
+    await notifyAll('event', `New event: ${title}`, `/events/${eventId}`);
+
+    res.status(201).json({ id: eventId, ...req.body });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -123,6 +129,9 @@ export const registerForEvent = async (req, res) => {
             const inviteLimit = event.max_team_size - 1;
             const emailsToInvite = memberEmails.slice(0, inviteLimit);
 
+            const [inviterRows] = await pool.execute('SELECT name FROM users WHERE id = ?', [userId]);
+            const inviterName = inviterRows[0].name;
+
             for (const email of emailsToInvite) {
                 const [userRows] = await pool.execute('SELECT id FROM users WHERE email = ?', [email]);
                 if (userRows.length > 0) {
@@ -133,6 +142,8 @@ export const registerForEvent = async (req, res) => {
                             'INSERT INTO event_registrations (user_id, event_id, team_id, status) VALUES (?, ?, ?, ?)',
                             [invitedId, eventId, teamId, 'Pending']
                         );
+                        // Notify invited user
+                        await createNotification(invitedId, 'event', `${inviterName} invited you to join team "${teamName}" for ${event.title}`, `/dashboard`);
                     }
                 }
             }
@@ -277,6 +288,14 @@ export const inviteTeamMember = async (req, res) => {
             'INSERT INTO event_registrations (user_id, event_id, team_id, status) VALUES (?, ?, ?, ?)',
             [invitedId, team.event_id, teamId, 'Pending']
         );
+
+        // Notify invited user
+        const [inviterRows] = await pool.execute('SELECT name FROM users WHERE id = ?', [userId]);
+        const inviterName = inviterRows[0].name;
+        const [eventRows2] = await pool.execute('SELECT title FROM events WHERE id = ?', [team.event_id]);
+        const eventTitle = eventRows2[0].title;
+        
+        await createNotification(invitedId, 'event', `${inviterName} invited you to join team "${team.name}" for ${eventTitle}`, `/dashboard`);
 
         res.json({ message: 'Invitation sent' });
     } catch (error) {

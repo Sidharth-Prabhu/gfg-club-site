@@ -1,4 +1,5 @@
 import pool from '../config/db.js';
+import { createNotification } from './notificationController.js';
 
 export const getConversations = async (req, res) => {
     try {
@@ -52,6 +53,7 @@ export const sendMessage = async (req, res) => {
     const { receiverId, content } = req.body;
     const senderId = req.user.id;
     const senderRole = req.user.role;
+    const senderName = req.user.name;
 
     if (!content || !receiverId) return res.status(400).json({ message: 'Invalid data' });
 
@@ -110,6 +112,9 @@ export const sendMessage = async (req, res) => {
             'UPDATE conversations SET last_message_at = CURRENT_TIMESTAMP WHERE id = ?',
             [conversationId]
         );
+
+        // Notify receiver
+        await createNotification(receiverId, 'dm', `${senderName} sent you a message: ${content.substring(0, 30)}${content.length > 30 ? '...' : ''}`, `/dashboard`);
 
         res.status(201).json({ message: 'Message sent', conversationId });
     } catch (error) {

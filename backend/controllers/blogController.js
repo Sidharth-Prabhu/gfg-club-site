@@ -1,4 +1,5 @@
 import pool from '../config/db.js';
+import { notifyAll } from './notificationController.js';
 
 export const getBlogs = async (req, res) => {
   try {
@@ -34,7 +35,12 @@ export const createBlog = async (req, res) => {
       'INSERT INTO blogs (title, content, tags, author_id) VALUES (?, ?, ?, ?)',
       [title, content, tags, req.user.id]
     );
-    res.status(201).json({ id: result.insertId, title, content, tags, author_id: req.user.id });
+    const blogId = result.insertId;
+
+    // Notify all users about the new blog
+    await notifyAll('blog', `New blog posted: ${title}`, `/blog/${blogId}`, req.user.id);
+
+    res.status(201).json({ id: blogId, title, content, tags, author_id: req.user.id });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

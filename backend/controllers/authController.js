@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
+import { notifyAdmins } from './notificationController.js';
 
 const generateToken = (id, role, status) => {
   return jwt.sign({ id, role, status }, process.env.JWT_SECRET, {
@@ -41,6 +42,11 @@ export const registerUser = async (req, res) => {
         skills, about, resume_url, role, status
       ]
     );
+
+    if (isRIT) {
+        // Notify admins about new application
+        await notifyAdmins('approval', `New user application from ${name} (${email})`, '/dashboard/admin/users');
+    }
 
     const message = isRIT 
       ? 'Application submitted successfully. Waiting for admin approval.' 

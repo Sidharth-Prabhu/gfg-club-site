@@ -1,4 +1,5 @@
 import pool from '../config/db.js';
+import { notifyAll, createNotification } from './notificationController.js';
 
 export const getDiscussionById = async (req, res) => {
   const { id } = req.params;
@@ -104,6 +105,26 @@ export const createDiscussion = async (req, res) => {
       for (const tag of tags) {
         await pool.execute('INSERT INTO post_tags (post_id, tag) VALUES (?, ?)', [postId, tag]);
       }
+    }
+
+    // Notifications
+    const [authorRows] = await pool.execute('SELECT name FROM users WHERE id = ?', [authorId]);
+    const authorName = authorRows[0].name;
+
+    if (groupId) {
+        const [groupRows] = await pool.execute('SELECT name FROM groups WHERE id = ?', [groupId]);
+        const groupName = groupRows[0].name;
+        
+        const [members] = await pool.execute(
+            'SELECT user_id FROM group_members WHERE group_id = ? AND status = "Accepted"',
+            [groupId]
+        );
+        for (const member of members) {
+            if (member.user_id === authorId) continue;
+            await createNotification(member.user_id, 'community', `${authorName} posted in ${groupName}: ${title}`, `/community/post/${postId}`);
+        }
+    } else {
+        await notifyAll('community', `${authorName} shared a new post: ${title}`, `/community/post/${postId}`, authorId);
     }
 
     res.status(201).json({ id: postId, title, content, authorId, groupId });

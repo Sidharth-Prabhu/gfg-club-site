@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -50,59 +51,61 @@ const Placeholder = ({ title }) => (
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <MainLayout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/events/:id" element={<EventDetail />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
-            <Route path="/practice" element={
-              <RITRoute>
-                <PracticeHub />
-              </RITRoute>
-            } />
-            <Route path="/courses" element={
-              <RITRoute>
-                <Courses />
-              </RITRoute>
-            } />
-            <Route path="/courses/:slug" element={
-              <RITRoute>
-                <CourseDetail />
-              </RITRoute>
-            } />
-            <Route path="/community" element={<Community />} />
-            <Route path="/community/:postId" element={<PostDetail />} />
-            <Route path="/groups/:id" element={<GroupDetail />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/projects/:id" element={<ProjectDetail />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:id" element={<BlogDetail />} />
-            <Route path="/resources" element={
-              <RITRoute>
-                <Resources />
-              </RITRoute>
-            } />
-            
-            <Route path="/team" element={<Placeholder title="Our Team" />} />
-            
-            <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="/profile/:userId" element={
-              <RITRoute>
-                <Profile />
-              </RITRoute>
-            } />
-          </Routes>
-        </MainLayout>
-      </Router>
+      <NotificationProvider>
+        <Router>
+          <MainLayout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/events/:id" element={<EventDetail />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/practice" element={
+                <RITRoute>
+                  <PracticeHub />
+                </RITRoute>
+              } />
+              <Route path="/courses" element={
+                <RITRoute>
+                  <Courses />
+                </RITRoute>
+              } />
+              <Route path="/courses/:slug" element={
+                <RITRoute>
+                  <CourseDetail />
+                </RITRoute>
+              } />
+              <Route path="/community" element={<Community />} />
+              <Route path="/community/:postId" element={<PostDetail />} />
+              <Route path="/groups/:id" element={<GroupDetail />} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/projects/:id" element={<ProjectDetail />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:id" element={<BlogDetail />} />
+              <Route path="/resources" element={
+                <RITRoute>
+                  <Resources />
+                </RITRoute>
+              } />
+              
+              <Route path="/team" element={<Placeholder title="Our Team" />} />
+              
+              <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="/profile/:userId" element={
+                <RITRoute>
+                  <Profile />
+                </RITRoute>
+              } />
+            </Routes>
+          </MainLayout>
+        </Router>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

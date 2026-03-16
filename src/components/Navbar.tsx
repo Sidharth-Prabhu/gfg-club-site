@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import NotificationDropdown from './NotificationDropdown';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faGaugeHigh, 
@@ -78,6 +79,7 @@ const Navbar = () => {
           <div className="hidden sm:flex items-center gap-3 border-l border-border pl-3">
             {user ? (
               <>
+                <NotificationDropdown />
                 <Link to="/dashboard" className="text-text hover:text-accent flex items-center gap-2 transition-colors text-sm">
                   <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center overflow-hidden border border-accent/20">
                     {user.profile_pic ? (
@@ -124,10 +126,13 @@ const Navbar = () => {
               <hr className="border-border" />
               {user ? (
                 <>
-                  <Link to="/dashboard" onClick={toggleMenu} className="flex items-center gap-3 text-text hover:text-accent text-base font-medium">
-                    <FontAwesomeIcon icon={faGaugeHigh} className="text-base" /> Dashboard
-                  </Link>
-                  <button onClick={handleLogout} className="flex items-center gap-3 text-text hover:text-red-500 text-base font-medium">
+                  <div className="flex items-center justify-between">
+                    <Link to="/dashboard" onClick={toggleMenu} className="flex items-center gap-3 text-text hover:text-accent text-base font-medium">
+                        <FontAwesomeIcon icon={faGaugeHigh} className="text-base" /> Dashboard
+                    </Link>
+                    <NotificationDropdown />
+                  </div>
+                  <button onClick={handleLogout} className="flex items-center gap-3 text-text hover:text-red-500 text-base font-medium text-left">
                     <FontAwesomeIcon icon={faSignOutAlt} className="text-base" /> Logout
                   </button>
                 </>

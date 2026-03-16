@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role ENUM('User', 'Core', 'Admin') DEFAULT 'User',
+    role ENUM('User', 'Core', 'Admin', 'Guest') DEFAULT 'User',
     department VARCHAR(255),
     year INT,
     gfg_profile VARCHAR(255),
@@ -18,6 +18,12 @@ CREATE TABLE IF NOT EXISTS users (
     gfg_solved INT DEFAULT 0,
     problems_solved INT DEFAULT 0,
     streak INT DEFAULT 0,
+    skills TEXT,
+    about TEXT,
+    resume_url LONGTEXT,
+    profile_pic LONGTEXT,
+    status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
+    last_login DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -121,17 +127,45 @@ CREATE TABLE IF NOT EXISTS project_votes (
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 );
 
--- 10. Discussions table
+-- 10. Community Groups table
+CREATE TABLE IF NOT EXISTS community_groups (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    logo VARCHAR(255),
+    created_by INT NOT NULL,
+    max_members INT DEFAULT 100,
+    allow_guests BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 11. Group Members table
+CREATE TABLE IF NOT EXISTS group_members (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    group_id INT NOT NULL,
+    user_id INT NOT NULL,
+    status ENUM('Pending', 'Accepted', 'Declined') DEFAULT 'Pending',
+    role ENUM('Member', 'Moderator', 'Admin') DEFAULT 'Member',
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (group_id) REFERENCES community_groups(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY user_group (user_id, group_id)
+);
+
+-- 12. Discussions table
 CREATE TABLE IF NOT EXISTS discussions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     content LONGTEXT NOT NULL,
     author_id INT NOT NULL,
+    group_id INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (group_id) REFERENCES community_groups(id) ON DELETE CASCADE
 );
 
--- 11. Post Tags table
+-- 13. Post Tags table
 CREATE TABLE IF NOT EXISTS post_tags (
     id INT AUTO_INCREMENT PRIMARY KEY,
     post_id INT NOT NULL,
@@ -139,7 +173,7 @@ CREATE TABLE IF NOT EXISTS post_tags (
     FOREIGN KEY (post_id) REFERENCES discussions(id) ON DELETE CASCADE
 );
 
--- 12. Post Reactions table
+-- 14. Post Reactions table
 CREATE TABLE IF NOT EXISTS post_reactions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -150,7 +184,7 @@ CREATE TABLE IF NOT EXISTS post_reactions (
     FOREIGN KEY (post_id) REFERENCES discussions(id) ON DELETE CASCADE
 );
 
--- 13. Post Comments table
+-- 15. Post Comments table
 CREATE TABLE IF NOT EXISTS post_comments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -163,7 +197,7 @@ CREATE TABLE IF NOT EXISTS post_comments (
     FOREIGN KEY (parent_id) REFERENCES post_comments(id) ON DELETE CASCADE
 );
 
--- 14. Comment Reactions table
+-- 16. Comment Reactions table
 CREATE TABLE IF NOT EXISTS comment_reactions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -173,7 +207,7 @@ CREATE TABLE IF NOT EXISTS comment_reactions (
     FOREIGN KEY (comment_id) REFERENCES post_comments(id) ON DELETE CASCADE
 );
 
--- 15. Resources table
+-- 17. Resources table
 CREATE TABLE IF NOT EXISTS resources (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -181,4 +215,50 @@ CREATE TABLE IF NOT EXISTS resources (
     link TEXT NOT NULL,
     category VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 18. Conversations table
+CREATE TABLE IF NOT EXISTS conversations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user1_id INT NOT NULL,
+    user2_id INT NOT NULL,
+    last_message_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user1_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (user2_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY participants (user1_id, user2_id)
+);
+
+-- 19. Messages table
+CREATE TABLE IF NOT EXISTS messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    conversation_id INT NOT NULL,
+    sender_id INT NOT NULL,
+    content TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 20. Notifications table
+CREATE TABLE IF NOT EXISTS notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    message TEXT NOT NULL,
+    link VARCHAR(255),
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 21. User Activity table
+CREATE TABLE IF NOT EXISTS user_activity (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    activity_date DATE NOT NULL,
+    problems_solved INT DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY user_date (user_id, activity_date)
 );

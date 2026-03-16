@@ -1,4 +1,5 @@
 import pool from '../config/db.js';
+import { createNotification } from './notificationController.js';
 
 export const getGroups = async (req, res) => {
   try {
@@ -80,7 +81,7 @@ export const joinGroup = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    const [group] = await pool.execute('SELECT allow_guests, max_members, (SELECT COUNT(*) FROM group_members WHERE group_id = ? AND status = "Accepted") as current_members FROM community_groups WHERE id = ?', [groupId, groupId]);
+    const [group] = await pool.execute('SELECT title, created_by, allow_guests, max_members, (SELECT COUNT(*) FROM group_members WHERE group_id = ? AND status = "Accepted") as current_members FROM community_groups WHERE id = ?', [groupId, groupId]);
     if (group.length === 0) return res.status(404).json({ message: 'Group not found' });
     
     if (req.user.role === 'Guest' && !group[0].allow_guests) {
@@ -95,6 +96,12 @@ export const joinGroup = async (req, res) => {
       'INSERT INTO group_members (group_id, user_id, status) VALUES (?, ?, "Pending")',
       [groupId, userId]
     );
+
+    // Notify group creator
+    const [userRows] = await pool.execute('SELECT name FROM users WHERE id = ?', [userId]);
+    const userName = userRows[0].name;
+    await createNotification(group[0].created_by, 'approval', `${userName} requested to join group "${group[0].title}"`, `/community/group/${groupId}`);
+
     res.status(201).json({ message: 'Join request sent' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -124,19 +131,22 @@ export const respondToRequest = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    const [request] = await pool.execute(`
-        SELECT m.* FROM group_members m 
+    const [requestRows] = await pool.execute(`
+        SELECT m.*, g.title as group_title FROM group_members m 
         JOIN community_groups g ON m.group_id = g.id 
         WHERE m.id = ? AND g.created_by = ?`, 
         [requestId, userId]
     );
 
-    if (request.length === 0) return res.status(403).json({ message: 'Unauthorized' });
+    if (requestRows.length === 0) return res.status(403).json({ message: 'Unauthorized' });
+    const request = requestRows[0];
 
     if (status === 'Accepted') {
       await pool.execute('UPDATE group_members SET status = "Accepted" WHERE id = ?', [requestId]);
+      await createNotification(request.user_id, 'community', `Your request to join group "${request.group_title}" was accepted!`, `/community/group/${request.group_id}`);
     } else {
       await pool.execute('DELETE FROM group_members WHERE id = ?', [requestId]);
+      await createNotification(request.user_id, 'community', `Your request to join group "${request.group_title}" was declined.`, `/community`);
     }
 
     res.json({ message: `Request ${status}` });
