@@ -1,6 +1,7 @@
 import React from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import ChatbotWidget from '../components/ChatbotWidget';
 import { ThemeProvider } from '../context/ThemeContext';
 
 const MainLayout = ({ children }) => {
@@ -12,6 +13,7 @@ const MainLayout = ({ children }) => {
           {children}
         </main>
         <Footer />
+        <ChatbotWidget />
       </div>
     </ThemeProvider>
   );

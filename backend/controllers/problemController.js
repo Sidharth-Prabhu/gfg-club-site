@@ -1,6 +1,7 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import pool from '../config/db.js';
+import { notifyAll } from './notificationController.js';
 
 const fallbackProblems = [
     { title: 'Two Sum', difficulty: 'Easy', topic: 'Arrays', slug: 'two-sum--141631' },
@@ -139,6 +140,10 @@ export const createProblem = async (req, res) => {
       'INSERT INTO problems (title, difficulty, topic, link) VALUES (?, ?, ?, ?)',
       [title, difficulty, topic, link]
     );
+
+    // Notify all users about the new problem
+    await notifyAll('problem', `New problem added: ${title}`, `/practice`);
+
     res.status(201).json({ id: result.insertId, title, difficulty, topic, link });
   } catch (error) {
     res.status(500).json({ message: error.message });

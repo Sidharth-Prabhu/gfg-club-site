@@ -1,4 +1,5 @@
 import pool from '../config/db.js';
+import { createNotification, notifyAdmins } from './notificationController.js';
 
 export const getProjectById = async (req, res) => {
   const { id } = req.params;
@@ -85,6 +86,9 @@ export const createProject = async (req, res) => {
         }
     }
 
+    // Notify admins about the new project
+    await notifyAdmins('project', `New project submission: ${title}`, `/projects/${projectId}`);
+
     res.status(201).json({ id: projectId, title, status: 'Pending' });
   } catch (error) {
     console.error('CREATE PROJECT FULL ERROR:', error);
@@ -147,7 +151,15 @@ export const updateProjectStatus = async (req, res) => {
   }
 
   try {
+    const [rows] = await pool.execute('SELECT title, created_by FROM projects WHERE id = ?', [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ message: 'Project not found' });
+    const { title, created_by } = rows[0];
+
     await pool.execute('UPDATE projects SET status = ? WHERE id = ?', [status, req.params.id]);
+
+    // Notify the creator about the status update
+    await createNotification(created_by, 'project', `Your project "${title}" status has been updated to: ${status}`, `/projects/${req.params.id}`);
+
     res.json({ message: `Project ${status} successfully` });
   } catch (error) {
     res.status(500).json({ message: error.message });
