@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import logoLight from '../assets/GfG_lightmode.png';
+import logoDark from '../assets/GfG_darkmode.png';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import NotificationDropdown from './NotificationDropdown';
@@ -52,7 +54,7 @@ const Navbar = () => {
       <div className="container mx-auto flex justify-between items-center">
         <Link to="/" className="flex items-center group">
           <img 
-            src={theme === 'dark' ? "/src/assets/GfG_darkmode.png" : "/src/assets/GfG_lightmode.png"} 
+            src={theme === 'dark' ? logoDark : logoLight} 
             alt="GfG RIT Logo" 
             className="h-10 md:h-12 w-auto object-contain transition-transform group-hover:scale-105" 
           />

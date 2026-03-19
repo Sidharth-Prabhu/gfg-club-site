@@ -148,6 +148,21 @@ const Register = () => {
 
         {/* Form Area */}
         <div className="flex-grow p-6 md:p-10 space-y-8">
+          {/* Login Notice Banner */}
+          <div className="bg-blue-500/10 border-2 border-blue-500/30 rounded-xl p-4 flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
+              <span className="text-lg">ℹ️</span>
+            </div>
+            <div className="flex-grow">
+              <p className="text-[9px] font-black text-blue-300 uppercase tracking-wider mb-1">Already have an account?</p>
+              <p className="text-[8px] font-bold text-blue-200/80 leading-snug mb-2">Please <Link to="/login" className="text-blue-400 underline font-black">LOGIN</Link> instead of registering again. Registration is only for new users who have never created an account.</p>
+              <div className="flex items-center gap-2 text-[7px] font-bold text-blue-400/60 uppercase tracking-wider">
+                <span>Demo account available for testing</span>
+                <span>→</span>
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-black text-text uppercase tracking-widest">Step 0{step}</h3>
             {error && <span className="text-red-500 text-[8px] font-black uppercase animate-pulse">{error}</span>}
