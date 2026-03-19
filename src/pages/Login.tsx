@@ -132,6 +132,29 @@ const Login = () => {
             </div>
           </form>
 
+          {/* Demo Credentials Box */}
+          <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-2 border-green-500/30 rounded-2xl p-5 space-y-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-lg bg-green-500/20 flex items-center justify-center shrink-0">
+                <FontAwesomeIcon icon={faTerminal} className="text-green-400 text-sm" />
+              </div>
+              <h4 className="text-sm font-black text-green-400 uppercase tracking-tight">Demo Login Credentials</h4>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-start gap-2">
+                <span className="text-[7px] font-black text-text/40 uppercase tracking-widest w-16 shrink-0 pt-0.5">Email:</span>
+                <code className="text-[9px] font-bold text-green-300 bg-green-950/30 px-2 py-1 rounded border border-green-500/30 break-all">sidharth@ritchennai.edu.in</code>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-[7px] font-black text-text/40 uppercase tracking-widest w-16 shrink-0 pt-0.5">Password:</span>
+                <code className="text-[9px] font-bold text-green-300 bg-green-950/30 px-2 py-1 rounded border border-green-500/30 break-all">12345678</code>
+              </div>
+            </div>
+            <p className="text-[6px] font-bold text-text/40 uppercase tracking-wider pt-1 flex items-center gap-1">
+              <span className="text-green-400">⚡</span> Core Member Access - Use this to explore all features
+            </p>
+          </div>
+
           <div className="pt-8 border-t border-border/50 text-center">
             <p className="text-text/40 font-bold text-[8px] uppercase tracking-widest">
               Don't have an account?{' '}
