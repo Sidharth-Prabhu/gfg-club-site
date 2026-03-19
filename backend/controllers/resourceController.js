@@ -7,79 +7,152 @@ export const searchGfgResources = async (req, res) => {
   if (!query) return res.status(400).json({ message: 'Query is required' });
 
   try {
+    // Use GfG search URL with proper headers
+    const searchUrl = `https://www.geeksforgeeks.org/search/?gq=${encodeURIComponent(query)}`;
+    const { data: html } = await axios.get(searchUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Referer': 'https://www.google.com/',
+        'sec-ch-ua': '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1'
+      },
+      timeout: 15000
+    });
+
+    const $ = cheerio.load(html);
     const results = [];
+    const seenLinks = new Set();
 
-    // Strategy 1: Try WP API (most reliable for raw data)
-    try {
-        const wpApiUrl = `https://www.geeksforgeeks.org/wp-json/wp/v2/search?search=${encodeURIComponent(query)}&per_page=10`;
-        const { data: wpData } = await axios.get(wpApiUrl);
-        if (wpData && Array.isArray(wpData)) {
-            wpData.forEach(item => {
-                results.push({
-                    title: item.title,
-                    link: item.url,
-                    snippet: 'Neural data synchronized from GfG Archives'
-                });
-            });
+    // Target the specific container class provided
+    const container = $('.SearchPageResults_searchPageContainer__wbmJa, [class*="SearchPageResults"], [class*="searchPageContainer"]');
+
+    if (container.length === 0) {
+      // Fallback: search all article links on the page
+      $('a[href*="/search/?gq="]').each((i, el) => {
+        // Skip the search query links themselves
+        if ($(el).attr('href')?.includes('/search/?gq=')) return;
+        
+        const href = $(el).attr('href');
+        const text = $(el).text().trim();
+        const imgSrc = $(el).find('img').attr('src') || $(el).find('img').attr('data-src');
+
+        if (href && 
+            href.includes('geeksforgeeks.org') && 
+            !href.includes('/search/?') &&
+            !href.includes('/login') &&
+            !href.includes('/signup') &&
+            text.length > 5 && 
+            text.length < 300 &&
+            !seenLinks.has(href)) {
+          
+          seenLinks.add(href);
+          results.push({ 
+            title: text, 
+            link: href.startsWith('http') ? href : `https://www.geeksforgeeks.org${href}`,
+            image: imgSrc && imgSrc.startsWith('http') ? imgSrc : null,
+            snippet: 'Fetched from GeeksforGeeks search' 
+          });
         }
-    } catch (e) { console.error('WP API Search Failed'); }
+      });
+    } else {
+      // Parse the specific container
+      container.find('a, article, .article-card, [class*="card"]').each((i, el) => {
+        const href = $(el).attr('href') || $(el).find('a').attr('href');
+        const text = $(el).find('h1, h2, h3, h4, h5, h6, .title, [class*="title"]').first().text().trim() || $(el).text().trim();
+        const imgSrc = $(el).find('img').first().attr('src') || $(el).find('img').first().attr('data-src');
 
-    // Strategy 2: Scrape Explore Page (fallback if API is restricted)
-    if (results.length === 0) {
-        const exploreUrl = `https://www.geeksforgeeks.org/explore?search=${encodeURIComponent(query)}`;
-        const { data: html } = await axios.get(exploreUrl, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36' }
-        });
-        const $ = cheerio.load(html);
-        $('.article-card, .search-result, article').each((i, el) => {
-            const title = $(el).find('h2, .title, .entry-title, a').first().text().trim();
-            const link = $(el).find('a').attr('href');
-            if (title && link && link.startsWith('http')) {
-                results.push({ title, link, snippet: 'Extracted from explore sector' });
-            }
-        });
+        if (href && 
+            href.includes('geeksforgeeks.org') && 
+            !href.includes('/search/?') &&
+            !href.includes('/login') &&
+            !href.includes('/signup') &&
+            text.length > 5 && 
+            text.length < 300 &&
+            !seenLinks.has(href)) {
+          
+          seenLinks.add(href);
+          results.push({ 
+            title: text, 
+            link: href.startsWith('http') ? href : `https://www.geeksforgeeks.org${href}`,
+            image: imgSrc && imgSrc.startsWith('http') ? imgSrc : null,
+            snippet: 'Fetched from GeeksforGeeks search' 
+          });
+        }
+      });
     }
 
-    // Strategy 3: Direct Search Scrape (fallback)
+    // If still no results, try a broader search
     if (results.length === 0) {
-        const searchUrl = `https://www.geeksforgeeks.org/search/?gq=${encodeURIComponent(query)}`;
-        const { data: html } = await axios.get(searchUrl, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36' }
-        });
-        const $ = cheerio.load(html);
-        const container = $('.SearchPageresults_searchPageContainer__wbmJa');
+      $('a[href*="geeksforgeeks.org"]').each((i, el) => {
+        const href = $(el).attr('href');
+        const text = $(el).text().trim();
+        const imgSrc = $(el).find('img').attr('src') || $(el).find('img').attr('data-src');
 
-        container.find('a').each((i, el) => {
-            const href = $(el).attr('href');
-            const text = $(el).text().trim();
-            // Filter for actual article links
-            if (href && href.includes('geeksforgeeks.org/') && text.length > 5 && !href.includes('/search/?')) {
-                results.push({ title: text, link: href, snippet: 'Neural node detected in search sector' });
-            }
-        });
+        if (href && 
+            !href.includes('/search/?') &&
+            !href.includes('/login') &&
+            !href.includes('/signup') &&
+            !href.includes('privacy') &&
+            !href.includes('terms') &&
+            !href.includes('contact') &&
+            text.length > 10 && 
+            text.length < 300 &&
+            !seenLinks.has(href)) {
+          
+          seenLinks.add(href);
+          results.push({ 
+            title: text, 
+            link: href,
+            image: imgSrc && imgSrc.startsWith('http') ? imgSrc : null,
+            snippet: 'Fetched from GeeksforGeeks' 
+          });
+        }
+
+        if (results.length >= 20) return false;
+      });
     }
 
-    // Filter out irrelevant corporate and noise links
+    // Filter noise
     const noiseKeywords = [
-        'privacy policy', 'corporate solution', 'campus training',
-        'upskill courses', 'terms & conditions', 'contact us',
-        'advertise with us', 'practice problems', 'jobs', 'courses'
+      'privacy policy', 'corporate solution', 'campus training',
+      'upskill courses', 'terms & conditions', 'contact us',
+      'advertise with us', 'jobs', 'courses', 'login', 'signup',
+      'subscribe', 'cookie policy', 'careers'
     ];
 
     const cleanResults = results.filter(res => {
-        const titleLower = res.title.toLowerCase();
-        return !noiseKeywords.some(keyword => titleLower.includes(keyword));
+      const titleLower = res.title.toLowerCase();
+      return !noiseKeywords.some(keyword => titleLower.includes(keyword));
     });
 
-    // Remove duplicates
+    // Return top 20 unique results
     const uniqueResults = Array.from(new Set(cleanResults.map(a => a.link)))
-        .map(link => cleanResults.find(a => a.link === link))
-        .slice(0, 15);
+      .map(link => cleanResults.find(a => a.link === link))
+      .slice(0, 20);
+
+    if (uniqueResults.length === 0) {
+      return res.json([{
+        title: `No results found for "${query}"`,
+        link: `https://www.geeksforgeeks.org/search/?gq=${encodeURIComponent(query)}`,
+        image: null,
+        snippet: 'Try searching directly on GeeksforGeeks website'
+      }]);
+    }
 
     res.json(uniqueResults);
   } catch (error) {
     console.error('Search error:', error.message);
-    res.status(500).json({ message: 'Failed to synchronize with GfG Mainframe' });
+    res.status(500).json({ 
+      message: 'Failed to fetch from GeeksforGeeks',
+      error: error.message 
+    });
   }
 };
 
@@ -89,60 +162,113 @@ export const fetchGfgArticle = async (req, res) => {
 
   try {
     const { data: html } = await axios.get(url, {
-        headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
-        }
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Referer': 'https://www.google.com/',
+      },
+      timeout: 15000
     });
 
     const $ = cheerio.load(html);
 
-    // Select the main article content based on the provided technical structure
-    // Prioritize the deep nested .content inside the viewer
-    let article = $('.article--viewer_content .content, .MainArticleContent_articleMainContentCss__b_1_R .content, .article-body, .article-content').first();
+    // Target the specific main article container provided
+    let article = $('.MainArticleContent_articleMainContentCss__b_1_R .content, .MainArticleContent_articleMainContentCss__b_1_R').first();
 
     // Fallback if specific classes are not present
     if (article.length === 0) {
-        article = $('.a-wrapper .content, .entry-content, article').first();
+      article = $('.article-content, .entry-content, article').first();
     }
 
-    // Extract title from the specific header wrapper
-    const title = $('.ArticleHeader_article-title__futDC h1, h1').first().text().trim() || 'Neural Transmission';
+    // Extract title
+    const title = $('.ArticleHeader_article-title__futDC h1, h1[class*="title"], .entry-title').first().text().trim() || 'Article';
 
-    // Clean up unwanted elements before processing
+    // Extract article metadata
+    const author = $('.ArticleHeader_authorName__aCkXP, [class*="author"], .byline').first().text().trim();
+    const readTime = $('[class*="readTime"], [class*="read-time"]').first().text().trim();
+
+    // Clean up unwanted elements
     article.find(`
-        .adsbygoogle, .sideBar, .rightSideBar, script, style, .social-share,
-        .improve-article, .article-author, .meta, .breadcrumb, .outbrain,
-        .copyright, .article-action, .copy-code-button, .article-header-extras,
-        .ArticleThreeDot_threedotcontainer__dfGWD
+      .adsbygoogle, .ad, .advertisement, .sideBar, .rightSideBar, .leftSideBar,
+      script, style, .social-share, .improve-article, .article-author, .meta,
+      .breadcrumb, .outbrain, .taboola, .copyright, .article-action, .copy-code-button,
+      .ArticleThreeDot_threedotcontainer__dfGWD, .nav, .header, .footer,
+      [class*="ad-"], [class*="ads"], .related-articles, .recommended
     `).remove();
 
-    // Ensure images have absolute URLs and are styled for our theme
+    // Process images - ensure absolute URLs and proper styling
     article.find('img').each((i, el) => {
-        let src = $(el).attr('src') || $(el).attr('data-src');
-        if (src && !src.startsWith('http')) {
-            $(el).attr('src', 'https://www.geeksforgeeks.org' + (src.startsWith('/') ? '' : '/') + src);
-        }
-        $(el).removeAttr('srcset');
-        $(el).addClass('rounded-[2.5rem] border-2 border-border my-12 shadow-2xl max-w-full h-auto mx-auto block');
+      let src = $(el).attr('src') || $(el).attr('data-src') || $(el).attr('data-srcset');
+      if (src && !src.startsWith('http')) {
+        $(el).attr('src', 'https://www.geeksforgeeks.org' + (src.startsWith('/') ? '' : '/') + src);
+      }
+      $(el).removeAttr('srcset');
+      $(el).removeAttr('loading');
+      $(el).addClass('max-w-full h-auto rounded-2xl border-2 border-border my-6 shadow-lg');
+      $(el).attr('style', 'display: block; margin: 1.5rem auto;');
     });
 
-    // Handle code blocks
-    article.find('pre, code, .code-container').each((i, el) => {
-        $(el).addClass('bg-background border border-border p-6 rounded-2xl font-mono text-sm my-6 overflow-x-auto custom-scrollbar block');
+    // Process code blocks
+    article.find('pre, code, .code-container, .syntaxhighlighter').each((i, el) => {
+      $(el).addClass('bg-background border-2 border-border p-6 rounded-2xl font-mono text-sm my-6 overflow-x-auto custom-scrollbar block');
     });
 
-    // Fix links
+    // Process tables
+    article.find('table').each((i, el) => {
+      $(el).addClass('w-full border-collapse border-2 border-border my-6');
+      $(el).find('th, td').addClass('border border-border p-3');
+      $(el).find('th').addClass('bg-accent/10 font-black text-accent');
+    });
+
+    // Process links
     article.find('a').each((i, el) => {
-        $(el).attr('target', '_blank');
-        $(el).addClass('text-accent font-black hover:underline transition-all');
+      $(el).attr('target', '_blank');
+      $(el).attr('rel', 'noopener noreferrer');
+      $(el).addClass('text-accent font-black hover:underline transition-all');
+    });
+
+    // Process headings
+    article.find('h1, h2, h3, h4, h5, h6').each((i, el) => {
+      $(el).addClass('text-text font-black uppercase italic tracking-tight my-4');
+    });
+    article.find('h1').addClass('text-3xl md:text-4xl');
+    article.find('h2').addClass('text-2xl md:text-3xl');
+    article.find('h3').addClass('text-xl md:text-2xl');
+
+    // Process paragraphs
+    article.find('p').each((i, el) => {
+      $(el).addClass('text-text/80 text-sm md:text-base leading-relaxed font-medium my-4');
+    });
+
+    // Process lists
+    article.find('ul, ol').each((i, el) => {
+      $(el).addClass('my-4 ml-6 space-y-2');
+    });
+    article.find('li').each((i, el) => {
+      $(el).addClass('text-text/80 text-sm md:text-base leading-relaxed');
+    });
+
+    // Process blockquotes
+    article.find('blockquote').each((i, el) => {
+      $(el).addClass('border-l-4 border-accent pl-6 italic text-text/70 my-6 bg-accent/5 py-4 pr-4 rounded-r-xl');
     });
 
     const content = article.html();
 
-    res.json({ title, content });
+    res.json({ 
+      title, 
+      content,
+      author: author || null,
+      readTime: readTime || null,
+      url
+    });
   } catch (error) {
     console.error('Fetch error:', error.message);
-    res.status(500).json({ message: 'Failed to extract data from target node' });
+    res.status(500).json({ 
+      message: 'Failed to extract article content',
+      error: error.message 
+    });
   }
 };
 

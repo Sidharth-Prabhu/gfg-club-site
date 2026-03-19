@@ -118,6 +118,9 @@ const CourseDetail = () => {
                 <span className="bg-yellow-500/10 text-yellow-500 text-[8px] font-black px-3 py-1 rounded-full border border-yellow-500/20 tracking-widest uppercase backdrop-blur-md flex items-center gap-1.5 italic">
                     <FontAwesomeIcon icon={faStar} /> {course.rating} Rating
                 </span>
+                <span className="bg-blue-500/20 text-blue-300 text-[7px] font-bold px-3 py-1 rounded-full border border-blue-500/30 tracking-wider uppercase flex items-center gap-1.5 italic" title="Data fetched from GeeksforGeeks via HTTP">
+                    📊 Fetched via HTTP
+                </span>
             </motion.div>
             
             <motion.h1 

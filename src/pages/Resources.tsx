@@ -4,7 +4,7 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faPlus, faExternalLinkAlt, faTrashAlt, faBookOpen, faFileAlt, faBookmark, 
+  faPlus, faExternalLinkAlt, faTrashAlt, faBookOpen, faFileAlt, faBookmark, faUser, faClock, 
   faGraduationCap, faLightbulb, faTimes, faFilter, faLink, faSearch, 
   faGlobe, faArrowRight, faArrowLeft, faCircleNotch, faStar, faTerminal, faMicrochip, faZap, faShieldAlt, faSave
 } from '@fortawesome/free-solid-svg-icons';
@@ -18,7 +18,7 @@ const Resources = () => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [selectedArticle, setSelectedArticle] = useState(null);
+  const [selectedArticle, setSelectedArticle] = useState<any>(null);
   const [articleLoading, setArticleLoading] = useState(false);
   
   // Archive state
@@ -38,8 +38,21 @@ const Resources = () => {
   useEffect(() => {
     if (!user) {
         navigate('/login');
+        return;
     }
   }, [user, navigate]);
+
+  // Show loading if user is still being checked
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <FontAwesomeIcon icon={faCircleNotch} className="text-4xl text-accent fa-spin" />
+          <p className="text-text/60 font-bold uppercase tracking-widest text-sm">Loading Resources...</p>
+        </div>
+      </div>
+    );
+  }
 
   const fetchArchive = async () => {
     setLoading(true);
@@ -57,20 +70,21 @@ const Resources = () => {
     if (activeTab === 'archive') fetchArchive();
   }, [activeTab, archiveCategory]);
 
-  const handleGfgSearch = async (query) => {
+  const handleGfgSearch = async (query: string) => {
     setSearchQuery(query);
     setLoading(true);
     try {
       const { data } = await api.get(`/resources/search-gfg?query=${encodeURIComponent(query)}`);
       setSearchResults(data);
     } catch (error) {
-      alert('Failed to search GfG articles');
+      console.error('Search failed:', error);
+      alert('Failed to search GfG articles. The site may be blocking automated requests.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFetchArticle = async (url) => {
+  const handleFetchArticle = async (url: string) => {
     setArticleLoading(true);
     try {
       const { data } = await api.get(`/resources/fetch-article?url=${encodeURIComponent(url)}`);
@@ -82,7 +96,7 @@ const Resources = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await api.post('/resources', formData);
@@ -94,7 +108,7 @@ const Resources = () => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Remove this resource?')) {
       try {
         await api.delete(`/resources/${id}`);
@@ -105,7 +119,20 @@ const Resources = () => {
     }
   };
 
-  if (!user || !isApproved) return null;
+  // Show message if user is not approved
+  if (!isApproved) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4 max-w-md px-6">
+          <div className="p-6 bg-amber-500/10 border border-amber-500/20 rounded-2xl inline-block">
+            <FontAwesomeIcon icon={faShieldAlt} className="text-4xl text-amber-500" />
+          </div>
+          <h2 className="text-2xl font-black text-text uppercase tracking-tighter italic">Access Restricted</h2>
+          <p className="text-text/60 font-medium">Your account is pending approval. Please wait for an admin to approve your account to access resources.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl space-y-8 pb-16">
@@ -117,6 +144,19 @@ const Resources = () => {
         <div className="space-y-1">
           <h1 className="text-3xl md:text-4xl font-black text-text tracking-tighter uppercase italic">Learning <span className="text-accent">Resources</span></h1>
           <p className="text-text/40 font-black text-[10px] tracking-[0.2em] uppercase flex items-center gap-2 italic"><FontAwesomeIcon icon={faZap} className="text-accent" /> Quality Materials</p>
+        </div>
+        
+        {/* GfG Data Disclaimer */}
+        <div className="w-full">
+          <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-2 border-blue-500/30 rounded-2xl px-5 py-4 flex items-center gap-4 shadow-lg">
+            <div className="w-12 h-12 rounded-xl bg-blue-500/30 flex items-center justify-center shrink-0 border border-blue-400/30">
+              <span className="text-2xl">📊</span>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-black text-blue-400 uppercase tracking-wider">Data Source</p>
+              <p className="text-[11px] font-bold text-blue-200 leading-snug">Articles fetched from <span className="text-green-400 font-black">GeeksforGeeks</span> via HTTP. <span className="text-amber-400">No API</span> used.</p>
+            </div>
+          </div>
         </div>
         
         <div className="flex bg-card border border-border p-1 rounded-xl shadow-inner">
@@ -172,23 +212,30 @@ const Resources = () => {
                         </div>
                     ) : searchResults.length > 0 ? (
                         <motion.div initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {searchResults.map((res, i) => (
+                            {searchResults.map((res: any, i) => (
                                 <motion.div 
                                     variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
                                     key={i}
                                     onClick={() => handleFetchArticle(res.link)}
-                                    className="bg-card border border-border p-6 rounded-3xl hover:border-accent transition-all cursor-pointer group shadow-sm flex flex-col justify-between gap-4"
+                                    className="bg-card border border-border p-0 rounded-3xl hover:border-accent transition-all cursor-pointer group shadow-sm flex flex-col overflow-hidden"
                                 >
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between items-start">
-                                            <div className="p-2.5 bg-accent/5 rounded-xl text-accent border border-accent/10"><FontAwesomeIcon icon={faTerminal} /></div>
-                                            <div className="text-[7px] font-black text-text/20 uppercase tracking-widest">Article #{i+1}</div>
+                                    {res.image && (
+                                        <div className="h-48 overflow-hidden bg-background border-b border-border">
+                                            <img src={res.image} alt={res.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={(e) => { const target = e.target as HTMLImageElement; if (target) target.style.display = 'none'; }} />
                                         </div>
-                                        <h3 className="text-xl font-black text-text leading-tight group-hover:text-accent transition-colors uppercase italic">{res.title}</h3>
-                                        <p className="text-text/40 text-xs font-medium line-clamp-2 italic">{res.snippet}</p>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 text-[9px] font-black text-accent uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0">
-                                        Read Article <FontAwesomeIcon icon={faArrowRight} />
+                                    )}
+                                    <div className="p-6 flex flex-col justify-between gap-4 flex-grow">
+                                        <div className="space-y-3">
+                                            <div className="flex justify-between items-start">
+                                                <div className="p-2.5 bg-accent/5 rounded-xl text-accent border border-accent/10"><FontAwesomeIcon icon={faTerminal} /></div>
+                                                <div className="text-[7px] font-black text-text/20 uppercase tracking-widest">Article #{i+1}</div>
+                                            </div>
+                                            <h3 className="text-xl font-black text-text leading-tight group-hover:text-accent transition-colors uppercase italic">{res.title}</h3>
+                                            <p className="text-text/40 text-xs font-medium line-clamp-2 italic">{res.snippet}</p>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-[9px] font-black text-accent uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0">
+                                            Read Article <FontAwesomeIcon icon={faArrowRight} />
+                                        </div>
                                     </div>
                                 </motion.div>
                             ))}
@@ -196,9 +243,14 @@ const Resources = () => {
                     ) : (
                         <div className="py-24 text-center bg-card/20 rounded-3xl border-2 border-dashed border-border flex flex-col items-center justify-center space-y-4">
                             <div className="p-6 bg-background border border-border rounded-2xl shadow-inner">
-                                <FontAwesomeIcon icon={faMicrochip} className="text-text/10 text-4xl" />
+                                <FontAwesomeIcon icon={faSearch} className="text-accent/20 text-4xl" />
                             </div>
-                            <p className="text-xl font-black text-text/20 uppercase tracking-widest italic">No articles found</p>
+                            <p className="text-xl font-black text-text/40 uppercase tracking-widest italic">
+                                {searchQuery ? 'No articles found' : 'Enter a search term above'}
+                            </p>
+                            <p className="text-sm font-bold text-text/30 max-w-md">
+                                {searchQuery ? 'Try a different keyword or check your spelling' : 'Search for GeeksforGeeks articles by topic (e.g., "React", "DSA", "System Design")'}
+                            </p>
                         </div>
                     )}
                 </>
@@ -217,6 +269,7 @@ const Resources = () => {
                             <div className="flex items-center gap-3">
                                 <span className="bg-accent/10 text-accent text-[8px] font-black px-3 py-1 rounded-full border border-accent/20 tracking-widest uppercase backdrop-blur-md italic">Article Content</span>
                                 <span className="text-[8px] font-black text-text/20 uppercase tracking-widest italic">Source: GeeksforGeeks</span>
+                                <span className="bg-blue-500/20 text-blue-300 text-[7px] font-bold px-2 py-0.5 rounded border border-blue-500/30 tracking-wider uppercase">📊 Fetched via HTTP</span>
                             </div>
                             <h2 className="text-3xl md:text-5xl font-black text-text leading-tight tracking-tighter uppercase italic">{selectedArticle.title}</h2>
                         </div>
@@ -265,7 +318,7 @@ const Resources = () => {
                 <div className="py-24 text-center text-accent font-black tracking-widest uppercase animate-pulse text-xs italic">Loading Resources...</div>
             ) : resources.length > 0 ? (
                 <motion.div initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {resources.map(res => (
+                    {resources.map((res: any) => (
                         <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }} whileHover={{ y: -4, borderColor: 'var(--color-accent)' }} key={res.id} className="bg-card border border-border rounded-3xl p-6 transition-all flex flex-col group shadow-sm hover:shadow-xl" >
                             <div className="flex justify-between items-start mb-6">
                                 <div className="p-3 rounded-xl bg-accent/5 text-accent border border-accent/10 group-hover:bg-accent group-hover:text-white transition-all duration-500 shadow-inner">

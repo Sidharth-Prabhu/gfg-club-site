@@ -86,6 +86,23 @@ const Courses = () => {
             </form>
         </motion.div>
 
+        {/* GfG Data Disclaimer */}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full"
+        >
+          <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-2 border-blue-500/30 rounded-2xl px-5 py-4 flex items-center gap-4 shadow-lg">
+            <div className="w-12 h-12 rounded-xl bg-blue-500/30 flex items-center justify-center shrink-0 border border-blue-400/30">
+              <span className="text-2xl">📊</span>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-black text-blue-400 uppercase tracking-wider">Data Source</p>
+              <p className="text-[11px] font-bold text-blue-200 leading-snug">Courses fetched from GeeksforGeeks via HTTP. No API used.</p>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Categories Bar */}
         <div className="overflow-x-auto pb-4 scrollbar-hide">
             <div className="flex gap-3 min-w-max">
