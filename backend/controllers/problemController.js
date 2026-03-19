@@ -1,6 +1,6 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import pool from '../config/db.js';
+import admin, { db } from '../config/firebase.js';
 import { notifyAll } from './notificationController.js';
 
 const fallbackProblems = [
@@ -82,49 +82,55 @@ const fallbackProblems = [
 
 export const getProblems = async (req, res) => {
   const { difficulty, excludeIds } = req.query;
-  
+
   try {
-    const [dbRows] = await pool.execute('SELECT COUNT(*) as count FROM problems');
-    
-    if (dbRows[0].count < 20) {
+    const problemsSnapshot = await db.collection('problems').get();
+
+    if (problemsSnapshot.size < 20) {
+      const batch = db.batch();
       for (const prob of fallbackProblems) {
-          await pool.execute(
-              'INSERT IGNORE INTO problems (title, difficulty, topic, link) VALUES (?, ?, ?, ?)',
-              [prob.title, prob.difficulty, prob.topic, `https://www.geeksforgeeks.org/problems/${prob.slug}/1`]
-          );
+          const docRef = db.collection('problems').doc();
+          batch.set(docRef, {
+              title: prob.title,
+              difficulty: prob.difficulty,
+              topic: prob.topic,
+              link: `https://www.geeksforgeeks.org/problems/${prob.slug}/1`,
+              created_at: admin.firestore.FieldValue.serverTimestamp()
+          });
       }
+      await batch.commit();
     }
 
-    let sql = 'SELECT * FROM problems';
-    const params = [];
-    const conditions = [];
-
-    if (difficulty && difficulty !== 'All') {
-      conditions.push('difficulty = ?');
-      params.push(difficulty);
-    }
-
-    // Exclude current problems to prevent immediate repetition
-    if (excludeIds) {
-        const ids = excludeIds.split(',').map(id => parseInt(id)).filter(id => !isNaN(id));
-        if (ids.length > 0) {
-            conditions.push(`id NOT IN (${ids.map(() => '?').join(',')})`);
-            params.push(...ids);
-        }
-    }
-
-    if (conditions.length > 0) {
-        sql += ' WHERE ' + conditions.join(' AND ');
-    }
-
-    sql += ' ORDER BY RAND() LIMIT 50';
-
-    const [problems] = await pool.execute(sql, params);
+    let problems = [];
     
-    // If we filtered out too many and got few results, fallback to general rand
+    for (const doc of problemsSnapshot.docs) {
+      const problemData = doc.data();
+      
+      // Filter by difficulty
+      if (difficulty && difficulty !== 'All' && problemData.difficulty !== difficulty) {
+        continue;
+      }
+      
+      // Exclude current problems to prevent immediate repetition
+      if (excludeIds) {
+        const excludeIdList = excludeIds.split(',').map(id => parseInt(id)).filter(id => !isNaN(id));
+        if (excludeIdList.includes(doc.id)) continue;
+      }
+      
+      problems.push({ id: doc.id, ...problemData });
+    }
+
+    // Random shuffle and limit
+    problems = problems.sort(() => Math.random() - 0.5).slice(0, 50);
+
+    // If we filtered out too many and got few results, fallback to general random
     if (problems.length < 10 && excludeIds) {
-        const [fallback] = await pool.execute('SELECT * FROM problems ORDER BY RAND() LIMIT 50');
-        return res.json(fallback);
+      problems = [];
+      const allProblemsSnapshot = await db.collection('problems').get();
+      for (const doc of allProblemsSnapshot.docs) {
+        problems.push({ id: doc.id, ...doc.data() });
+      }
+      problems = problems.sort(() => Math.random() - 0.5).slice(0, 50);
     }
 
     res.json(problems);
@@ -135,16 +141,23 @@ export const getProblems = async (req, res) => {
 
 export const createProblem = async (req, res) => {
   const { title, difficulty, topic, link } = req.body;
+  
   try {
-    const [result] = await pool.execute(
-      'INSERT INTO problems (title, difficulty, topic, link) VALUES (?, ?, ?, ?)',
-      [title, difficulty, topic, link]
-    );
+    const problemRef = db.collection('problems').doc();
+    const problemData = {
+      title,
+      difficulty,
+      topic: topic || null,
+      link,
+      created_at: admin.firestore.FieldValue.serverTimestamp()
+    };
+    
+    await problemRef.set(problemData);
 
     // Notify all users about the new problem
-    await notifyAll('problem', `New problem added: ${title}`, `/practice`);
+    await notifyAll('problem', `New problem added: ${title}`, '/practice');
 
-    res.status(201).json({ id: result.insertId, title, difficulty, topic, link });
+    res.status(201).json({ id: problemRef.id, title, difficulty, topic, link });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -158,14 +171,14 @@ export const getProblemOfTheDay = async (req, res) => {
       }
     });
     const $ = cheerio.load(data);
-    
+
     const title = $('.problemOfTheDay_problemContainerTxt__pPZ3Z').first().text().trim();
     const date = $('.problemOfTheDay_problemDate__cJl1_').first().text().trim();
     const difficulty = $('.problemOfTheDay_problemDifficulty__RbgUa').first().text().trim();
     const submissions = $('.problemOfTheDay_problemSubmissions__Gjckb').first().text().trim();
     const accuracy = $('.problemOfTheDay_problemAccuracy__ra0SL').first().text().trim();
     const link = $('#potd_solve_prob').attr('href');
-    
+
     const companies = [];
     $('.problemOfTheDay_problemCompanies__L8L0S').each((i, el) => {
       companies.push($(el).text().trim());
@@ -176,10 +189,10 @@ export const getProblemOfTheDay = async (req, res) => {
     }
 
     const timer = $('.problemOfTheDay_potd_timer_valcnt__NPnHH').text().trim();
-    
+
     const sponsorLink = $('#potd_sponsor_top').attr('href');
     let sponsorLogo = $('#potd_sponsor_top img').last().attr('src');
-    
+
     // Handle Next.js image paths if they are relative
     if (sponsorLogo && sponsorLogo.startsWith('/')) {
       sponsorLogo = `https://www.geeksforgeeks.org${sponsorLogo}`;

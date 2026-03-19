@@ -255,7 +255,7 @@ const Community = () => {
                             <MarkdownRenderer content={post.content} />
                         </div>
                         <div className="flex flex-wrap gap-1.5 pt-1">
-                            {post.tags?.split(',').map((tag, i) => (
+                            {(Array.isArray(post.tags) ? post.tags : post.tags?.split(',') || []).map((tag, i) => (
                             <span key={i} className="text-[8px] font-black uppercase text-accent bg-accent/5 px-2 py-0.5 rounded-md border border-accent/10 tracking-widest italic">#{tag.trim()}</span>
                             ))}
                         </div>

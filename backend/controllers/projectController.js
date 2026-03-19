@@ -1,20 +1,42 @@
-import pool from '../config/db.js';
+import admin, { db } from '../config/firebase.js';
 import { createNotification, notifyAdmins } from './notificationController.js';
 
 export const getProjectById = async (req, res) => {
   const { id } = req.params;
+  
   try {
-    const sql = `
-      SELECT p.*, u.name as creator_name, 
-      (SELECT COALESCE(SUM(vote_type), 0) FROM project_votes WHERE project_id = p.id) as vote_score,
-      (SELECT GROUP_CONCAT(file_url) FROM project_files WHERE project_id = p.id) as files
-      FROM projects p 
-      JOIN users u ON p.created_by = u.id
-      WHERE p.id = ?
-    `;
-    const [rows] = await pool.execute(sql, [id]);
-    if (rows.length === 0) return res.status(404).json({ message: 'Project not found' });
-    res.json(rows[0]);
+    const projectRef = db.collection('projects').doc(id);
+    const projectDoc = await projectRef.get();
+    
+    if (!projectDoc.exists) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+    
+    const projectData = projectDoc.data();
+    const userDoc = await db.collection('users').doc(projectData.created_by).get();
+    const userData = userDoc.data();
+    
+    // Get vote score
+    const votesSnapshot = await db.collection('project_votes')
+      .where('project_id', '==', id)
+      .get();
+    
+    const voteScore = votesSnapshot.docs.reduce((sum, doc) => sum + (doc.data().vote_type || 0), 0);
+    
+    // Get files
+    const filesSnapshot = await db.collection('project_files')
+      .where('project_id', '==', id)
+      .get();
+    
+    const files = filesSnapshot.docs.map(doc => doc.data().file_url);
+    
+    res.json({
+      id: projectDoc.id,
+      ...projectData,
+      creator_name: userData?.name,
+      vote_score: voteScore,
+      files
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -23,44 +45,88 @@ export const getProjectById = async (req, res) => {
 export const getProjects = async (req, res) => {
   const { category, status, userId } = req.query;
   const userRole = req.user?.role;
-  
+
   try {
-    let sql = `
-      SELECT p.*, u.name as creator_name, 
-      (SELECT COALESCE(SUM(vote_type), 0) FROM project_votes WHERE project_id = p.id) as vote_score,
-      (SELECT GROUP_CONCAT(file_url) FROM project_files WHERE project_id = p.id) as files
-      FROM projects p 
-      JOIN users u ON p.created_by = u.id
-    `;
-    const params = [];
-    const conditions = [];
+    let query = db.collection('projects');
 
     if (userRole === 'Admin' || userRole === 'Core') {
-        if (status) {
-            conditions.push('p.status = ?');
-            params.push(status);
-        }
+      if (status) {
+        query = query.where('status', '==', status);
+      }
     } else {
-        conditions.push('p.status = "Approved"');
+      query = query.where('status', '==', 'Approved');
     }
 
     if (category && category !== 'All') {
-      conditions.push('p.category = ?');
-      params.push(category);
+      query = query.where('category', '==', category);
     }
 
     if (userId) {
-      conditions.push('p.created_by = ?');
-      params.push(userId);
+      query = query.where('created_by', '==', userId);
     }
 
-    if (conditions.length > 0) {
-        sql += ' WHERE ' + conditions.join(' AND ');
+    const snapshot = await query.get();
+
+    if (snapshot.empty) {
+      return res.json([]);
     }
 
-    sql += ' ORDER BY p.created_at DESC';
-    const [rows] = await pool.execute(sql, params);
-    res.json(rows);
+    // Collect all unique user IDs
+    const userIds = [...new Set(snapshot.docs.map(doc => doc.data().created_by))];
+    const projectIds = snapshot.docs.map(doc => doc.id);
+
+    // Fetch all users in parallel
+    const userDocs = await Promise.all(
+      userIds.map(id => db.collection('users').doc(id).get())
+    );
+    const userMap = new Map();
+    userDocs.forEach(doc => {
+      if (doc.exists) userMap.set(doc.id, doc.data().name);
+    });
+
+    // Fetch all votes in parallel
+    const votesPromises = projectIds.map(id =>
+      db.collection('project_votes')
+        .where('project_id', '==', id)
+        .get()
+    );
+    const votesSnapshots = await Promise.all(votesPromises);
+    const voteMap = new Map();
+    votesSnapshots.forEach((votesSnapshot, index) => {
+      const score = votesSnapshot.docs.reduce((sum, doc) => sum + (doc.data().vote_type || 0), 0);
+      voteMap.set(projectIds[index], score);
+    });
+
+    // Fetch all files in parallel
+    const filesPromises = projectIds.map(id =>
+      db.collection('project_files')
+        .where('project_id', '==', id)
+        .get()
+    );
+    const filesSnapshots = await Promise.all(filesPromises);
+    const filesMap = new Map();
+    filesSnapshots.forEach((filesSnapshot, index) => {
+      const files = filesSnapshot.docs.map(d => d.data().file_url);
+      filesMap.set(projectIds[index], files);
+    });
+
+    // Build response
+    const projects = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      creator_name: userMap.get(doc.data().created_by) || 'Unknown',
+      vote_score: voteMap.get(doc.id) || 0,
+      files: filesMap.get(doc.id) || []
+    }));
+
+    // Sort by created_at descending in JavaScript
+    projects.sort((a, b) => {
+      const aDate = a.created_at?.toDate ? a.created_at.toDate() : new Date(0);
+      const bDate = b.created_at?.toDate ? b.created_at.toDate() : new Date(0);
+      return bDate - aDate;
+    });
+
+    res.json(projects);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -71,56 +137,82 @@ export const createProject = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    const [result] = await pool.execute(
-      'INSERT INTO projects (title, description, github_link, demo_link, tech_stack, category, created_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, "Pending")',
-      [title, description, github_link, demo_link, tech_stack, category, userId]
-    );
-    const projectId = result.insertId;
+    const projectRef = db.collection('projects').doc();
+    const projectData = {
+      title,
+      description: description || null,
+      github_link: github_link || null,
+      demo_link: demo_link || null,
+      tech_stack: tech_stack || null,
+      category: category || null,
+      created_by: userId,
+      status: 'Pending',
+      created_at: admin.firestore.FieldValue.serverTimestamp()
+    };
+    
+    await projectRef.set(projectData);
 
     if (files && Array.isArray(files)) {
-        for (const file of files) {
-            await pool.execute(
-                'INSERT INTO project_files (project_id, file_name, file_url, file_type) VALUES (?, ?, ?, ?)',
-                [projectId, file.name, file.url, file.type]
-            );
-        }
+      const batch = db.batch();
+      for (const file of files) {
+        const fileRef = db.collection('project_files').doc();
+        batch.set(fileRef, {
+          project_id: projectRef.id,
+          file_name: file.name || null,
+          file_url: file.url,
+          file_type: file.type || null,
+          created_at: admin.firestore.FieldValue.serverTimestamp()
+        });
+      }
+      await batch.commit();
     }
 
     // Notify admins about the new project
-    await notifyAdmins('project', `New project submission: ${title}`, `/projects/${projectId}`);
+    await notifyAdmins('project', `New project submission: ${title}`, `/projects/${projectRef.id}`);
 
-    res.status(201).json({ id: projectId, title, status: 'Pending' });
+    res.status(201).json({ id: projectRef.id, title, status: 'Pending' });
   } catch (error) {
     console.error('CREATE PROJECT FULL ERROR:', error);
-    res.status(500).json({ message: error.message, detail: error.sqlMessage });
+    res.status(500).json({ message: error.message });
   }
 };
 
 export const updateProject = async (req, res) => {
-    const { title, description, github_link, demo_link, tech_stack, category } = req.body;
-    const projectId = req.params.id;
-    const userId = req.user.id;
+  const { title, description, github_link, demo_link, tech_stack, category } = req.body;
+  const projectId = req.params.id;
+  const userId = req.user.id;
 
-    try {
-        const [rows] = await pool.execute('SELECT created_by, status FROM projects WHERE id = ?', [projectId]);
-        if (rows.length === 0) return res.status(404).json({ message: 'Project not found' });
-
-        if (rows[0].created_by !== userId && req.user.role !== 'Admin' && req.user.role !== 'Core') {
-            return res.status(403).json({ message: 'Not authorized' });
-        }
-
-        // If an approved project is edited, reset it to Pending
-        const newStatus = rows[0].status === 'Approved' ? 'Pending' : rows[0].status;
-
-        await pool.execute(
-            'UPDATE projects SET title = ?, description = ?, github_link = ?, demo_link = ?, tech_stack = ?, category = ?, status = ? WHERE id = ?',
-            [title, description, github_link, demo_link, tech_stack, category, newStatus, projectId]
-        );
-
-        res.json({ message: 'Project updated and sent for re-approval', status: newStatus });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  try {
+    const projectRef = db.collection('projects').doc(projectId);
+    const projectDoc = await projectRef.get();
+    
+    if (!projectDoc.exists) {
+      return res.status(404).json({ message: 'Project not found' });
     }
+    
+    const projectData = projectDoc.data();
+    
+    if (projectData.created_by !== userId && req.user.role !== 'Admin' && req.user.role !== 'Core') {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // If an approved project is edited, reset it to Pending
+    const newStatus = projectData.status === 'Approved' ? 'Pending' : projectData.status;
+
+    await projectRef.update({
+      title,
+      description: description || null,
+      github_link: github_link || null,
+      demo_link: demo_link || null,
+      tech_stack: tech_stack || null,
+      category: category || null,
+      status: newStatus
+    });
+
+    res.json({ message: 'Project updated and sent for re-approval', status: newStatus });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 export const deleteProject = async (req, res) => {
@@ -128,14 +220,20 @@ export const deleteProject = async (req, res) => {
   const { id: userId, role } = req.user;
 
   try {
-    const [rows] = await pool.execute('SELECT created_by FROM projects WHERE id = ?', [projectId]);
-    if (rows.length === 0) return res.status(404).json({ message: 'Project not found' });
-
-    if (rows[0].created_by !== userId && role !== 'Admin' && role !== 'Core') {
+    const projectRef = db.collection('projects').doc(projectId);
+    const projectDoc = await projectRef.get();
+    
+    if (!projectDoc.exists) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+    
+    const projectData = projectDoc.data();
+    
+    if (projectData.created_by !== userId && role !== 'Admin' && role !== 'Core') {
       return res.status(403).json({ message: 'Not authorized to delete this project' });
     }
 
-    await pool.execute('DELETE FROM projects WHERE id = ?', [projectId]);
+    await projectRef.delete();
     res.json({ message: 'Project deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -151,14 +249,24 @@ export const updateProjectStatus = async (req, res) => {
   }
 
   try {
-    const [rows] = await pool.execute('SELECT title, created_by FROM projects WHERE id = ?', [req.params.id]);
-    if (rows.length === 0) return res.status(404).json({ message: 'Project not found' });
-    const { title, created_by } = rows[0];
+    const projectRef = db.collection('projects').doc(req.params.id);
+    const projectDoc = await projectRef.get();
+    
+    if (!projectDoc.exists) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+    
+    const projectData = projectDoc.data();
 
-    await pool.execute('UPDATE projects SET status = ? WHERE id = ?', [status, req.params.id]);
+    await projectRef.update({ status });
 
     // Notify the creator about the status update
-    await createNotification(created_by, 'project', `Your project "${title}" status has been updated to: ${status}`, `/projects/${req.params.id}`);
+    await createNotification(
+      projectData.created_by, 
+      'project', 
+      `Your project "${projectData.title}" status has been updated to: ${status}`, 
+      `/projects/${req.params.id}`
+    );
 
     res.json({ message: `Project ${status} successfully` });
   } catch (error) {
@@ -171,19 +279,29 @@ export const voteProject = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    const [existing] = await pool.execute('SELECT * FROM project_votes WHERE user_id = ? AND project_id = ?', [userId, projectId]);
-    
-    if (existing.length > 0) {
-        if (existing[0].vote_type === voteType) {
-            await pool.execute('DELETE FROM project_votes WHERE id = ?', [existing[0].id]);
-            return res.json({ message: 'Vote removed' });
-        } else {
-            await pool.execute('UPDATE project_votes SET vote_type = ? WHERE id = ?', [voteType, existing[0].id]);
-            return res.json({ message: 'Vote updated' });
-        }
+    const existingSnapshot = await db.collection('project_votes')
+      .where('user_id', '==', userId)
+      .where('project_id', '==', projectId)
+      .get();
+
+    if (!existingSnapshot.empty) {
+      const existingVote = existingSnapshot.docs[0];
+      if (existingVote.data().vote_type === voteType) {
+        await db.collection('project_votes').doc(existingVote.id).delete();
+        return res.json({ message: 'Vote removed' });
+      } else {
+        await db.collection('project_votes').doc(existingVote.id).update({ vote_type: voteType });
+        return res.json({ message: 'Vote updated' });
+      }
     }
 
-    await pool.execute('INSERT INTO project_votes (user_id, project_id, vote_type) VALUES (?, ?, ?)', [userId, projectId, voteType]);
+    await db.collection('project_votes').add({
+      user_id: userId,
+      project_id: projectId,
+      vote_type: voteType,
+      created_at: admin.firestore.FieldValue.serverTimestamp()
+    });
+    
     res.status(201).json({ message: 'Voted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -191,14 +309,46 @@ export const voteProject = async (req, res) => {
 };
 
 export const getUserProjects = async (req, res) => {
-    try {
-        const [rows] = await pool.execute(
-            `SELECT p.*, (SELECT COALESCE(SUM(vote_type), 0) FROM project_votes WHERE project_id = p.id) as vote_score 
-             FROM projects p WHERE p.created_by = ? ORDER BY p.created_at DESC`, 
-            [req.user.id]
-        );
-        res.json(rows);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  try {
+    const snapshot = await db.collection('projects')
+      .where('created_by', '==', req.user.id)
+      .get();
+
+    if (snapshot.empty) {
+      return res.json([]);
     }
+
+    const projectIds = snapshot.docs.map(doc => doc.id);
+
+    // Fetch all votes in parallel
+    const votesPromises = projectIds.map(id =>
+      db.collection('project_votes')
+        .where('project_id', '==', id)
+        .get()
+    );
+    const votesSnapshots = await Promise.all(votesPromises);
+    const voteMap = new Map();
+    votesSnapshots.forEach((votesSnapshot, index) => {
+      const score = votesSnapshot.docs.reduce((sum, d) => sum + (d.data().vote_type || 0), 0);
+      voteMap.set(projectIds[index], score);
+    });
+
+    // Build response
+    const projects = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      vote_score: voteMap.get(doc.id) || 0
+    }));
+
+    // Sort by created_at descending in JavaScript
+    projects.sort((a, b) => {
+      const aDate = a.created_at?.toDate ? a.created_at.toDate() : new Date(0);
+      const bDate = b.created_at?.toDate ? b.created_at.toDate() : new Date(0);
+      return bDate - aDate;
+    });
+
+    res.json(projects);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };

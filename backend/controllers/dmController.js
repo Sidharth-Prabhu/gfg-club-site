@@ -1,22 +1,60 @@
-import pool from '../config/db.js';
+import admin, { db } from '../config/firebase.js';
 import { createNotification } from './notificationController.js';
 
 export const getConversations = async (req, res) => {
     try {
         const userId = req.user.id;
-        // Fetch conversations with the other participant's details
-        const [rows] = await pool.execute(`
-            SELECT c.*, 
-                   u.id as other_user_id, u.name as other_user_name, u.profile_pic as other_user_pic,
-                   u.role as other_user_role, u.email as other_user_email,
-                   (SELECT content FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message,
-                   (SELECT COUNT(*) FROM messages WHERE conversation_id = c.id AND sender_id != ? AND is_read = FALSE) as unread_count
-            FROM conversations c
-            JOIN users u ON (c.user1_id = ? AND c.user2_id = u.id) OR (c.user2_id = ? AND c.user1_id = u.id)
-            WHERE c.user1_id = ? OR c.user2_id = ?
-            ORDER BY c.last_message_at DESC
-        `, [userId, userId, userId, userId, userId]);
-        res.json(rows);
+        
+        const allConversations = await db.collection('conversations').get();
+        const conversations = [];
+        
+        for (const doc of allConversations.docs) {
+            const convData = doc.data();
+            
+            // Check if user is part of this conversation
+            if (convData.user1_id !== userId && convData.user2_id !== userId) continue;
+            
+            const otherUserId = convData.user1_id === userId ? convData.user2_id : convData.user1_id;
+            const otherUserDoc = await db.collection('users').doc(otherUserId).get();
+            const otherUserData = otherUserDoc.data();
+            
+            // Get last message
+            const lastMessageSnapshot = await db.collection('messages')
+                .where('conversation_id', '==', doc.id)
+                .orderBy('created_at', 'desc')
+                .limit(1)
+                .get();
+            
+            const lastMessage = lastMessageSnapshot.empty ? null : lastMessageSnapshot.docs[0].data().content;
+            
+            // Get unread count
+            const unreadSnapshot = await db.collection('messages')
+                .where('conversation_id', '==', doc.id)
+                .where('sender_id', '!=', userId)
+                .where('is_read', '==', false)
+                .get();
+            
+            conversations.push({
+                id: doc.id,
+                ...convData,
+                other_user_id: otherUserId,
+                other_user_name: otherUserData?.name,
+                other_user_pic: otherUserData?.profile_pic,
+                other_user_role: otherUserData?.role,
+                other_user_email: otherUserData?.email,
+                last_message: lastMessage,
+                unread_count: unreadSnapshot.size
+            });
+        }
+        
+        // Sort by last_message_at descending
+        conversations.sort((a, b) => {
+            const aTime = a.last_message_at?.toMillis?.() || 0;
+            const bTime = b.last_message_at?.toMillis?.() || 0;
+            return bTime - aTime;
+        });
+        
+        res.json(conversations);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -25,25 +63,40 @@ export const getConversations = async (req, res) => {
 export const getMessages = async (req, res) => {
     const { conversationId } = req.params;
     const userId = req.user.id;
+    
     try {
         // Verify user is part of conversation
-        const [conv] = await pool.execute(
-            'SELECT * FROM conversations WHERE id = ? AND (user1_id = ? OR user2_id = ?)',
-            [conversationId, userId, userId]
-        );
-        if (conv.length === 0) return res.status(403).json({ message: 'Unauthorized access to conversation' });
+        const convRef = db.collection('conversations').doc(conversationId);
+        const convDoc = await convRef.get();
+        
+        if (!convDoc.exists || (convDoc.data().user1_id !== userId && convDoc.data().user2_id !== userId)) {
+            return res.status(403).json({ message: 'Unauthorized access to conversation' });
+        }
 
         // Mark messages as read
-        await pool.execute(
-            'UPDATE messages SET is_read = TRUE WHERE conversation_id = ? AND sender_id != ?',
-            [conversationId, userId]
-        );
+        const unreadMessagesSnapshot = await db.collection('messages')
+            .where('conversation_id', '==', conversationId)
+            .where('sender_id', '!=', userId)
+            .where('is_read', '==', false)
+            .get();
+        
+        const batch = db.batch();
+        unreadMessagesSnapshot.docs.forEach(doc => {
+            batch.update(doc.ref, { is_read: true });
+        });
+        await batch.commit();
 
-        const [rows] = await pool.execute(
-            'SELECT * FROM messages WHERE conversation_id = ? ORDER BY created_at ASC',
-            [conversationId]
-        );
-        res.json(rows);
+        const messagesSnapshot = await db.collection('messages')
+            .where('conversation_id', '==', conversationId)
+            .orderBy('created_at', 'asc')
+            .get();
+        
+        const messages = messagesSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        
+        res.json(messages);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -55,27 +108,61 @@ export const sendMessage = async (req, res) => {
     const senderRole = req.user.role;
     const senderName = req.user.name;
 
-    if (!content || !receiverId) return res.status(400).json({ message: 'Invalid data' });
+    if (!content || !receiverId) {
+        return res.status(400).json({ message: 'Invalid data' });
+    }
 
     try {
         // Guest user restrictions
         if (senderRole === 'Guest') {
             // Check if receiver is a coordinator of an event the guest is in
-            const [allowed] = await pool.execute(`
-                SELECT e.organizer 
-                FROM event_registrations er
-                JOIN events e ON er.event_id = e.id
-                JOIN users u ON u.name = e.organizer
-                WHERE er.user_id = ? AND u.id = ?
-            `, [senderId, receiverId]);
-
-            if (allowed.length === 0) {
+            const eventRegsSnapshot = await db.collection('event_registrations')
+                .where('user_id', '==', senderId)
+                .get();
+            
+            let isAllowed = false;
+            
+            for (const doc of eventRegsSnapshot.docs) {
+                const regData = doc.data();
+                const eventDoc = await db.collection('events').doc(regData.event_id).get();
+                const eventData = eventDoc.data();
+                
+                if (eventData?.organizer) {
+                    const organizerSnapshot = await db.collection('users')
+                        .where('name', '==', eventData.organizer)
+                        .where('id', '==', receiverId)
+                        .get();
+                    
+                    if (!organizerSnapshot.empty) {
+                        isAllowed = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (!isAllowed) {
                 // Also check if the receiver has messaged the guest first (reply allowed)
-                const [existing] = await pool.execute(
-                    'SELECT id FROM messages WHERE sender_id = ? AND conversation_id IN (SELECT id FROM conversations WHERE user1_id = ? OR user2_id = ?)',
-                    [receiverId, senderId, senderId]
-                );
-                if (existing.length === 0) {
+                const allConversations = await db.collection('conversations').get();
+                let hasReplied = false;
+                
+                for (const convDoc of allConversations.docs) {
+                    const convData = convDoc.data();
+                    if ((convData.user1_id === senderId && convData.user2_id === receiverId) ||
+                        (convData.user1_id === receiverId && convData.user2_id === senderId)) {
+                        
+                        const messagesSnapshot = await db.collection('messages')
+                            .where('conversation_id', '==', convDoc.id)
+                            .where('sender_id', '==', receiverId)
+                            .get();
+                        
+                        if (!messagesSnapshot.empty) {
+                            hasReplied = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (!hasReplied) {
                     return res.status(403).json({ message: 'Guest users can only DM coordinators of their registered events.' });
                 }
             }
@@ -85,36 +172,51 @@ export const sendMessage = async (req, res) => {
         const user1 = Math.min(senderId, receiverId);
         const user2 = Math.max(senderId, receiverId);
 
-        let [conv] = await pool.execute(
-            'SELECT id FROM conversations WHERE user1_id = ? AND user2_id = ?',
-            [user1, user2]
-        );
-
         let conversationId;
-        if (conv.length === 0) {
-            const [result] = await pool.execute(
-                'INSERT INTO conversations (user1_id, user2_id) VALUES (?, ?)',
-                [user1, user2]
-            );
-            conversationId = result.insertId;
-        } else {
-            conversationId = conv[0].id;
+        let foundConv = null;
+        
+        const allConversations = await db.collection('conversations').get();
+        for (const convDoc of allConversations.docs) {
+            const convData = convDoc.data();
+            if (convData.user1_id === user1 && convData.user2_id === user2) {
+                foundConv = convDoc;
+                conversationId = convDoc.id;
+                break;
+            }
+        }
+
+        if (!foundConv) {
+            const convRef = db.collection('conversations').doc();
+            await convRef.set({
+                user1_id: user1,
+                user2_id: user2,
+                last_message_at: admin.firestore.FieldValue.serverTimestamp(),
+                created_at: admin.firestore.FieldValue.serverTimestamp()
+            });
+            conversationId = convRef.id;
         }
 
         // Insert message
-        await pool.execute(
-            'INSERT INTO messages (conversation_id, sender_id, content) VALUES (?, ?, ?)',
-            [conversationId, senderId, content]
-        );
+        await db.collection('messages').add({
+            conversation_id: conversationId,
+            sender_id: senderId,
+            content,
+            is_read: false,
+            created_at: admin.firestore.FieldValue.serverTimestamp()
+        });
 
         // Update last_message_at
-        await pool.execute(
-            'UPDATE conversations SET last_message_at = CURRENT_TIMESTAMP WHERE id = ?',
-            [conversationId]
-        );
+        await db.collection('conversations').doc(conversationId).update({
+            last_message_at: admin.firestore.FieldValue.serverTimestamp()
+        });
 
         // Notify receiver
-        await createNotification(receiverId, 'dm', `${senderName} sent you a message: ${content.substring(0, 30)}${content.length > 30 ? '...' : ''}`, `/dashboard`);
+        await createNotification(
+            receiverId, 
+            'dm', 
+            `${senderName} sent you a message: ${content.substring(0, 30)}${content.length > 30 ? '...' : ''}`, 
+            '/dashboard'
+        );
 
         res.status(201).json({ message: 'Message sent', conversationId });
     } catch (error) {
@@ -130,27 +232,79 @@ export const searchMembersForDM = async (req, res) => {
     try {
         if (userRole === 'Guest') {
             // Guests can only search for coordinators of their events
-            const [rows] = await pool.execute(`
-                SELECT DISTINCT u.id, u.name, u.profile_pic, u.role, u.email
-                FROM users u
-                JOIN events e ON u.name = e.organizer
-                JOIN event_registrations er ON e.id = er.event_id
-                WHERE er.user_id = ? AND u.name LIKE ?
-            `, [userId, `%${query}%`]);
-            return res.json(rows);
+            const eventRegsSnapshot = await db.collection('event_registrations')
+                .where('user_id', '==', userId)
+                .get();
+            
+            const organizerIds = new Set();
+            
+            for (const doc of eventRegsSnapshot.docs) {
+                const regData = doc.data();
+                const eventDoc = await db.collection('events').doc(regData.event_id).get();
+                const eventData = eventDoc.data();
+                
+                if (eventData?.organizer) {
+                    const organizerSnapshot = await db.collection('users')
+                        .where('name', '==', eventData.organizer)
+                        .get();
+                    
+                    organizerSnapshot.docs.forEach(d => organizerIds.add(d.id));
+                }
+            }
+            
+            const results = [];
+            for (const orgId of organizerIds) {
+                const userDoc = await db.collection('users').doc(orgId).get();
+                const userData = userDoc.data();
+                if (userData?.name?.toLowerCase().includes(query?.toLowerCase())) {
+                    results.push({
+                        id: orgId,
+                        name: userData.name,
+                        profile_pic: userData.profile_pic,
+                        role: userData.role,
+                        email: userData.email
+                    });
+                }
+            }
+            
+            return res.json(results.slice(0, 10));
         } else {
             // Members can search for anyone except guests (unless already in conversation)
-            const [rows] = await pool.execute(`
-                SELECT id, name, profile_pic, role, email 
-                FROM users 
-                WHERE id != ? AND (role != 'Guest' OR id IN (
-                    SELECT user1_id FROM conversations WHERE user2_id = ?
-                    UNION
-                    SELECT user2_id FROM conversations WHERE user1_id = ?
-                )) AND name LIKE ?
-                LIMIT 10
-            `, [userId, userId, userId, `%${query}%`]);
-            res.json(rows);
+            // First, get existing conversation partners
+            const allConversations = await db.collection('conversations').get();
+            const conversationPartnerIds = new Set();
+            
+            for (const convDoc of allConversations.docs) {
+                const convData = convDoc.data();
+                if (convData.user1_id === userId) {
+                    conversationPartnerIds.add(convData.user2_id);
+                } else if (convData.user2_id === userId) {
+                    conversationPartnerIds.add(convData.user1_id);
+                }
+            }
+            
+            const usersSnapshot = await db.collection('users').get();
+            const results = [];
+            
+            for (const doc of usersSnapshot.docs) {
+                const userData = doc.data();
+                
+                if (doc.id === userId) continue;
+                if (userData.role === 'Guest' && !conversationPartnerIds.has(doc.id)) continue;
+                if (!userData.name?.toLowerCase().includes(query?.toLowerCase())) continue;
+                
+                results.push({
+                    id: doc.id,
+                    name: userData.name,
+                    profile_pic: userData.profile_pic,
+                    role: userData.role,
+                    email: userData.email
+                });
+                
+                if (results.length >= 10) break;
+            }
+            
+            res.json(results);
         }
     } catch (error) {
         res.status(500).json({ message: error.message });

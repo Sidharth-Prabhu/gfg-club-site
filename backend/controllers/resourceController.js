@@ -1,4 +1,4 @@
-import pool from '../config/db.js';
+import admin, { db } from '../config/firebase.js';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
@@ -8,7 +8,7 @@ export const searchGfgResources = async (req, res) => {
 
   try {
     const results = [];
-    
+
     // Strategy 1: Try WP API (most reliable for raw data)
     try {
         const wpApiUrl = `https://www.geeksforgeeks.org/wp-json/wp/v2/search?search=${encodeURIComponent(query)}&per_page=10`;
@@ -47,8 +47,8 @@ export const searchGfgResources = async (req, res) => {
             headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36' }
         });
         const $ = cheerio.load(html);
-        const container = $('.SearchPageResults_searchPageContainer__wbmJa');
-        
+        const container = $('.SearchPageresults_searchPageContainer__wbmJa');
+
         container.find('a').each((i, el) => {
             const href = $(el).attr('href');
             const text = $(el).text().trim();
@@ -61,8 +61,8 @@ export const searchGfgResources = async (req, res) => {
 
     // Filter out irrelevant corporate and noise links
     const noiseKeywords = [
-        'privacy policy', 'corporate solution', 'campus training', 
-        'upskill courses', 'terms & conditions', 'contact us', 
+        'privacy policy', 'corporate solution', 'campus training',
+        'upskill courses', 'terms & conditions', 'contact us',
         'advertise with us', 'practice problems', 'jobs', 'courses'
     ];
 
@@ -89,17 +89,17 @@ export const fetchGfgArticle = async (req, res) => {
 
   try {
     const { data: html } = await axios.get(url, {
-        headers: { 
+        headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
         }
     });
 
     const $ = cheerio.load(html);
-    
+
     // Select the main article content based on the provided technical structure
     // Prioritize the deep nested .content inside the viewer
     let article = $('.article--viewer_content .content, .MainArticleContent_articleMainContentCss__b_1_R .content, .article-body, .article-content').first();
-    
+
     // Fallback if specific classes are not present
     if (article.length === 0) {
         article = $('.a-wrapper .content, .entry-content, article').first();
@@ -110,12 +110,12 @@ export const fetchGfgArticle = async (req, res) => {
 
     // Clean up unwanted elements before processing
     article.find(`
-        .adsbygoogle, .sideBar, .rightSideBar, script, style, .social-share, 
-        .improve-article, .article-author, .meta, .breadcrumb, .outbrain, 
+        .adsbygoogle, .sideBar, .rightSideBar, script, style, .social-share,
+        .improve-article, .article-author, .meta, .breadcrumb, .outbrain,
         .copyright, .article-action, .copy-code-button, .article-header-extras,
         .ArticleThreeDot_threedotcontainer__dfGWD
     `).remove();
-    
+
     // Ensure images have absolute URLs and are styled for our theme
     article.find('img').each((i, el) => {
         let src = $(el).attr('src') || $(el).attr('data-src');
@@ -150,7 +150,7 @@ export const fetchGfgCourses = async (req, res) => {
   try {
     const { category, search } = req.query;
     let url = 'https://www.geeksforgeeks.org/courses';
-    
+
     if (category && category !== 'all') {
         url = `https://www.geeksforgeeks.org/courses/category/${category}`;
     } else if (search) {
@@ -158,7 +158,7 @@ export const fetchGfgCourses = async (req, res) => {
     }
 
     const { data: html } = await axios.get(url, {
-        headers: { 
+        headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.9'
@@ -167,15 +167,15 @@ export const fetchGfgCourses = async (req, res) => {
 
     const $ = cheerio.load(html);
     const nextDataHtml = $('#__NEXT_DATA__').html();
-    
+
     if (!nextDataHtml) {
         throw new Error('Could not find __NEXT_DATA__ payload');
     }
 
     const nextData = JSON.parse(nextDataHtml);
-    
+
     let coursesData = [];
-    
+
     // Recursive search for ANY array that contains course-like objects
     const findCourseArrays = (obj) => {
         if (Array.isArray(obj)) {
@@ -243,20 +243,20 @@ export const fetchGfgCourseDetail = async (req, res) => {
   try {
     const url = `https://www.geeksforgeeks.org/courses/${slug}`;
     const { data: html } = await axios.get(url, {
-        headers: { 
+        headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
         }
     });
 
     const $ = cheerio.load(html);
     const nextDataHtml = $('#__NEXT_DATA__').html();
-    
+
     if (!nextDataHtml) {
         throw new Error('Could not find __NEXT_DATA__ payload');
     }
 
     const nextData = JSON.parse(nextDataHtml);
-    
+
     // Recursive search for the course detail object (main data)
     const findCourseDetail = (obj) => {
         if (obj && obj.course_id && obj.course_name && obj.course_overview) return obj;
@@ -287,10 +287,10 @@ export const fetchGfgCourseDetail = async (req, res) => {
     // Trailer Logic: Specifically check for video/iframe in the requested container
     const leftCol = $('.courseCard_card__bdkG_ .courseCard_leftcolumn__xfME9, .courseCard_leftcolumn__xfME9');
     let trailer = null;
-    
+
     const videoSrc = leftCol.find('video source').attr('src') || leftCol.find('video').attr('src');
     const iframeSrc = leftCol.find('iframe').attr('src');
-    
+
     if (videoSrc) trailer = videoSrc;
     else if (iframeSrc) trailer = iframeSrc;
     else if (detail?.intro_video_link?.link) trailer = detail.intro_video_link.link;
@@ -305,12 +305,12 @@ export const fetchGfgCourseDetail = async (req, res) => {
         const description = $('.courseCard_card__bdkG_ .courseCard_details__uzX2H').html() || $('.courseCard_card__bdkG_').html() || '';
         const overview = $('.courseOverview_overview__J_eul').html() || '';
         const content = $('.coursesSlug_course_content_container__4GwEh').html() || '';
-        
-        return res.json({ 
-            title, 
-            description, 
-            overview, 
-            content, 
+
+        return res.json({
+            title,
+            description,
+            overview,
+            content,
             trailer,
             price: batchFee ? `₹${batchFee}` : 'Check Site',
             original_price: originalPrice ? `₹${originalPrice}` : null,
@@ -343,16 +343,24 @@ export const fetchGfgCourseDetail = async (req, res) => {
 
 export const getResources = async (req, res) => {
   const { category } = req.query;
+  
   try {
-    let sql = 'SELECT * FROM resources';
-    const params = [];
+    let query = db.collection('resources');
+    
     if (category && category !== 'All') {
-      sql += ' WHERE category = ?';
-      params.push(category);
+      query = query.where('category', '==', category);
     }
-    sql += ' ORDER BY created_at DESC';
-    const [rows] = await pool.execute(sql, params);
-    res.json(rows);
+    
+    query = query.orderBy('created_at', 'desc');
+    
+    const snapshot = await query.get();
+    
+    const resources = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    
+    res.json(resources);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -362,13 +370,22 @@ export const createResource = async (req, res) => {
   if (req.user.role !== 'Admin') {
     return res.status(403).json({ message: 'Only Admins can deploy global nodes' });
   }
+  
   const { title, description, link, category } = req.body;
+  
   try {
-    const [result] = await pool.execute(
-      'INSERT INTO resources (title, description, link, category) VALUES (?, ?, ?, ?)',
-      [title, description, link, category]
-    );
-    res.status(201).json({ id: result.insertId, title, description, link, category });
+    const resourceRef = db.collection('resources').doc();
+    const resourceData = {
+      title,
+      description: description || null,
+      link,
+      category: category || null,
+      created_at: admin.firestore.FieldValue.serverTimestamp()
+    };
+    
+    await resourceRef.set(resourceData);
+    
+    res.status(201).json({ id: resourceRef.id, title, description, link, category });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -378,8 +395,9 @@ export const deleteResource = async (req, res) => {
   if (req.user.role !== 'Admin') {
     return res.status(403).json({ message: 'Only Admins can terminate global nodes' });
   }
+  
   try {
-    await pool.execute('DELETE FROM resources WHERE id = ?', [req.params.id]);
+    await db.collection('resources').doc(req.params.id).delete();
     res.json({ message: 'Resource deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });

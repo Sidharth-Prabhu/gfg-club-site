@@ -68,17 +68,42 @@ const PostDetail = () => {
   }, [post, user]);
 
   const handleReactPost = async () => {
+    const wasLiked = post.reaction_count > 0;
+    const newCount = wasLiked ? post.reaction_count - 1 : post.reaction_count + 1;
+    
+    // Optimistic update
+    setPost(prev => ({ ...prev, reaction_count: newCount }));
+    
     try {
       await api.post('/discussions/react', { postId: post.id });
-      fetchPost();
-    } catch (error) { console.error('React failed'); }
+    } catch (error) {
+      // Revert on error
+      setPost(prev => ({ ...prev, reaction_count: wasLiked ? prev.reaction_count + 1 : prev.reaction_count - 1 }));
+      console.error('React failed:', error.response?.data || error.message);
+    }
   };
 
   const handleReactComment = async (commentId) => {
+    const comment = comments.find(c => c.id === commentId);
+    if (!comment) return;
+    
+    const wasLiked = comment.reaction_count > 0;
+    const newCount = wasLiked ? comment.reaction_count - 1 : comment.reaction_count + 1;
+    
+    // Optimistic update
+    setComments(prev => prev.map(c => 
+      c.id === commentId ? { ...c, reaction_count: newCount } : c
+    ));
+    
     try {
       await api.post('/discussions/react-comment', { commentId });
-      fetchComments();
-    } catch (error) { console.error('Comment react failed'); }
+    } catch (error) {
+      // Revert on error
+      setComments(prev => prev.map(c => 
+        c.id === commentId ? { ...c, reaction_count: wasLiked ? c.reaction_count + 1 : c.reaction_count - 1 } : c
+      ));
+      console.error('Comment react failed');
+    }
   };
 
   const handleDeletePost = async () => {
@@ -125,15 +150,36 @@ const PostDetail = () => {
     e.preventDefault();
     if (!user) return navigate('/login');
     if (!mainComment.trim()) return;
+    
+    const newComment = {
+      id: 'temp-' + Date.now(),
+      user_id: user.id,
+      post_id: post.id,
+      content: mainComment,
+      parent_id: null,
+      created_at: { _seconds: Date.now() / 1000 },
+      author_name: user.name,
+      author_role: user.role,
+      author_pic: user.profile_pic,
+      reaction_count: 0
+    };
+    
+    // Optimistic update
+    setComments(prev => [...prev, newComment]);
+    setMainComment('');
+    
     try {
       await api.post('/discussions/comments', { 
         postId: post.id, 
         content: mainComment,
         parentId: null
       });
-      setMainComment('');
-      fetchComments();
-    } catch (error) { alert('Failed to add comment'); }
+      fetchComments(); // Refresh to get real ID and timestamp
+    } catch (error) {
+      // Remove optimistic comment on error
+      setComments(prev => prev.filter(c => c.id !== newComment.id));
+      alert('Failed to add comment');
+    }
   };
 
   const handleAddReply = async (content, parentId) => {
@@ -269,7 +315,7 @@ const PostDetail = () => {
                 {group ? `GROUP: ${group.title}` : 'COMMUNITY'}
               </span>
               <div className="flex gap-1.5">
-                {post.tags?.split(',').map((tag, i) => (
+                {(Array.isArray(post.tags) ? post.tags : post.tags?.split(',') || []).map((tag, i) => (
                   <span key={i} className="text-[8px] font-black text-text/40 bg-card/60 border border-border px-3 py-1 rounded-full uppercase tracking-widest backdrop-blur-sm italic">
                     #{tag.trim()}
                   </span>
@@ -441,7 +487,7 @@ const PostDetail = () => {
                       <span className="text-[8px] font-black uppercase tracking-widest italic">Tags</span>
                    </div>
                    <div className="flex flex-wrap gap-1.5">
-                      {post?.tags?.split(',').map((tag, i) => (
+                      {(Array.isArray(post?.tags) ? post.tags : post?.tags?.split(',') || []).map((tag, i) => (
                         <span key={i} className="text-[8px] font-black text-text bg-background border border-border px-3 py-1.5 rounded-lg uppercase tracking-widest shadow-sm italic">
                           {tag.trim()}
                         </span>

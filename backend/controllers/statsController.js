@@ -1,15 +1,23 @@
-import pool from '../config/db.js';
+import { db } from '../config/firebase.js';
 
 export const getCampusStats = async (req, res) => {
   try {
-    const [membersCount] = await pool.execute('SELECT COUNT(*) as total FROM users');
-    const [problemsSum] = await pool.execute('SELECT SUM(problems_solved) as total FROM users');
-    const [activeCoders] = await pool.execute('SELECT COUNT(*) as total FROM users WHERE problems_solved > 0');
+    const membersSnapshot = await db.collection('users').get();
+    const membersCount = membersSnapshot.size;
     
+    let totalProblemsSolved = 0;
+    let activeCoders = 0;
+    
+    membersSnapshot.docs.forEach(doc => {
+      const userData = doc.data();
+      totalProblemsSolved += (userData.problems_solved || 0);
+      if (userData.problems_solved > 0) activeCoders++;
+    });
+
     res.json({
-      totalMembers: membersCount[0].total || 0,
-      totalProblemsSolved: parseInt(problemsSum[0].total) || 0,
-      activeCoders: activeCoders[0].total || 0,
+      totalMembers: membersCount,
+      totalProblemsSolved,
+      activeCoders,
       weeklyContests: 12 // static or derived from events
     });
   } catch (error) {
@@ -20,13 +28,34 @@ export const getCampusStats = async (req, res) => {
 export const getUserActivity = async (req, res) => {
   try {
     const userId = req.user.id;
-    // Get last 365 days of activity
-    const [rows] = await pool.execute(
-      'SELECT DATE_FORMAT(activity_date, "%Y-%m-%d") as date, problems_solved as count FROM user_activity WHERE user_id = ? AND activity_date >= DATE_SUB(CURDATE(), INTERVAL 364 DAY) ORDER BY activity_date ASC',
-      [userId]
-    );
     
-    res.json(rows);
+    // Get last 365 days of activity
+    const snapshot = await db.collection('user_activity')
+      .where('user_id', '==', userId)
+      .get();
+    
+    const activities = [];
+    const today = new Date();
+    const oneYearAgo = new Date(today);
+    oneYearAgo.setDate(oneYearAgo.getDate() - 364);
+    
+    for (const doc of snapshot.docs) {
+      const activityData = doc.data();
+      const activityDate = activityData.activity_date;
+      
+      // Filter for last 365 days
+      if (activityDate >= oneYearAgo.toISOString().split('T')[0]) {
+        activities.push({
+          date: activityData.activity_date,
+          count: activityData.problems_solved || 0
+        });
+      }
+    }
+    
+    // Sort by date ascending
+    activities.sort((a, b) => a.date.localeCompare(b.date));
+    
+    res.json(activities);
   } catch (error) {
     console.error('Error fetching user activity:', error.message);
     res.json([]);

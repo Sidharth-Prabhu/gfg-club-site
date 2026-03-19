@@ -1,21 +1,49 @@
-import pool from '../config/db.js';
+import { db } from '../config/firebase.js';
+import admin from 'firebase-admin';
 import { notifyAll, createNotification } from './notificationController.js';
 
 export const getDiscussionById = async (req, res) => {
   const { id } = req.params;
+  
   try {
-    const sql = `
-      SELECT d.*, u.name as author_name, u.role as author_role, u.profile_pic as author_pic,
-      (SELECT COUNT(*) FROM post_reactions WHERE post_id = d.id) as reaction_count,
-      (SELECT COUNT(*) FROM post_comments WHERE post_id = d.id) as comment_count,
-      (SELECT GROUP_CONCAT(tag) FROM post_tags WHERE post_id = d.id) as tags
-      FROM discussions d 
-      JOIN users u ON d.author_id = u.id 
-      WHERE d.id = ?
-    `;
-    const [rows] = await pool.execute(sql, [id]);
-    if (rows.length === 0) return res.status(404).json({ message: 'Post not found' });
-    res.json(rows[0]);
+    const discussionRef = db.collection('discussions').doc(id);
+    const discussionDoc = await discussionRef.get();
+    
+    if (!discussionDoc.exists) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    
+    const discussionData = discussionDoc.data();
+    const userDoc = await db.collection('users').doc(discussionData.author_id).get();
+    const userData = userDoc.data();
+    
+    // Get reaction count
+    const reactionsSnapshot = await db.collection('post_reactions')
+      .where('post_id', '==', id)
+      .get();
+    
+    // Get comment count
+    const commentsSnapshot = await db.collection('post_comments')
+      .where('post_id', '==', id)
+      .get();
+    
+    // Get tags
+    const tagsSnapshot = await db.collection('post_tags')
+      .where('post_id', '==', id)
+      .get();
+    
+    const tags = tagsSnapshot.docs.map(doc => doc.data().tag);
+    
+    res.json({
+      id: discussionDoc.id,
+      ...discussionData,
+      author_name: userData?.name,
+      author_role: userData?.role,
+      author_pic: userData?.profile_pic,
+      reaction_count: reactionsSnapshot.size,
+      comment_count: commentsSnapshot.size,
+      tags
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -26,49 +54,149 @@ export const getDiscussions = async (req, res) => {
   const userId = req.user?.id;
 
   try {
-    let sql = `
-      SELECT d.*, u.name as author_name, u.role as author_role, u.profile_pic as author_pic,
-      (SELECT COUNT(*) FROM post_reactions WHERE post_id = d.id) as reaction_count,
-      (SELECT COUNT(*) FROM post_comments WHERE post_id = d.id) as comment_count,
-      (SELECT GROUP_CONCAT(tag) FROM post_tags WHERE post_id = d.id) as tags
-      FROM discussions d 
-      JOIN users u ON d.author_id = u.id 
-      WHERE 1=1
-    `;
-    const params = [];
+    let query = db.collection('discussions');
 
     if (groupId) {
-      sql += ` AND d.group_id = ?`;
-      params.push(groupId);
+      query = query.where('group_id', '==', groupId);
     } else if (authorId) {
-      sql += ` AND d.author_id = ?`;
-      params.push(authorId);
-    } else {
-      // Main Broadcast Feed
-      if (userId) {
-        // Logged in: Public posts OR posts from user's joined groups
-        sql += ` AND (d.group_id IS NULL OR d.group_id IN (SELECT group_id FROM group_members WHERE user_id = ? AND status = 'Accepted'))`;
-        params.push(userId);
-      } else {
-        // Not logged in: only Public posts
-        sql += ` AND d.group_id IS NULL`;
+      query = query.where('author_id', '==', authorId);
+    }
+
+    const snapshot = await query.get();
+
+    if (snapshot.empty) {
+      return res.json([]);
+    }
+
+    let discussions = [];
+    const authorIds = new Set();
+
+    for (const doc of snapshot.docs) {
+      const discussionData = doc.data();
+
+      // Filter for main broadcast feed
+      if (!groupId && !authorId) {
+        if (userId) {
+          // Logged in: Public posts OR posts from user's joined groups
+          if (discussionData.group_id) {
+            const membershipCheck = await db.collection('group_members')
+              .where('group_id', '==', discussionData.group_id)
+              .where('user_id', '==', userId)
+              .where('status', '==', 'Accepted')
+              .get();
+
+            if (membershipCheck.empty) continue;
+          }
+        } else {
+          // Not logged in: only Public posts
+          if (discussionData.group_id) continue;
+        }
       }
+
+      // Search filter
+      if (search) {
+        const searchLower = search.toLowerCase();
+        if (!discussionData.title?.toLowerCase().includes(searchLower) &&
+            !discussionData.content?.toLowerCase().includes(searchLower)) {
+          continue;
+        }
+      }
+
+      // Tag filter
+      if (tag) {
+        const tagCheck = await db.collection('post_tags')
+          .where('post_id', '==', doc.id)
+          .where('tag', '==', tag)
+          .get();
+
+        if (tagCheck.empty) continue;
+      }
+
+      authorIds.add(discussionData.author_id);
+
+      discussions.push({
+        id: doc.id,
+        ...discussionData,
+        author_name: '',
+        author_role: '',
+        author_pic: '',
+        reaction_count: 0,
+        comment_count: 0,
+        tags: []
+      });
     }
 
-    if (search) {
-      sql += ` AND (d.title LIKE ? OR d.content LIKE ?)`;
-      params.push(`%${search}%`, `%${search}%`);
-    }
+    // Fetch all authors in parallel
+    const authorDocs = await Promise.all(
+      [...authorIds].map(id => db.collection('users').doc(id).get())
+    );
+    const authorMap = new Map();
+    authorDocs.forEach(doc => {
+      if (doc.exists) {
+        const data = doc.data();
+        authorMap.set(doc.id, { name: data.name, role: data.role, profile_pic: data.profile_pic });
+      }
+    });
 
-    if (tag) {
-      sql += ` AND d.id IN (SELECT post_id FROM post_tags WHERE tag = ?)`;
-      params.push(tag);
-    }
+    // Fetch all reactions in parallel
+    const discussionsForReactions = discussions.map(d => d.id);
+    const reactionsPromises = discussionsForReactions.map(id =>
+      db.collection('post_reactions')
+        .where('post_id', '==', id)
+        .get()
+    );
+    const reactionsSnapshots = await Promise.all(reactionsPromises);
+    const reactionMap = new Map();
+    reactionsSnapshots.forEach((snapshot, index) => {
+      reactionMap.set(discussionsForReactions[index], snapshot.size);
+    });
 
-    sql += ` ORDER BY d.created_at DESC`;
+    // Fetch all comments in parallel
+    const commentsPromises = discussionsForReactions.map(id =>
+      db.collection('post_comments')
+        .where('post_id', '==', id)
+        .get()
+    );
+    const commentsSnapshots = await Promise.all(commentsPromises);
+    const commentMap = new Map();
+    commentsSnapshots.forEach((snapshot, index) => {
+      commentMap.set(discussionsForReactions[index], snapshot.size);
+    });
 
-    const [rows] = await pool.execute(sql, params);
-    res.json(rows);
+    // Fetch all tags in parallel
+    const tagsPromises = discussionsForReactions.map(id =>
+      db.collection('post_tags')
+        .where('post_id', '==', id)
+        .get()
+    );
+    const tagsSnapshots = await Promise.all(tagsPromises);
+    const tagsMap = new Map();
+    tagsSnapshots.forEach((snapshot, index) => {
+      tagsMap.set(discussionsForReactions[index], snapshot.docs.map(d => d.data().tag));
+    });
+
+    // Update discussions with fetched data
+    discussions = discussions.map(disc => {
+      const author = authorMap.get(disc.author_id) || {};
+      return {
+        ...disc,
+        author_name: author.name || 'Unknown',
+        author_role: author.role || 'Unknown',
+        author_pic: author.profile_pic || null,
+        reaction_count: reactionMap.get(disc.id) || 0,
+        comment_count: commentMap.get(disc.id) || 0,
+        tags: tagsMap.get(disc.id) || []
+      };
+    });
+
+    // Sort by created_at descending in JavaScript
+    discussions.sort((a, b) => {
+      const aDate = a.created_at?.toDate ? a.created_at.toDate() : new Date(0);
+      const bDate = b.created_at?.toDate ? b.created_at.toDate() : new Date(0);
+      return bDate - aDate;
+    });
+
+    res.json(discussions);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -86,48 +214,66 @@ export const createDiscussion = async (req, res) => {
       }
 
       // Check if user is a member of the group
-      const [membership] = await pool.execute(
-        'SELECT * FROM group_members WHERE group_id = ? AND user_id = ? AND status = "Accepted"',
-        [groupId, authorId]
-      );
-      if (membership.length === 0) {
+      const membershipCheck = await db.collection('group_members')
+        .where('group_id', '==', groupId)
+        .where('user_id', '==', authorId)
+        .where('status', '==', 'Accepted')
+        .get();
+      
+      if (membershipCheck.empty) {
         return res.status(403).json({ message: 'Only accepted members can post in this group' });
       }
     }
 
-    const [result] = await pool.execute(
-      'INSERT INTO discussions (title, content, author_id, group_id) VALUES (?, ?, ?, ?)',
-      [title, content, authorId, groupId || null]
-    );
-    const postId = result.insertId;
+    const discussionRef = db.collection('discussions').doc();
+    const discussionData = {
+      title,
+      content,
+      author_id: authorId,
+      group_id: groupId || null,
+      created_at: admin.firestore.FieldValue.serverTimestamp()
+    };
+    
+    await discussionRef.set(discussionData);
 
     if (tags && Array.isArray(tags)) {
+      const batch = db.batch();
       for (const tag of tags) {
-        await pool.execute('INSERT INTO post_tags (post_id, tag) VALUES (?, ?)', [postId, tag]);
+        const tagRef = db.collection('post_tags').doc();
+        batch.set(tagRef, { post_id: discussionRef.id, tag });
       }
+      await batch.commit();
     }
 
     // Notifications
-    const [authorRows] = await pool.execute('SELECT name FROM users WHERE id = ?', [authorId]);
-    const authorName = authorRows[0].name;
+    const userDoc = await db.collection('users').doc(authorId).get();
+    const authorName = userDoc.data().name;
 
     if (groupId) {
-        const [groupRows] = await pool.execute('SELECT name FROM groups WHERE id = ?', [groupId]);
-        const groupName = groupRows[0].name;
+      const groupDoc = await db.collection('community_groups').doc(groupId).get();
+      const groupName = groupDoc.data().title;
+
+      const membersSnapshot = await db.collection('group_members')
+        .where('group_id', '==', groupId)
+        .where('status', '==', 'Accepted')
+        .get();
+      
+      for (const doc of membersSnapshot.docs) {
+        const memberId = doc.data().user_id;
+        if (memberId === authorId) continue;
         
-        const [members] = await pool.execute(
-            'SELECT user_id FROM group_members WHERE group_id = ? AND status = "Accepted"',
-            [groupId]
+        await createNotification(
+          memberId, 
+          'community', 
+          `${authorName} posted in ${groupName}: ${title}`, 
+          `/community/post/${discussionRef.id}`
         );
-        for (const member of members) {
-            if (member.user_id === authorId) continue;
-            await createNotification(member.user_id, 'community', `${authorName} posted in ${groupName}: ${title}`, `/community/post/${postId}`);
-        }
+      }
     } else {
-        await notifyAll('community', `${authorName} shared a new post: ${title}`, `/community/post/${postId}`, authorId);
+      await notifyAll('community', `${authorName} shared a new post: ${title}`, `/community/post/${discussionRef.id}`, authorId);
     }
 
-    res.status(201).json({ id: postId, title, content, authorId, groupId });
+    res.status(201).json({ id: discussionRef.id, title, content, authorId, groupId });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -139,22 +285,37 @@ export const updateDiscussion = async (req, res) => {
   const { id: userId, role } = req.user;
 
   try {
-    const [rows] = await pool.execute('SELECT author_id FROM discussions WHERE id = ?', [postId]);
-    if (rows.length === 0) return res.status(404).json({ message: 'Post not found' });
-
-    if (rows[0].author_id !== userId && role !== 'Admin' && role !== 'Core') {
+    const discussionRef = db.collection('discussions').doc(postId);
+    const discussionDoc = await discussionRef.get();
+    
+    if (!discussionDoc.exists) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    
+    const discussionData = discussionDoc.data();
+    
+    if (discussionData.author_id !== userId && role !== 'Admin' && role !== 'Core') {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    await pool.execute('UPDATE discussions SET title = ?, content = ? WHERE id = ?', [title, content, postId]);
-    
+    await discussionRef.update({ title, content });
+
     // Update tags: remove old, add new
-    await pool.execute('DELETE FROM post_tags WHERE post_id = ?', [postId]);
+    const oldTagsSnapshot = await db.collection('post_tags')
+      .where('post_id', '==', postId)
+      .get();
+    
+    const batch = db.batch();
+    oldTagsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+    
     if (tags && Array.isArray(tags)) {
       for (const tag of tags) {
-        await pool.execute('INSERT INTO post_tags (post_id, tag) VALUES (?, ?)', [postId, tag]);
+        const tagRef = db.collection('post_tags').doc();
+        batch.set(tagRef, { post_id: postId, tag });
       }
     }
+    
+    await batch.commit();
 
     res.json({ message: 'Post updated successfully' });
   } catch (error) {
@@ -167,14 +328,20 @@ export const deleteDiscussion = async (req, res) => {
   const { id: userId, role } = req.user;
 
   try {
-    const [rows] = await pool.execute('SELECT author_id FROM discussions WHERE id = ?', [postId]);
-    if (rows.length === 0) return res.status(404).json({ message: 'Post not found' });
-
-    if (rows[0].author_id !== userId && role !== 'Admin' && role !== 'Core') {
+    const discussionRef = db.collection('discussions').doc(postId);
+    const discussionDoc = await discussionRef.get();
+    
+    if (!discussionDoc.exists) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    
+    const discussionData = discussionDoc.data();
+    
+    if (discussionData.author_id !== userId && role !== 'Admin' && role !== 'Core') {
       return res.status(403).json({ message: 'Not authorized to delete this post' });
     }
 
-    await pool.execute('DELETE FROM discussions WHERE id = ?', [postId]);
+    await discussionRef.delete();
     res.json({ message: 'Post deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -183,33 +350,104 @@ export const deleteDiscussion = async (req, res) => {
 
 export const reactToPost = async (req, res) => {
   const { postId } = req.body;
-  const userId = req.user.id;
+  const userId = req.user?.id;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID not found in token' });
+  }
 
   try {
-    const [existing] = await pool.execute('SELECT * FROM post_reactions WHERE user_id = ? AND post_id = ?', [userId, postId]);
-    if (existing.length > 0) {
-      await pool.execute('DELETE FROM post_reactions WHERE user_id = ? AND post_id = ?', [userId, postId]);
+    // First try to find by user_id only (no index needed)
+    const existingSnapshot = await db.collection('post_reactions')
+      .where('user_id', '==', userId)
+      .get();
+
+    // Filter by post_id in JavaScript
+    const existingReaction = existingSnapshot.docs.find(doc => doc.data().post_id === postId);
+
+    if (existingReaction) {
+      // Remove reaction
+      await db.collection('post_reactions').doc(existingReaction.id).delete();
       return res.json({ message: 'Reaction removed' });
     }
-    await pool.execute('INSERT INTO post_reactions (user_id, post_id, reaction_type) VALUES (?, ?, "like")', [userId, postId]);
+
+    // Add reaction
+    await db.collection('post_reactions').add({
+      user_id: userId,
+      post_id: postId,
+      reaction_type: 'like',
+      created_at: admin.firestore.FieldValue.serverTimestamp()
+    });
+
     res.status(201).json({ message: 'Reaction added' });
   } catch (error) {
+    console.error('React error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
 export const getComments = async (req, res) => {
   try {
-    const [rows] = await pool.execute(
-      `SELECT c.*, u.name as author_name, u.role as author_role, u.profile_pic as author_pic,
-       (SELECT COUNT(*) FROM comment_reactions WHERE comment_id = c.id) as reaction_count
-       FROM post_comments c 
-       JOIN users u ON c.user_id = u.id 
-       WHERE c.post_id = ? 
-       ORDER BY c.created_at ASC`,
-      [req.params.postId]
+    const snapshot = await db.collection('post_comments')
+      .where('post_id', '==', req.params.postId)
+      .get();
+
+    if (snapshot.empty) {
+      return res.json([]);
+    }
+
+    const comments = [];
+    const userIds = new Set();
+
+    for (const doc of snapshot.docs) {
+      const commentData = doc.data();
+      userIds.add(commentData.user_id);
+
+      const reactionsSnapshot = await db.collection('comment_reactions')
+        .where('comment_id', '==', doc.id)
+        .get();
+
+      comments.push({
+        id: doc.id,
+        ...commentData,
+        author_name: '',
+        author_role: '',
+        author_pic: '',
+        reaction_count: reactionsSnapshot.size
+      });
+    }
+
+    // Fetch all authors in parallel
+    const authorDocs = await Promise.all(
+      [...userIds].map(id => db.collection('users').doc(id).get())
     );
-    res.json(rows);
+    const authorMap = new Map();
+    authorDocs.forEach(doc => {
+      if (doc.exists) {
+        const data = doc.data();
+        authorMap.set(doc.id, { name: data.name, role: data.role, profile_pic: data.profile_pic });
+      }
+    });
+
+    // Update comments with author data
+    const result = comments.map(comment => {
+      const author = authorMap.get(comment.user_id) || {};
+      return {
+        ...comment,
+        author_name: author.name || 'Unknown',
+        author_role: author.role || 'Unknown',
+        author_pic: author.profile_pic || null
+      };
+    });
+
+    // Sort by created_at ascending in JavaScript
+    result.sort((a, b) => {
+      const aDate = a.created_at?.toDate ? a.created_at.toDate() : new Date(0);
+      const bDate = b.created_at?.toDate ? b.created_at.toDate() : new Date(0);
+      return aDate - bDate;
+    });
+
+    res.json(result);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -220,10 +458,14 @@ export const addComment = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    await pool.execute(
-      'INSERT INTO post_comments (user_id, post_id, content, parent_id) VALUES (?, ?, ?, ?)', 
-      [userId, postId, content, parentId || null]
-    );
+    await db.collection('post_comments').add({
+      user_id: userId,
+      post_id: postId,
+      content,
+      parent_id: parentId || null,
+      created_at: admin.firestore.FieldValue.serverTimestamp()
+    });
+    
     res.status(201).json({ message: 'Comment added' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -236,14 +478,20 @@ export const updateComment = async (req, res) => {
   const { id: userId, role } = req.user;
 
   try {
-    const [rows] = await pool.execute('SELECT user_id FROM post_comments WHERE id = ?', [commentId]);
-    if (rows.length === 0) return res.status(404).json({ message: 'Comment not found' });
-
-    if (rows[0].user_id !== userId && role !== 'Admin' && role !== 'Core') {
+    const commentRef = db.collection('post_comments').doc(commentId);
+    const commentDoc = await commentRef.get();
+    
+    if (!commentDoc.exists) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+    
+    const commentData = commentDoc.data();
+    
+    if (commentData.user_id !== userId && role !== 'Admin' && role !== 'Core') {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    await pool.execute('UPDATE post_comments SET content = ? WHERE id = ?', [content, commentId]);
+    await commentRef.update({ content });
     res.json({ message: 'Comment updated successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -255,14 +503,20 @@ export const deleteComment = async (req, res) => {
   const { id: userId, role } = req.user;
 
   try {
-    const [rows] = await pool.execute('SELECT user_id FROM post_comments WHERE id = ?', [commentId]);
-    if (rows.length === 0) return res.status(404).json({ message: 'Comment not found' });
-
-    if (rows[0].user_id !== userId && role !== 'Admin' && role !== 'Core') {
+    const commentRef = db.collection('post_comments').doc(commentId);
+    const commentDoc = await commentRef.get();
+    
+    if (!commentDoc.exists) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+    
+    const commentData = commentDoc.data();
+    
+    if (commentData.user_id !== userId && role !== 'Admin' && role !== 'Core') {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    await pool.execute('DELETE FROM post_comments WHERE id = ?', [commentId]);
+    await commentRef.delete();
     res.json({ message: 'Comment deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -274,12 +528,23 @@ export const reactToComment = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    const [existing] = await pool.execute('SELECT * FROM comment_reactions WHERE user_id = ? AND comment_id = ?', [userId, commentId]);
-    if (existing.length > 0) {
-      await pool.execute('DELETE FROM comment_reactions WHERE user_id = ? AND comment_id = ?', [userId, commentId]);
+    const existingSnapshot = await db.collection('comment_reactions')
+      .where('user_id', '==', userId)
+      .get();
+
+    const existingReaction = existingSnapshot.docs.find(doc => doc.data().comment_id === commentId);
+
+    if (existingReaction) {
+      await db.collection('comment_reactions').doc(existingReaction.id).delete();
       return res.json({ message: 'Reaction removed' });
     }
-    await pool.execute('INSERT INTO comment_reactions (user_id, comment_id) VALUES (?, ?)', [userId, commentId]);
+
+    await db.collection('comment_reactions').add({
+      user_id: userId,
+      comment_id: commentId,
+      created_at: admin.firestore.FieldValue.serverTimestamp()
+    });
+
     res.status(201).json({ message: 'Reaction added' });
   } catch (error) {
     res.status(500).json({ message: error.message });

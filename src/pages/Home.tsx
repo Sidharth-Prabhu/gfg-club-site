@@ -301,7 +301,7 @@ const Home = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {[
-            { name: 'Sidharth Prabhu', role: 'President & Tech Lead', img: '/src/assets/hero.png' },
+            { name: 'John Doe', role: 'President & Tech Lead', img: '/src/assets/hero.png' },
             { name: 'Dr. Jane Doe', role: 'Faculty Coordinator', img: '/src/assets/hero.png' },
             { name: 'Alex Matrix', role: 'Vice President', img: '/src/assets/hero.png' },
             { name: 'Sarah Logic', role: 'Events Head', img: '/src/assets/hero.png' }

@@ -1,23 +1,27 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import pool from '../config/db.js';
+import admin, { db, auth } from '../config/firebase.js';
 
 const updateStreak = async (userId) => {
     try {
-        const [rows] = await pool.execute('SELECT last_login, streak FROM users WHERE id = ?', [userId]);
-        const user = rows[0];
+        const userRef = db.collection('users').doc(userId);
+        const userDoc = await userRef.get();
         
+        if (!userDoc.exists) return;
+        
+        const user = userDoc.data();
+
         // Get local date in YYYY-MM-DD format
         const today = new Date().toLocaleDateString('en-CA');
-        
+
         // If first time logging in
         if (!user.last_login) {
-            await pool.execute('UPDATE users SET last_login = ?, streak = 1 WHERE id = ?', [today, userId]);
+            await userRef.update({ last_login: today, streak: 1 });
             return;
         }
 
         const lastLoginStr = new Date(user.last_login).toLocaleDateString('en-CA');
-        
+
         // Logic: Same day login - do nothing
         if (lastLoginStr === today) {
             return;
@@ -30,10 +34,13 @@ const updateStreak = async (userId) => {
 
         if (diffDays === 1) {
             // Consecutive day login - increment
-            await pool.execute('UPDATE users SET last_login = ?, streak = streak + 1 WHERE id = ?', [today, userId]);
+            await userRef.update({ 
+                last_login: today, 
+                streak: admin.firestore.FieldValue.increment(1) 
+            });
         } else if (diffDays > 1) {
             // Missed one or more days - reset to 1
-            await pool.execute('UPDATE users SET last_login = ?, streak = 1 WHERE id = ?', [today, userId]);
+            await userRef.update({ last_login: today, streak: 1 });
         }
     } catch (err) {
         console.error('Streak Update Error:', err.message);
@@ -44,22 +51,24 @@ export const getUserProfile = async (req, res) => {
   try {
     await updateStreak(req.user.id);
 
-    const [rows] = await pool.execute(
-      `SELECT id, name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile, 
-       problems_solved, gfg_solved, gfg_score, leetcode_solved, github_repos, weekly_points, streak, role, 
-       last_login, created_at, skills, about, resume_url, status, profile_pic,
-       (SELECT COUNT(*) FROM post_comments WHERE user_id = users.id) as comment_count,
-       (SELECT COUNT(*) FROM discussions WHERE author_id = users.id) as discussion_count
-       FROM users WHERE id = ?`,
-      [req.user.id]
-    );
-    const user = rows[0];
-
-    if (user) {
-      res.json(user);
-    } else {
-      res.status(404).json({ message: 'User not found' });
+    const userRef = db.collection('users').doc(req.user.id);
+    const userDoc = await userRef.get();
+    
+    if (!userDoc.exists) {
+      return res.status(404).json({ message: 'User not found' });
     }
+
+    const user = { id: userDoc.id, ...userDoc.data() };
+
+    // Get counts from subcollections
+    const commentCount = (await db.collection('post_comments').where('user_id', '==', req.user.id).get()).size;
+    const discussionCount = (await db.collection('discussions').where('author_id', '==', req.user.id).get()).size;
+
+    res.json({
+      ...user,
+      comment_count: commentCount,
+      discussion_count: discussionCount
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -68,18 +77,26 @@ export const getUserProfile = async (req, res) => {
 export const getUserProfileById = async (req, res) => {
   const { id } = req.params;
   try {
-    const [rows] = await pool.execute(
-      `SELECT id, name, email, department, year, gfg_profile, leetcode_profile, github_profile, 
-       problems_solved, gfg_solved, gfg_score, leetcode_solved, github_repos, streak, role, created_at, 
-       skills, about, profile_pic,
-       (SELECT COUNT(*) FROM discussions WHERE author_id = users.id) as discussion_count,
-       (SELECT COUNT(*) FROM post_comments WHERE user_id = users.id) as comment_count,
-       (SELECT COUNT(*) FROM projects WHERE created_by = users.id AND status = 'Approved') as project_count
-       FROM users WHERE id = ? AND status = 'Approved'`,
-      [id]
-    );
-    if (rows.length === 0) return res.status(404).json({ message: 'User not found or not approved' });
-    res.json(rows[0]);
+    const userRef = db.collection('users').doc(id);
+    const userDoc = await userRef.get();
+    
+    if (!userDoc.exists || userDoc.data().status !== 'Approved') {
+      return res.status(404).json({ message: 'User not found or not approved' });
+    }
+
+    const user = { id: userDoc.id, ...userDoc.data() };
+
+    // Get counts from subcollections
+    const discussionCount = (await db.collection('discussions').where('author_id', '==', id).get()).size;
+    const commentCount = (await db.collection('post_comments').where('user_id', '==', id).get()).size;
+    const projectCount = (await db.collection('projects').where('created_by', '==', id).where('status', '==', 'Approved').get()).size;
+
+    res.json({
+      ...user,
+      discussion_count: discussionCount,
+      comment_count: commentCount,
+      project_count: projectCount
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -88,11 +105,29 @@ export const getUserProfileById = async (req, res) => {
 export const getApplicants = async (req, res) => {
   const userRole = String(req.user.role).trim();
   if (userRole !== 'Admin') return res.status(403).json({ message: 'Admin access required' });
+
   try {
-    const [rows] = await pool.execute(
-      'SELECT id, name, email, department, year, gfg_profile, leetcode_profile, github_profile, skills, about, resume_url, created_at, profile_pic FROM users WHERE status = "Pending" ORDER BY created_at DESC'
-    );
-    res.json(rows);
+    const snapshot = await db.collection('users')
+      .where('status', '==', 'Pending')
+      .get();
+
+    if (snapshot.empty) {
+      return res.json([]);
+    }
+
+    const users = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    // Sort by created_at descending in JavaScript
+    users.sort((a, b) => {
+      const aDate = a.created_at?.toDate ? a.created_at.toDate() : new Date(0);
+      const bDate = b.created_at?.toDate ? b.created_at.toDate() : new Date(0);
+      return bDate - aDate;
+    });
+
+    res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -101,8 +136,9 @@ export const getApplicants = async (req, res) => {
 export const approveUser = async (req, res) => {
   if (req.user.role !== 'Admin') return res.status(403).json({ message: 'Admin access required' });
   const { id } = req.params;
+  
   try {
-    await pool.execute('UPDATE users SET status = "Approved" WHERE id = ?', [id]);
+    await db.collection('users').doc(id).update({ status: 'Approved' });
     res.json({ message: 'User approved' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -112,8 +148,9 @@ export const approveUser = async (req, res) => {
 export const rejectUser = async (req, res) => {
   if (req.user.role !== 'Admin') return res.status(403).json({ message: 'Admin access required' });
   const { id } = req.params;
+  
   try {
-    await pool.execute('UPDATE users SET status = "Rejected" WHERE id = ?', [id]);
+    await db.collection('users').doc(id).update({ status: 'Rejected' });
     res.json({ message: 'User rejected' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -126,14 +163,22 @@ export const updateUserProfile = async (req, res) => {
   try {
     // Restrict Guest users from updating sensitive fields
     const isGuest = req.user.role === 'Guest';
-    const finalSkills = isGuest ? null : skills;
-    const finalAbout = isGuest ? null : about;
-    const finalProfilePic = isGuest ? null : profile_pic;
+    
+    const updateData = {
+      name,
+      email: email?.toLowerCase(),
+      department: department || null,
+      year: year || null,
+      gfg_profile: gfg_profile || null,
+      leetcode_profile: leetcode_profile || null,
+      codeforces_profile: codeforces_profile || null,
+      github_profile: github_profile || null,
+      skills: isGuest ? null : skills || null,
+      about: isGuest ? null : about || null,
+      profile_pic: isGuest ? null : profile_pic || null,
+    };
 
-    await pool.execute(
-      'UPDATE users SET name = ?, email = ?, department = ?, year = ?, gfg_profile = ?, leetcode_profile = ?, codeforces_profile = ?, github_profile = ?, skills = ?, about = ?, profile_pic = ? WHERE id = ?',
-      [name, email, department, year, gfg_profile, leetcode_profile, codeforces_profile, github_profile, finalSkills, finalAbout, finalProfilePic, req.user.id]
-    );
+    await db.collection('users').doc(req.user.id).update(updateData);
     res.json({ message: 'Profile updated successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -142,9 +187,11 @@ export const updateUserProfile = async (req, res) => {
 
 export const syncProfiles = async (req, res) => {
   const userId = req.user.id;
+  
   try {
-    const [rows] = await pool.execute('SELECT gfg_profile, leetcode_profile, github_profile FROM users WHERE id = ?', [userId]);
-    const user = rows[0];
+    const userRef = db.collection('users').doc(userId);
+    const userDoc = await userRef.get();
+    const user = userDoc.data();
 
     let gfgSolved = 0;
     let gfgScore = 0;
@@ -185,7 +232,7 @@ export const syncProfiles = async (req, res) => {
 
         const targetUrl = `https://www.geeksforgeeks.org/profile/${username}?tab=activity`;
         const { data: html } = await axios.get(targetUrl, {
-            headers: { 
+            headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8'
             }
@@ -204,7 +251,7 @@ export const syncProfiles = async (req, res) => {
         for (const match of solvedMatches) {
             if (match[1]) solvedSlugs.push(match[1]);
         }
-        
+
         const slugMatches = html.matchAll(/"slug":"([^"]+)"/g);
         for (const match of slugMatches) {
             if (match[1] && !match[1].includes('/') && match[1].length > 2) solvedSlugs.push(match[1]);
@@ -217,25 +264,37 @@ export const syncProfiles = async (req, res) => {
 
     const totalSolved = gfgSolved + leetcodeSolved;
 
-    await pool.execute(
-      'UPDATE users SET gfg_solved = ?, gfg_score = ?, leetcode_solved = ?, github_repos = ?, problems_solved = ?, last_synced = CURRENT_TIMESTAMP WHERE id = ?',
-      [gfgSolved, gfgScore, leetcodeSolved, githubRepos, totalSolved, userId]
-    );
+    await userRef.update({
+      gfg_solved: gfgSolved,
+      gfg_score: gfgScore,
+      leetcode_solved: leetcodeSolved,
+      github_repos: githubRepos,
+      problems_solved: totalSolved,
+      last_synced: admin.firestore.FieldValue.serverTimestamp()
+    });
 
     if (solvedSlugs.length > 0) {
+        const batch = db.batch();
         for (const slug of solvedSlugs) {
-            await pool.execute(
-                'INSERT IGNORE INTO solved_problems (user_id, problem_slug) VALUES (?, ?)',
-                [userId, slug]
-            );
+            const docRef = db.collection('solved_problems').doc(`${userId}_${slug}`);
+            batch.set(docRef, { user_id: userId, problem_slug: slug });
         }
+        await batch.commit();
     }
 
-    const [existing] = await pool.execute('SELECT * FROM user_activity WHERE user_id = ? AND activity_date = CURDATE()', [userId]);
-    if (existing.length > 0) {
-      await pool.execute('UPDATE user_activity SET problems_solved = ? WHERE id = ?', [totalSolved, existing[0].id]);
+    // Update user activity
+    const today = new Date().toLocaleDateString('en-CA');
+    const activityRef = db.collection('user_activity').doc(`${userId}_${today}`);
+    const activityDoc = await activityRef.get();
+    
+    if (activityDoc.exists) {
+      await activityRef.update({ problems_solved: totalSolved });
     } else {
-      await pool.execute('INSERT INTO user_activity (user_id, activity_date, problems_solved) VALUES (?, CURDATE(), ?)', [userId, totalSolved]);
+      await activityRef.set({
+        user_id: userId,
+        activity_date: today,
+        problems_solved: totalSolved
+      });
     }
 
     res.json({ message: 'Sync successful', stats: { gfgSolved, gfgScore, leetcodeSolved, githubRepos, totalSolved } });
