@@ -38,3 +38,6 @@ build/
 # Logs
 *.log
 npm-debug.log*
+
+# Private Keys and Secrets
+tourist-safety-4761a-firebase-adminsdk-fbsvc-b522aaa436.json

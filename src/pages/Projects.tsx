@@ -223,7 +223,7 @@ const Projects = () => {
                   </div>
                   <div className="space-y-2">
                     <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Stack (CSV)</label>
-                    <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-sm font-bold text-text shadow-inner transition-colors italic" placeholder="React, MySQL, Python..." value={formData.tech_stack} onChange={(e) => setFormData({...formData, tech_stack: e.target.value})} />
+                    <input required type="text" className="w-full bg-background border-2 border-border rounded-xl py-3 px-5 focus:border-accent outline-none text-sm font-bold text-text shadow-inner transition-colors italic" placeholder="React, Firebase, Python..." value={formData.tech_stack} onChange={(e) => setFormData({...formData, tech_stack: e.target.value})} />
                   </div>
                   <div className="space-y-2">
                     <label className="block text-[8px] font-black text-text/40 uppercase tracking-[0.2em] ml-2">Classification</label>

@@ -57,11 +57,11 @@ const Register = () => {
     setError('');
     setLoading(true);
     try {
-      const response = await api.post('/auth/register', formData);
-      setUserRole(response.data.role);
+      const { data } = await api.post('/auth/register', formData);
+      setUserRole(data.role);
       setSubmitted(true);
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed.');
+      setError(err.response?.data?.message || err.message || 'Registration failed.');
     } finally {
       setLoading(false);
     }

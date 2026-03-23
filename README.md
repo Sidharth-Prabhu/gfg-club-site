@@ -57,9 +57,10 @@ Below is a walkthrough of the platform's key features and user interface.
 *   **Framer Motion** for smooth animations and interactive feedback.
 *   **Recharts** for visualizing coding analytics.
 
-**Backend:**
-*   **Node.js** & **Express** for a robust and scalable API.
-*   **MySQL** for structured data management.
+**Backend / Data Layer:**
+*   **Firebase Firestore** for NoSQL data management.
+*   **Firebase Authentication** for secure user login and registration.
+*   **100% Serverless Frontend Architecture** (No Express.js node backend needed).
 *   **JWT** for secure, token-based authentication.
 
 ---
@@ -82,20 +83,26 @@ The platform dynamically synchronizes with GeeksforGeeks through a multi-layered
 
 ### Prerequisites
 *   Node.js (v18+)
-*   MySQL Server
 
-### 1. Setup Backend
-```bash
-cd backend
-npm install
-# Configure your .env file with DB credentials
-npm run dev
-```
+### Setup Instructions
 
-### 2. Setup Frontend
 ```bash
-# From the root directory
+# Clone the repository
+git clone https://github.com/Sidharth-Prabhu/gfg-club-site.git
+cd gfg-club-site
+
+# Install dependencies
 npm install
+
+# Create a .env file and add your Firebase configuration
+# VITE_FIREBASE_API_KEY=...
+# VITE_FIREBASE_AUTH_DOMAIN=...
+# VITE_FIREBASE_PROJECT_ID=...
+# VITE_FIREBASE_STORAGE_BUCKET=...
+# VITE_FIREBASE_MESSAGING_SENDER_ID=...
+# VITE_FIREBASE_APP_ID=...
+
+# Run the development server
 npm run dev
 ```
 

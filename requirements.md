@@ -29,7 +29,7 @@ The platform should function as a **coding ecosystem for students**, not just a 
 
 ## Database
 
-* MySQL
+* Firebase
 
 ## Authentication
 
@@ -39,7 +39,7 @@ The platform should function as a **coding ecosystem for students**, not just a 
 
 Frontend: Vercel / Netlify
 Backend: Railway / Render
-Database: MySQL
+Database: Firebase
 
 ---
 
@@ -392,7 +392,7 @@ backend
 
 ---
 
-# MySQL Database Schema
+# Firebase Database Layout
 
 ## Users
 
@@ -588,7 +588,7 @@ The AI agent should generate:
 
 1. Full React frontend
 2. Express backend
-3. MySQL schema
+3. Firebase data modeling
 4. API endpoints
 5. Authentication system
 6. Dashboard analytics

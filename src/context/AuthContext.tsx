@@ -1,53 +1,43 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import api from '../services/api';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext<any>(null);
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        const parsedUser = JSON.parse(savedUser);
-        // If user has no token, they need to re-login
-        if (!parsedUser.token) {
-          localStorage.removeItem('user');
-          setUser(null);
-        } else {
-          setUser(parsedUser);
+    const initAuth = async () => {
+      try {
+        const savedUserId = localStorage.getItem('userId');
+        if (savedUserId) {
+          const { data } = await api.get('/users/me');
+          setUser(data);
         }
+      } catch (error) {
+        console.error('Error loading user:', error);
+        localStorage.removeItem('userId');
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error loading user from storage:', error);
-      localStorage.removeItem('user');
-    }
-    setLoading(false);
+    };
+    initAuth();
   }, []);
 
-  const login = (userData) => {
-    // Make sure we store the complete user data including token
-    const updatedUser = {
-      id: userData.id,
-      name: userData.name,
-      email: userData.email,
-      role: userData.role,
-      status: userData.status,
-      token: userData.token // This is crucial!
-    };
-    setUser(updatedUser);
-    localStorage.setItem('user', JSON.stringify(updatedUser));
+  const login = (userData: any) => {
+    setUser(userData);
+    localStorage.setItem('userId', userData.id);
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
+    localStorage.removeItem('userId');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
-      {children}
+    <AuthContext.Provider value={{ user, setUser, login, logout, loading }}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 };
