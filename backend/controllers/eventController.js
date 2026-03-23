@@ -183,8 +183,8 @@ export const getMyInvitations = async (req, res) => {
             `SELECT er.id as reg_id, e.title as event_title, t.name as team_name, u.name as inviter_name, e.id as event_id
              FROM event_registrations er
              JOIN events e ON er.event_id = e.id
-             JOIN teams t ON er.team_id = t.id
-             JOIN users u ON t.leader_id = u.id
+             LEFT JOIN teams t ON er.team_id = t.id
+             LEFT JOIN users u ON t.leader_id = u.id
              WHERE er.user_id = ? AND er.status = 'Pending'`,
             [userId]
         );

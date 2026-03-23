@@ -373,20 +373,21 @@ const Dashboard = () => {
 
       {/* Notifications Queue */}
       <AnimatePresence>
-          {invitations.length > 0 && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-blue-500/5 border border-blue-500/20 p-6 rounded-3xl shadow-xl space-y-4 overflow-hidden">
-                  <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500 border border-blue-500/20"><FontAwesomeIcon icon={faUserPlus} /></div>
-                      <h2 className="text-xl font-black text-text uppercase tracking-tight italic">Pending Invitations</h2>
-                  </div>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-blue-500/5 border border-blue-500/20 p-6 rounded-3xl shadow-xl space-y-4">
+              <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500 border border-blue-500/20"><FontAwesomeIcon icon={faUserPlus} /></div>
+                  <h2 className="text-xl font-black text-text uppercase tracking-tight italic">Pending Invitations</h2>
+              </div>
+              {invitations.length > 0 ? (
                   <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {invitations.map(inv => (
                             <div key={inv.reg_id} className="bg-card border border-border p-4 rounded-xl space-y-3 shadow-sm hover:border-blue-500/50 transition-colors">
                                 <div>
                                     <p className="text-[8px] font-black text-blue-500 uppercase tracking-widest mb-0.5">Team Invitation</p>
-                                    <h4 className="text-sm font-black text-text uppercase italic">{inv.team_name}</h4>
+                                    <h4 className="text-sm font-black text-text uppercase italic">{inv.team_name || 'Team'}</h4>
                                     <p className="text-[8px] font-bold text-text/40 uppercase tracking-widest">Event: {inv.event_title}</p>
+                                    {inv.inviter_name && <p className="text-[8px] font-bold text-text/40 uppercase tracking-widest mt-1">From: {inv.inviter_name}</p>}
                                 </div>
                                 <div className="flex gap-2">
                                     <button onClick={() => handleRespondInv(inv.reg_id, 'Accepted')} className="flex-1 bg-accent/10 hover:bg-accent text-accent hover:text-white border border-accent/20 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">Accept</button>
@@ -396,8 +397,12 @@ const Dashboard = () => {
                         ))}
                     </div>
                   </div>
-              </motion.div>
-          )}
+              ) : (
+                  <div className="py-8 text-center bg-card/30 rounded-2xl border border-border border-dashed">
+                      <p className="text-text/30 font-black tracking-widest uppercase text-[10px] italic">No pending team invitations.</p>
+                  </div>
+              )}
+          </motion.div>
       </AnimatePresence>
 
       {/* Moderation Sector */}
